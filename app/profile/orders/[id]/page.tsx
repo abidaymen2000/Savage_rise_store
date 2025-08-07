@@ -83,7 +83,16 @@ export default function OrderDetailPage() {
         return status
     }
   }
-
+  
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      await api.cancelOrder(orderId)
+      // une fois la commande annulée, on redirige l’utilisateur
+      router.push("/profile?tab=orders")
+    } catch (error) {
+      console.error("Error cancelling order:", error)
+    }
+  }
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
@@ -209,7 +218,7 @@ export default function OrderDetailPage() {
                   <Button
                     variant="outline"
                     className="w-full border-red-600 text-red-400 hover:bg-red-900/20"
-                    onClick={() => { /* Implement cancel logic here */ }}
+                    onClick={() => handleCancelOrder(order.id)}
                   >
                     Annuler la commande
                   </Button>

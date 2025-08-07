@@ -72,27 +72,36 @@ export default function ContactPage() {
                 <Mail className="h-6 w-6 text-gold" />
                 <div>
                   <p className="font-semibold">Email</p>
-                  <p className="text-gray-300">support@savagerise.com</p>
+                  <p className="text-gray-300">Savage.rise.tn@gmail.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <Phone className="h-6 w-6 text-gold" />
                 <div>
                   <p className="font-semibold">Téléphone</p>
-                  <p className="text-gray-300">+33 1 23 45 67 89</p>
+                  <p className="text-gray-300">+216 21 461 637</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              {/* <div className="flex items-center gap-4">
                 <MapPin className="h-6 w-6 text-gold" />
                 <div>
                   <p className="font-semibold">Adresse</p>
                   <p className="text-gray-300">123 Rue de la Mode</p>
                   <p className="text-gray-300">75001 Paris, France</p>
                 </div>
-              </div>
+              </div> */}
               {/* You can embed a map here if desired */}
-              <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center text-gray-500">
-                Carte ici (ex: Google Maps embed)
+              <div className="w-full h-64 rounded-lg overflow-hidden">
+                <iframe
+                  title="Carte de Sfax"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10000!2d10.698422!3d34.740556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd71381aec5a5f%3A0x27268cbb18b19e0!2sSfax%2C%20Tunisie!5e0!3m2!1sfr!2sus!4v1691400000000!5m2!1sfr!2sus"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             </CardContent>
           </Card>
