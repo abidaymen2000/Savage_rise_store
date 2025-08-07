@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -8,14 +8,24 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
+import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RotateCcw, Star, Loader2 } from 'lucide-react'
 import { api } from "@/lib/api"
 import { useCart } from "@/contexts/CartContext"
-import type { Product } from "@/types/api"
+import { useAuth } from "@/contexts/AuthContext"
+import AuthModal from "@/app/components/AuthModal"
+import type { Product, Variant, Review, WishlistItem } from "@/types/api"
+import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
+import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import WishlistButton from "@/components/WishlistButton"
+import ProductReviewSection from "@/components/ProductReviewSection"
 
 export default function ProductDetailPage() {
   const params = useParams()
   const productId = params.id as string
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const [showAuthModal, setShowAuthModal] = useState(false)
+
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,39 +33,173 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState<string>("")
   const [selectedSize, setSelectedSize] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
+  const [currentVariant, setCurrentVariant] = useState<Variant | null>(null)
   const { addToCart } = useCart()
 
-  useEffect(() => {
-    async function fetchProduct() {
-      try {
-        setLoading(true)
-        setError(null)
-        console.log("Fetching product:", productId)
-        const data = await api.getProduct(productId)
-        console.log("Product loaded:", data.name)
-        setProduct(data)
-        // Set default color if available
-        if (data.zip_color_options && data.zip_color_options.length > 0) {
-          setSelectedColor(data.zip_color_options[0])
-        }
-      } catch (err) {
-        console.error("Error fetching product:", err)
-        setError(err instanceof Error ? err.message : "Erreur lors du chargement du produit")
-      } finally {
-        setLoading(false)
-      }
-    }
+  // Wishlist state
+  const [userWishlist, setUserWishlist] = useState<WishlistItem[]>([])
+  const [isWishlistLoading, setIsWishlistLoading] = useState(true)
 
-    if (productId) {
-      fetchProduct()
+  // Review state
+  const [productReviews, setProductReviews] = useState<Review[]>([])
+  const [reviewStats, setReviewStats] = useState<{ average_rating: number | null; count: number } | null>(null)
+  const [loadingReviews, setLoadingReviews] = useState(true)
+  const [userRating, setUserRating] = useState<number | null>(null)
+  const [userComment, setUserComment] = useState("")
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null)
+
+  const fetchProductAndReviews = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log("Fetching product:", productId)
+      const data = await api.getProduct(productId)
+      console.log("Product loaded:", data.name)
+      setProduct(data)
+
+      // Set default color and variant if available
+      if (data.variants && data.variants.length > 0) {
+        const firstVariant = data.variants[0]
+        setSelectedColor(firstVariant.color)
+        setCurrentVariant(firstVariant)
+
+        // Set default size if available
+        if (firstVariant.sizes && firstVariant.sizes.length > 0) {
+          const firstAvailableSize = firstVariant.sizes.find((size) => size.stock > 0)
+          if (firstAvailableSize) {
+            setSelectedSize(firstAvailableSize.size)
+          }
+        }
+      }
+
+      // Fetch reviews and stats
+      setLoadingReviews(true)
+      const [reviews, stats] = await Promise.all([
+        api.getProductReviews(productId),
+        api.getReviewStats(productId),
+      ])
+      setProductReviews(reviews)
+      setReviewStats(stats)
+    } catch (err) {
+      console.error("Error fetching product or reviews:", err)
+      setError(err instanceof Error ? err.message : "Erreur lors du chargement du produit ou des avis")
+    } finally {
+      setLoading(false)
+      setLoadingReviews(false)
     }
   }, [productId])
 
+  const fetchUserWishlist = useCallback(async () => {
+    if (!isAuthenticated) {
+      setUserWishlist([])
+      setIsWishlistLoading(false)
+      return
+    }
+    try {
+      setIsWishlistLoading(true)
+      const wishlistData = await api.getWishlist()
+      setUserWishlist(wishlistData)
+    } catch (err) {
+      console.error("Error fetching wishlist:", err)
+      setUserWishlist([])
+    } finally {
+      setIsWishlistLoading(false)
+    }
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    if (productId) {
+      fetchProductAndReviews()
+    }
+  }, [productId, fetchProductAndReviews])
+
+  useEffect(() => {
+    fetchUserWishlist()
+  }, [isAuthenticated, fetchUserWishlist])
+
+  // Update current variant when color changes
+  useEffect(() => {
+    if (product && selectedColor) {
+      const variant = product.variants.find((v) => v.color === selectedColor)
+      setCurrentVariant(variant || null)
+      setSelectedImageIndex(0) // Reset image index when changing variant
+
+      // Reset size selection when changing color
+      if (variant && variant.sizes.length > 0) {
+        const firstAvailableSize = variant.sizes.find((size) => size.stock > 0)
+        setSelectedSize(firstAvailableSize ? firstAvailableSize.size : "")
+      }
+    }
+  }, [product, selectedColor])
+
   const handleAddToCart = () => {
-    if (product) {
-      addToCart(product, quantity, selectedColor, selectedSize)
+    if (product && currentVariant && selectedSize) {
+      addToCart(product, currentVariant, selectedSize, quantity)
     }
   }
+
+  const handleStarClick = (rating: number) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    setUserRating(rating);
+    setShowReviewForm(true);
+    setReviewError(null);
+    setReviewSuccess(null);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    if (!product || userRating === null) {
+      setReviewError("Veuillez sélectionner une note.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setReviewError(null);
+    setReviewSuccess(null);
+
+    try {
+      await api.addReview(product.id, userRating, userComment);
+      setReviewSuccess("Votre avis a été soumis avec succès !");
+      setUserRating(null);
+      setUserComment("");
+      setShowReviewForm(false);
+      await fetchProductAndReviews(); // Refresh reviews
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      setReviewError(err instanceof Error ? err.message : "Erreur lors de la soumission de l'avis.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const availableColors = product ? getAvailableColors(product) : []
+  const availableSizes = product ? getAvailableSizes(product, selectedColor) : []
+  const currentStock =
+    product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
+  const productInStock = product ? isProductInStock(product) : false
+
+  // Get current images to display
+  const currentImages = currentVariant?.images || []
+  const displayImages =
+    currentImages.length > 0
+      ? currentImages
+      : [
+          {
+            id: "placeholder",
+            url: "/placeholder.svg?height=600&width=600",
+            alt_text: product?.name || "Product image",
+            order: 1,
+          },
+        ]
 
   if (loading) {
     return (
@@ -103,18 +247,18 @@ export default function ProductDetailPage() {
           <div className="space-y-4">
             <div className="aspect-square relative overflow-hidden rounded-lg bg-gray-900">
               <Image
-                src={product.images[selectedImageIndex]?.url || "/placeholder.svg?height=600&width=600"}
-                alt={product.images[selectedImageIndex]?.alt_text || product.name}
+                src={displayImages[selectedImageIndex]?.url || "/placeholder.svg?height=600&width=600"}
+                alt={displayImages[selectedImageIndex]?.alt_text || product.name}
                 fill
                 className="object-cover"
               />
             </div>
 
-            {product.images.length > 1 && (
+            {displayImages.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {product.images.map((image, index) => (
+                {displayImages.map((image, index) => (
                   <button
-                    key={index}
+                    key={image.id || index}
                     onClick={() => setSelectedImageIndex(index)}
                     className={`aspect-square relative overflow-hidden rounded-lg ${
                       selectedImageIndex === index ? "ring-2 ring-gold" : ""
@@ -137,15 +281,20 @@ export default function ProductDetailPage() {
             <div>
               <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-2">{product.name}</h1>
               <p className="text-xl text-gray-400 mb-4">{product.full_name}</p>
-              <p className="text-3xl font-bold text-gold">{product.price.toFixed(2)} €</p>
+              <p className="text-3xl font-bold text-gold">{formatPrice(product.price)}</p>
             </div>
 
             {/* Stock Status */}
             <div>
-              {product.in_stock ? (
+              {productInStock ? (
                 <Badge className="bg-green-600 text-white">En stock</Badge>
               ) : (
                 <Badge className="bg-red-600 text-white">Rupture de stock</Badge>
+              )}
+              {selectedSize && currentStock > 0 && (
+                <span className="ml-2 text-sm text-gray-400">
+                  ({currentStock} disponible{currentStock > 1 ? "s" : ""})
+                </span>
               )}
             </div>
 
@@ -158,7 +307,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Color Selection */}
-            {product.zip_color_options && product.zip_color_options.length > 0 && (
+            {availableColors.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold mb-3">Couleur</h3>
                 <Select value={selectedColor} onValueChange={setSelectedColor}>
@@ -166,7 +315,7 @@ export default function ProductDetailPage() {
                     <SelectValue placeholder="Choisir une couleur" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900 border-gray-700">
-                    {product.zip_color_options.map((color) => (
+                    {availableColors.map((color) => (
                       <SelectItem key={color} value={color} className="text-white">
                         {color}
                       </SelectItem>
@@ -177,21 +326,27 @@ export default function ProductDetailPage() {
             )}
 
             {/* Size Selection */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Taille</h3>
-              <Select value={selectedSize} onValueChange={setSelectedSize}>
-                <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                  <SelectValue placeholder="Choisir une taille" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
-                    <SelectItem key={size} value={size} className="text-white">
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {availableSizes.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Taille</h3>
+                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue placeholder="Choisir une taille" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    {availableSizes.map((size) => {
+                      const stock = getStockForSize(product, selectedColor, size)
+                      return (
+                        <SelectItem key={size} value={size} className="text-white" disabled={stock === 0}>
+                          {size}{" "}
+                          {stock === 0 ? "(Rupture)" : stock < 5 ? `(${stock} restant${stock > 1 ? "s" : ""})` : ""}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Quantity */}
             <div>
@@ -201,7 +356,7 @@ export default function ProductDetailPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-900 border-gray-700">
-                  {[1, 2, 3, 4, 5].map((num) => (
+                  {Array.from({ length: Math.min(currentStock, 5) }, (_, i) => i + 1).map((num) => (
                     <SelectItem key={num} value={num.toString()} className="text-white">
                       {num}
                     </SelectItem>
@@ -214,19 +369,13 @@ export default function ProductDetailPage() {
             <div className="flex gap-4">
               <Button
                 onClick={handleAddToCart}
-                disabled={!product.in_stock}
+                disabled={!productInStock || !selectedSize || currentStock === 0}
                 className="flex-1 bg-gold text-black hover:bg-gold/90 font-semibold py-3"
               >
                 <ShoppingBag className="h-5 w-5 mr-2" />
                 Ajouter au panier
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="border-white text-white hover:bg-white hover:text-black bg-transparent"
-              >
-                <Heart className="h-5 w-5" />
-              </Button>
+              <WishlistButton productId={product.id} className="h-12 w-12" />
             </div>
 
             {/* Product Details */}
@@ -285,9 +434,15 @@ export default function ProductDetailPage() {
                 <span>Garantie qualité 2 ans</span>
               </div>
             </div>
+
+            {/* Product Review Section */}
+            <ProductReviewSection productId={productId} />
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab="login" />
     </div>
   )
 }

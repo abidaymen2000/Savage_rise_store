@@ -8,12 +8,10 @@ export default function About() {
           <div>
             <h2 className="text-4xl md:text-5xl font-playfair font-bold mb-6">L'ART DE L'ÉLÉGANCE MASCULINE</h2>
             <p className="text-gray-300 text-lg mb-6 leading-relaxed">
-              Savage Rise incarne l'excellence de la mode masculine contemporaine. Chaque pièce est méticuleusement
-              conçue pour l'homme qui refuse les compromis, alliant tradition artisanale et innovation moderne.
+              Savage Rise incarne l'excellence de la mode masculine contemporaine. Chaque pièce est méticuleusement conçue pour l'homme qui refuse les compromis, alliant tradition artisanale et innovation moderne.
             </p>
             <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-              Notre vision : redéfinir les codes du luxe masculin avec audace et sophistication, pour créer un style
-              intemporel qui transcende les tendances.
+              Notre vision : redéfinir les codes du luxe masculin avec audace et sophistication, pour créer un style intemporel qui transcende les tendances.
             </p>
             <div className="grid grid-cols-3 gap-8 text-center">
               <div>
@@ -32,7 +30,7 @@ export default function About() {
           </div>
           <div className="relative">
             <Image
-              src="/placeholder.svg?height=600&width=500"
+              src="https://ik.imagekit.io/deuxug3j0/store-savage-rise/logo-blanc.png?updatedAt=1754345640975"
               alt="Savage Rise Atelier"
               width={500}
               height={600}

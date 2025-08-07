@@ -3,37 +3,75 @@
 import Link from "next/link"
 import { Instagram, Facebook, Twitter } from "lucide-react"
 import { useState, useEffect } from "react"
+import { api } from "@/lib/api"
 
 export default function Footer() {
   const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking")
+  const [lastCheck, setLastCheck] = useState<string>("")
 
   useEffect(() => {
     async function checkApiStatus() {
       try {
-        const response = await fetch("http://localhost:8000/products/?skip=0&limit=1")
-        setApiStatus(response.ok ? "online" : "offline")
-      } catch {
+        console.log("🔍 Checking API health...")
+        const health = await api.checkHealth()
+        setApiStatus(health.status as "online" | "offline")
+        setLastCheck(new Date().toLocaleTimeString())
+        console.log(`📊 API Status: ${health.status}`)
+      } catch (error) {
+        console.warn("❌ API health check failed:", error)
         setApiStatus("offline")
+        setLastCheck(new Date().toLocaleTimeString())
       }
     }
 
     checkApiStatus()
+
+    // Check every 30 seconds
+    const interval = setInterval(checkApiStatus, 30000)
+
+    return () => clearInterval(interval)
   }, [])
+
+  const getStatusInfo = () => {
+    switch (apiStatus) {
+      case "online":
+        return {
+          color: "bg-green-500",
+          text: "API Connectée",
+          description: "Données en temps réel",
+        }
+      case "offline":
+        return {
+          color: "bg-yellow-500",
+          text: "Mode Démo",
+          description: "Utilisation des données de démonstration",
+        }
+      default:
+        return {
+          color: "bg-gray-500",
+          text: "Vérification...",
+          description: "Test de connexion en cours",
+        }
+    }
+  }
+
+  const statusInfo = getStatusInfo()
 
   return (
     <footer className="bg-black border-t border-gray-800">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 text-sm">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                apiStatus === "online" ? "bg-green-500" : apiStatus === "offline" ? "bg-yellow-500" : "bg-gray-500"
-              }`}
-            ></div>
-            <span className="text-gray-500">
-              API Status:{" "}
-              {apiStatus === "online" ? "Connecté" : apiStatus === "offline" ? "Mode démo" : "Vérification..."}
-            </span>
+            <div className={`w-2 h-2 rounded-full ${statusInfo.color}`}></div>
+            <span className="text-gray-300">{statusInfo.text}</span>
+            <span className="text-gray-500">•</span>
+            <span className="text-gray-500">{statusInfo.description}</span>
+            {lastCheck && (
+              <>
+                <span className="text-gray-500">•</span>
+                <span className="text-gray-500">Dernière vérif: {lastCheck}</span>
+              </>
+            )}
           </div>
         </div>
 

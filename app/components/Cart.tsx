@@ -12,12 +12,39 @@ export default function Cart() {
   const { state, updateQuantity, removeFromCart } = useCart()
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
+  const handleQuantityChange = (productId: string, color: string, size: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeFromCart(productId)
+      removeFromCart(productId, color, size)
     } else {
-      updateQuantity(productId, newQuantity)
+      updateQuantity(productId, color, size, newQuantity)
     }
+  }
+
+  const getItemImage = (item: (typeof state.items)[0]) => {
+    // Try to get image from selected variant
+    if (item.selectedVariant?.images && item.selectedVariant.images.length > 0) {
+      return item.selectedVariant.images[0].url
+    }
+
+    // Fallback to first variant's first image
+    if (item.product.variants && item.product.variants.length > 0) {
+      const firstVariant = item.product.variants[0]
+      if (firstVariant.images && firstVariant.images.length > 0) {
+        return firstVariant.images[0].url
+      }
+    }
+
+    // Final fallback
+    return "/placeholder.svg?height=80&width=80"
+  }
+
+  const getItemImageAlt = (item: (typeof state.items)[0]) => {
+    // Try to get alt text from selected variant
+    if (item.selectedVariant?.images && item.selectedVariant.images.length > 0) {
+      return item.selectedVariant.images[0].alt_text || item.product.name
+    }
+
+    return item.product.name
   }
 
   return (
@@ -50,59 +77,76 @@ export default function Cart() {
             <>
               {/* Cart Items */}
               <div className="flex-1 overflow-y-auto py-6 space-y-6">
-                {state.items.map((item) => (
-                  <div key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`} className="flex gap-4">
-                    <div className="w-20 h-20 relative overflow-hidden rounded-lg bg-gray-900">
-                      <Image
-                        src={item.product.images[0]?.url || "/placeholder.svg?height=80&width=80"}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                {state.items.map((item) => {
+                  const cartKey = `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`
+                  const imageUrl = getItemImage(item)
+                  const imageAlt = getItemImageAlt(item)
 
-                    <div className="flex-1 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-sm line-clamp-2">{item.product.name}</h3>
-                          {item.selectedColor && <p className="text-xs text-gray-400">Couleur: {item.selectedColor}</p>}
-                          {item.selectedSize && <p className="text-xs text-gray-400">Taille: {item.selectedSize}</p>}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-gray-400 hover:text-white"
-                          onClick={() => removeFromCart(item.product.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                  return (
+                    <div key={cartKey} className="flex gap-4">
+                      <div className="w-20 h-20 relative overflow-hidden rounded-lg bg-gray-900">
+                        <Image src={imageUrl || "/placeholder.svg"} alt={imageAlt} fill className="object-cover" />
                       </div>
 
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-sm line-clamp-2">{item.product.name}</h3>
+                            <p className="text-xs text-gray-400">Couleur: {item.selectedVariant.color}</p>
+                            <p className="text-xs text-gray-400">Taille: {item.selectedSize}</p>
+                          </div>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
-                            className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                            onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)}
+                            className="h-6 w-6 text-gray-400 hover:text-white"
+                            onClick={() =>
+                              removeFromCart(item.product.id, item.selectedVariant.color, item.selectedSize)
+                            }
                           >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                            onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
-                        <p className="font-semibold text-gold">{(item.product.price * item.quantity).toFixed(2)} €</p>
+
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.product.id,
+                                  item.selectedVariant.color,
+                                  item.selectedSize,
+                                  item.quantity - 1,
+                                )
+                              }
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.product.id,
+                                  item.selectedVariant.color,
+                                  item.selectedSize,
+                                  item.quantity + 1,
+                                )
+                              }
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="font-semibold text-gold">{(item.product.price * item.quantity).toFixed(2)} €</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               <Separator className="bg-gray-800" />
@@ -132,7 +176,10 @@ export default function Cart() {
 
                 <Button
                   className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false)
+                    window.location.href = "/checkout"
+                  }}
                 >
                   Procéder au paiement
                 </Button>

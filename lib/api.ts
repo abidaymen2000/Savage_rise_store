@@ -1,118 +1,28 @@
-import type { Product, User } from "@/types/api"
+import type {
+  Product,
+  User,
+  AuthTokens,
+  Order,
+  OrderItem,
+  ShippingInfo,
+  Review,
+  ReviewStats,
+  WishlistItem,
+  Category,
+  SearchFilters,
+  UserCreate,
+  UserUpdate,
+  PasswordChange,
+  PasswordResetRequest,
+  PasswordReset,
+  ReviewCreate,
+  ReviewUpdate,
+  WishlistCreate,
+  OrderCreate,
+  HealthStatus,
+} from "@/types/api"
 
-const API_BASE_URL = "http://localhost:8000"
-
-// Mock data for fallback
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    style_id: "SR-001",
-    name: "Costume Milano",
-    full_name: "Costume Milano - Collection Signature",
-    sku: "SR-MILANO-001",
-    description:
-      "Un costume d'exception taillé dans les plus beaux tissus italiens. Coupe moderne et élégante pour l'homme d'affaires contemporain.",
-    price: 1299,
-    in_stock: true,
-    fabric: "Laine Super 120s",
-    composition: { Laine: 95, Élasthanne: 5 },
-    care_instructions: "Nettoyage à sec uniquement",
-    zip_color_options: ["Noir", "Blanc"],
-    images: [
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Costume+Milano+Noir",
-        alt_text: "Costume Milano Noir",
-        order: 1,
-      },
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Costume+Milano+Blanc",
-        alt_text: "Costume Milano Blanc",
-        order: 2,
-      },
-    ],
-  },
-  {
-    id: "2",
-    style_id: "SR-002",
-    name: "Chemise Oxford",
-    full_name: "Chemise Oxford - Collection Premium",
-    sku: "SR-OXFORD-002",
-    description:
-      "Chemise Oxford premium en coton égyptien. Finitions impeccables et coupe ajustée pour un style raffiné.",
-    price: 189,
-    in_stock: true,
-    fabric: "Coton égyptien",
-    composition: { Coton: 100 },
-    care_instructions: "Lavage machine 30°C",
-    zip_color_options: ["Noir", "Blanc"],
-    images: [
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Chemise+Oxford+Noir",
-        alt_text: "Chemise Oxford Noir",
-        order: 1,
-      },
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Chemise+Oxford+Blanc",
-        alt_text: "Chemise Oxford Blanc",
-        order: 2,
-      },
-    ],
-  },
-  {
-    id: "3",
-    style_id: "SR-003",
-    name: "Montre Heritage",
-    full_name: "Montre Heritage - Collection Horlogerie",
-    sku: "SR-WATCH-003",
-    description:
-      "Montre automatique suisse avec boîtier en acier inoxydable et bracelet en cuir italien. Mouvement mécanique de précision.",
-    price: 2499,
-    in_stock: true,
-    fabric: "Acier inoxydable",
-    composition: { Acier: 80, Cuir: 20 },
-    care_instructions: "Éviter le contact avec l'eau",
-    zip_color_options: ["Noir", "Blanc"],
-    images: [
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Montre+Heritage+Noir",
-        alt_text: "Montre Heritage Noir",
-        order: 1,
-      },
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Montre+Heritage+Blanc",
-        alt_text: "Montre Heritage Blanc",
-        order: 2,
-      },
-    ],
-  },
-  {
-    id: "4",
-    style_id: "SR-004",
-    name: "Chaussures Oxford",
-    full_name: "Chaussures Oxford - Collection Cuir",
-    sku: "SR-SHOES-004",
-    description:
-      "Chaussures Oxford en cuir de veau italien. Semelle en cuir et finitions artisanales pour un confort exceptionnel.",
-    price: 599,
-    in_stock: true,
-    fabric: "Cuir de veau italien",
-    composition: { Cuir: 100 },
-    care_instructions: "Cirage régulier recommandé",
-    zip_color_options: ["Noir", "Blanc"],
-    images: [
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Oxford+Shoes+Noir",
-        alt_text: "Chaussures Oxford Noir",
-        order: 1,
-      },
-      {
-        url: "/placeholder.svg?height=400&width=300&text=Oxford+Shoes+Blanc",
-        alt_text: "Chaussures Oxford Blanc",
-        order: 2,
-      },
-    ],
-  },
-]
+const API_BASE_URL = "https://savage-rise-backend-d86a05fb19d4.herokuapp.com"
 
 class ApiError extends Error {
   constructor(
@@ -128,99 +38,300 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
   const url = `${API_BASE_URL}${endpoint}`
 
   try {
-    console.log(`Fetching: ${url}`)
-    const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      ...options,
-    })
+    console.log(`🔄 Fetching: ${url}`)
 
-    if (!response.ok) {
-      throw new ApiError(response.status, `HTTP error! status: ${response.status}`)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+
+    const fetchOptions: RequestInit = {
+      method: options?.method || 'GET',
+      headers: {
+        "Content-Type": "application/json", // Default Content-Type
+        ...options?.headers, // Allow overriding or adding other headers
+      },
+      signal: controller.signal,
+    };
+
+    // Handle body: stringify if it's an object, otherwise use as is
+    if (options?.body) {
+      if (typeof options.body === 'object' && options.body !== null) {
+        fetchOptions.body = JSON.stringify(options.body);
+      } else {
+        fetchOptions.body = options.body; // Assume it's already a string (e.g., FormData, or pre-stringified JSON)
+      }
     }
 
-    return await response.json()
+    const response = await fetch(url, fetchOptions)
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`❌ API Error ${response.status}:`, errorText)
+      throw new ApiError(response.status, `HTTP error! status: ${response.status} - ${errorText}`)
+    }
+
+    // If the response is 204 No Content, return null directly
+    if (response.status === 204) {
+      return null as T; // Cast to T, assuming T can be null or undefined for no content
+    }
+
+    // Otherwise, attempt to parse JSON
+    const data = await response.json();
+    console.log(`✅ API Success: ${url}`)
+    return data
   } catch (error) {
-    console.error(`API Error for ${url}:`, error)
+    console.error(`❌ API Error for ${url}:`, error)
+
     if (error instanceof ApiError) {
       throw error
     }
+
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new Error(`Network error: Unable to connect to API server`)
+    }
+
+     if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Request timeout: API server took too long to respond`)
+    }
+
     throw new Error(`Network error: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
+}
+
+// Auth helper
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === "undefined") return {}
+  const token = localStorage.getItem("savage_rise_token")
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export const api = {
   // Products
   async getProducts(skip = 0, limit = 10): Promise<Product[]> {
-    try {
-      return await fetchApi<Product[]>(`/products/?skip=${skip}&limit=${limit}`)
-    } catch (error) {
-      console.warn("API unavailable, using mock data:", error)
-      // Return mock data as fallback
-      return mockProducts.slice(skip, skip + limit)
-    }
+    return fetchApi<Product[]>(`/products/?skip=${skip}&limit=${limit}`)
   },
 
   async getProduct(productId: string): Promise<Product> {
-    try {
-      return await fetchApi<Product>(`/products/${productId}`)
-    } catch (error) {
-      console.warn("API unavailable, using mock data:", error)
-      // Return mock data as fallback
-      const product = mockProducts.find((p) => p.id === productId)
-      if (!product) {
-        throw new Error("Product not found")
-      }
-      return product
+    // Get all products and find the one we need (since there's no single product endpoint)
+    const products = await this.getProducts(0, 100)
+    const product = products.find((p) => p.id === productId)
+    if (!product) {
+      throw new Error("Product not found")
     }
+    return product
   },
 
-  // Users
-  async createUser(email: string, password: string): Promise<User> {
-    try {
-      return await fetchApi<User>("/users/", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      })
-    } catch (error) {
-      console.warn("API unavailable for user creation:", error)
-      throw error
-    }
+  async searchProducts(filters: SearchFilters, skip = 0, limit = 10): Promise<Product[]> {
+    const params = new URLSearchParams()
+    if (filters.text) params.append("text", filters.text)
+    if (filters.min_price) params.append("min_price", filters.min_price.toString())
+    if (filters.max_price) params.append("max_price", filters.max_price.toString())
+    if (filters.color) params.append("color", filters.color)
+    if (filters.size) params.append("size", filters.size)
+    if (filters.sort) params.append("sort", filters.sort)
+    params.append("skip", skip.toString())
+    params.append("limit", limit.toString())
+
+    return fetchApi<Product[]>(`/products/search?${params.toString()}`)
   },
 
-  async getUser(userId: string): Promise<User> {
-    try {
-      return await fetchApi<User>(`/users/${userId}`)
-    } catch (error) {
-      console.warn("API unavailable for user fetch:", error)
-      throw error
-    }
+  // Auth
+  async signup(email: string, password: string): Promise<User> {
+    const userData: UserCreate = { email, password }
+    return fetchApi<User>("/auth/signup", {
+      method: "POST",
+      body: userData,
+    })
   },
 
-  // Image upload
-  async uploadImage(file: File): Promise<{ url: string }> {
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
+  async login(email: string, password: string): Promise<AuthTokens> {
+    const formData = new FormData()
+    formData.append("username", email)
+    formData.append("password", password)
 
-      const response = await fetch(`${API_BASE_URL}/upload-image`, {
-        method: "POST",
-        body: formData,
-      })
+    const response = await fetch(`${API_BASE_URL}/auth/token`, {
+      method: "POST",
+      body: formData,
+    })
 
-      if (!response.ok) {
-        throw new ApiError(response.status, `Upload failed: ${response.status}`)
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.warn("API unavailable for image upload:", error)
-      throw error
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new ApiError(response.status, errorText || "Login failed")
     }
+
+    return await response.json()
+  },
+
+  async verifyEmail(token: string): Promise<void> {
+    await fetchApi(`/auth/verify-email?token=${encodeURIComponent(token)}`)
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    const data: PasswordResetRequest = { email }
+    await fetchApi("/auth/forgot-password", {
+      method: "POST",
+      body: data,
+    })
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const data: PasswordReset = { token, new_password: newPassword }
+    await fetchApi("/auth/reset-password", {
+      method: "POST",
+      body: data,
+    })
+  },
+
+  // Profile
+  async getProfile(): Promise<User> {
+    return fetchApi<User>("/profile/me", {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async updateProfile(data: UserUpdate): Promise<User> {
+    return fetchApi<User>("/profile/me", {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: data,
+    })
+  },
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const data: PasswordChange = {
+      current_password: currentPassword,
+      new_password: newPassword,
+    }
+    await fetchApi("/profile/change-password", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: data,
+    })
+  },
+
+  // Orders
+  async createOrder(items: OrderItem[], shipping: ShippingInfo): Promise<Order> {
+    const orderData: OrderCreate = {
+      items,
+      shipping,
+      payment_method: "cod",
+    }
+    return fetchApi<Order>("/orders/", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: orderData,
+    })
+  },
+
+  async getMyOrders(): Promise<Order[]> {
+    return fetchApi<Order[]>("/profile/orders", {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async getOrder(orderId: string): Promise<Order> {
+    return fetchApi<Order>(`/orders/${orderId}`)
+  },
+
+  async getMyOrder(orderId: string): Promise<Order> {
+    return fetchApi<Order>(`/profile/orders/${orderId}`, {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async cancelOrder(orderId: string): Promise<Order> {
+    return fetchApi<Order>(`/orders/${orderId}/cancel`, {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+    })
+  },
+
+  // Reviews
+  async getProductReviews(
+    productId: string,
+    rating?: number,
+    sortBest = false,
+    skip = 0,
+    limit = 10,
+  ): Promise<Review[]> {
+    const params = new URLSearchParams()
+    if (rating) params.append("rating", rating.toString())
+    params.append("sort_best", sortBest.toString())
+    params.append("skip", skip.toString())
+    params.append("limit", limit.toString())
+
+    return fetchApi<Review[]>(`/products/${productId}/reviews/?${params.toString()}`)
+  },
+
+  async getReviewStats(productId: string): Promise<ReviewStats> {
+    return fetchApi<ReviewStats>(`/products/${productId}/reviews/stats`)
+  },
+
+  async addReview(productId: string, rating: number, comment: string, title?: string): Promise<Review> {
+    const reviewData: ReviewCreate = {
+      rating,
+      comment,
+      title,
+      user_id: "current_user", // This will be handled by the backend
+    }
+    return fetchApi<Review>(`/products/${productId}/reviews/`, {
+      method: "POST",
+      body: reviewData,
+    })
+  },
+
+  async updateReview(productId: string, reviewId: string, data: ReviewUpdate): Promise<Review> {
+    return fetchApi<Review>(`/products/${productId}/reviews/${reviewId}`, {
+      method: "PUT",
+      body: data,
+    })
+  },
+
+  async deleteReview(productId: string, reviewId: string): Promise<void> {
+    await fetchApi(`/products/${productId}/reviews/${reviewId}`, {
+      method: "DELETE",
+    })
+  },
+
+  // Wishlist
+  async getWishlist(skip = 0, limit = 20): Promise<WishlistItem[]> {
+    return fetchApi<WishlistItem[]>(`/profile/wishlist/?skip=${skip}&limit=${limit}`, {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async addToWishlist(productId: string): Promise<WishlistItem> {
+    const data: WishlistCreate = { product_id: productId }
+    return fetchApi<WishlistItem>("/profile/wishlist/", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: data,
+    })
+  },
+
+  async removeFromWishlist(productId: string): Promise<void> {
+    await fetchApi(`/profile/wishlist/${productId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    })
+  },
+
+  // Categories
+  async getCategories(): Promise<Category[]> {
+    return fetchApi<Category[]>("/categories/")
+  },
+
+  async getCategory(categoryId: string): Promise<Category> {
+    return fetchApi<Category>(`/categories/${categoryId}`)
+  },
+
+  async getProductsByCategory(categoryName: string, skip = 0, limit = 10): Promise<Product[]> {
+    return fetchApi<Product[]>(`/categories/${categoryName}/products?skip=${skip}&limit=${limit}`)
+  },
+  
+    async checkHealth(): Promise<HealthStatus> {
+    // pas besoin de headers, c'est public
+    return fetchApi<HealthStatus>(`/health`)
   },
 }
-
-// Export mock data for development
-export { mockProducts }

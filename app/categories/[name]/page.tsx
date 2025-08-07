@@ -1,21 +1,23 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Heart, ShoppingBag, Search, Filter, Loader2 } from 'lucide-react'
+import { Heart, ShoppingBag, Search, Filter, ArrowLeft, Loader2 } from 'lucide-react'
 import { api } from "@/lib/api"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Product, WishlistItem } from "@/types/api"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
-import WishlistButton from "@/components/WishlistButton"
 
-export default function ProductsPage() {
+export default function CategoryPage() {
+  const params = useParams()
+  const categoryName = decodeURIComponent(params.name as string)
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
@@ -31,26 +33,21 @@ export default function ProductsPage() {
   const [userWishlist, setUserWishlist] = useState<WishlistItem[]>([])
   const [isWishlistLoading, setIsWishlistLoading] = useState(true)
 
-  const fetchProducts = useCallback(async () => {
+  const fetchCategoryProducts = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      console.log("Fetching all products...")
-      const data = await api.getProducts(0, 50) // Fetch more products
-      console.log("Products loaded:", data.length)
+      console.log("Fetching products for category:", categoryName)
+      const data = await api.getProductsByCategory(categoryName, 0, 50)
+      console.log("Category products loaded:", data.length)
       setProducts(data)
     } catch (err) {
-      console.error("Error fetching products:", err)
-      const errorMessage = err instanceof Error ? err.message : "Erreur lors du chargement des produits"
-      setError(errorMessage)
-      // Don't show error if we have fallback data
-      if (errorMessage.includes("Network error")) {
-        setError(null)
-      }
+      console.error("Error fetching category products:", err)
+      setError(err instanceof Error ? err.message : "Erreur lors du chargement des produits")
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [categoryName])
 
   const fetchUserWishlist = useCallback(async () => {
     if (!isAuthenticated) {
@@ -71,8 +68,8 @@ export default function ProductsPage() {
   }, [isAuthenticated])
 
   useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
+    fetchCategoryProducts()
+  }, [fetchCategoryProducts])
 
   useEffect(() => {
     fetchUserWishlist()
@@ -98,7 +95,6 @@ export default function ProductsPage() {
     })
 
   const handleAddToCart = (product: Product) => {
-    // Get the first available variant and size
     if (product.variants && product.variants.length > 0) {
       const firstVariant = product.variants[0]
       if (firstVariant.sizes && firstVariant.sizes.length > 0) {
@@ -109,6 +105,26 @@ export default function ProductsPage() {
       }
     }
   }
+
+  const isProductInWishlist = (productId: string) => userWishlist.some(item => item.product_id === productId);
+
+  const handleToggleWishlist = async (product: Product) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    try {
+      if (isProductInWishlist(product.id)) {
+        await api.removeFromWishlist(product.id);
+      } else {
+        await api.addToWishlist(product.id);
+      }
+      await fetchUserWishlist(); // Refresh wishlist
+    } catch (err) {
+      console.error("Error toggling wishlist:", err);
+      // Optionally show a toast or error message
+    }
+  };
 
   if (loading || authLoading) {
     return (
@@ -131,7 +147,7 @@ export default function ProductsPage() {
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
             <p className="text-red-400 mb-4">Erreur: {error}</p>
-            <Button onClick={() => window.location.reload()} className="bg-gold text-black hover:bg-gold/90">
+            <Button onClick={() => fetchCategoryProducts()} className="bg-gold text-black hover:bg-gold/90">
               Réessayer
             </Button>
           </div>
@@ -143,11 +159,21 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-black text-white pt-20">
       <div className="container mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 mb-8">
+          <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Tous les produits
+          </Link>
+          <span className="text-gray-500">/</span>
+          <span className="text-gold">{categoryName}</span>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4">COLLECTION SAVAGE RISE</h1>
+          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4">{categoryName.toUpperCase()}</h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Découvrez notre collection exclusive de vêtements masculins de luxe, conçue pour l'homme moderne.
+            Découvrez notre sélection exclusive de {categoryName.toLowerCase()} pour l'homme moderne.
           </p>
         </div>
 
@@ -178,7 +204,7 @@ export default function ProductsPage() {
         {/* Products Grid */}
         {filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">Aucun produit trouvé.</p>
+            <p className="text-gray-400 text-lg">Aucun produit trouvé dans cette catégorie.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -186,6 +212,7 @@ export default function ProductsPage() {
               const productInStock = isProductInStock(product)
               const imageUrl = getFirstProductImage(product)
               const imageAlt = getProductImageAlt(product)
+              const inWishlist = isProductInWishlist(product.id);
 
               return (
                 <div
@@ -204,7 +231,6 @@ export default function ProductsPage() {
                       />
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                      {/* Stock Status */}
                       {!productInStock && (
                         <div className="absolute top-4 left-4">
                           <span className="bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded-full">
@@ -221,7 +247,15 @@ export default function ProductsPage() {
                       hoveredProduct === product.id ? "opacity-100" : "opacity-0"
                     }`}
                   >
-                    <WishlistButton productId={product.id} />
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className={`bg-white/90 hover:bg-white ${inWishlist ? 'bg-gold text-black hover:bg-gold/90' : ''}`}
+                      onClick={() => handleToggleWishlist(product)}
+                      disabled={isWishlistLoading && isAuthenticated}
+                    >
+                      <Heart className={`h-4 w-4 ${inWishlist ? 'fill-black' : 'text-black'}`} />
+                    </Button>
                     <Button
                       size="icon"
                       variant="secondary"
