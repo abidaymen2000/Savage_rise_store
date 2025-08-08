@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+
+import { useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -8,22 +9,31 @@ export default function VerifySuccess() {
   const router = useRouter();
   const { refreshUser } = useAuth();
 
+  // Evite d'exécuter l'effet 2x (React Strict Mode / re-render)
+  const ran = useRef(false);
+
   useEffect(() => {
-    const t = sp.get("token");
-    if (t) {
-      // 1) Stocker le token
-      localStorage.setItem("savage_rise_token", t);
+    if (ran.current) return;
+    ran.current = true;
 
-      // 2) Rafraîchir l'utilisateur
-      refreshUser();
-    }
+    const token = sp.get("token");
 
-    // 3) Rediriger vers la page d'accueil après 1 seconde
-    const timer = setTimeout(() => {
-      router.replace("/");
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    (async () => {
+      try {
+        if (token) {
+          // 1) Stocker le token
+          localStorage.setItem("savage_rise_token", token);
+          // 2) Rafraîchir l'utilisateur
+          await refreshUser();
+        }
+      } catch (e) {
+        // silencieux — on redirige quand même
+        console.error("verify-success:", e);
+      } finally {
+        // 3) Redirection (immédiate)
+        router.replace("/");
+      }
+    })();
   }, [sp, refreshUser, router]);
 
   return (
