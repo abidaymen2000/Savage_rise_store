@@ -23,7 +23,11 @@ import type {
   ContactMessage,
 } from "@/types/api"
 
-const API_BASE_URL = "https://savage-rise-backend-d86a05fb19d4.herokuapp.com"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (process.env.NODE_ENV === "development"
+    ? "http://localhost:8000"
+    : "https://savage-rise-backend-d86a05fb19d4.herokuapp.com");
 
 class ApiError extends Error {
   constructor(

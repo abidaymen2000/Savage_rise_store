@@ -1,13 +1,14 @@
+// app/profile/page.tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Package, Heart, Star, Settings, LogOut, StarIcon } from "lucide-react"
+import { Package, Heart, Star, Settings, LogOut, Star as StarIcon } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import type { Order, Product, Review, WishlistItem } from "@/types/api"
@@ -26,35 +27,38 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-type Tab = "orders" | "wishlist" | "reviews" | "settings";
+type Tab = "orders" | "wishlist" | "reviews" | "settings"
 type WishlistWithProduct = WishlistItem & { product?: Product }
-export default function ProfilePage() {
+
+// --------- tout ton ancien code est ici, mais dans ProfileContent ---------
+function ProfileContent() {
   const router = useRouter()
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()
   const { user, isAuthenticated, logout, isLoading } = useAuth()
+
   const [orders, setOrders] = useState<Order[]>([])
   const [wishlist, setWishlist] = useState<WishlistWithProduct[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   const [loadingWishlist, setLoadingWishlist] = useState(true)
 
-  // NEW: états pour les avis
   const [reviews, setReviews] = useState<Review[]>([])
   const [loadingReviews, setLoadingReviews] = useState(true)
   const [editing, setEditing] = useState<Review | null>(null)
-  const [form, setForm] = useState<{ rating: number; title: string; comment: string }>({ rating: 5, title: "", comment: "" })
+  const [form, setForm] = useState<{ rating: number; title: string; comment: string }>({
+    rating: 5,
+    title: "",
+    comment: "",
+  })
   const [toDelete, setToDelete] = useState<Review | null>(null)
 
   // onglet depuis l'URL ou "orders" par défaut
-  const qp = searchParams.get("tab");
-  const allowed: Tab[] = ["orders", "wishlist", "reviews", "settings"];
-  const urlTab = (searchParams.get("tab") as Tab) ?? "orders";
-  const [activeTab, setActiveTab] = useState<Tab>(urlTab);
-
+  const urlTab = (searchParams.get("tab") as Tab) ?? "orders"
+  const [activeTab, setActiveTab] = useState<Tab>(urlTab)
 
   // si l'URL change (ex: /profile?tab=wishlist), on met à jour l'état
   useEffect(() => {
-    setActiveTab(urlTab);
-  }, [urlTab]);
+    setActiveTab(urlTab)
+  }, [urlTab])
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -75,27 +79,29 @@ export default function ProfilePage() {
     setForm({
       rating: r.rating,
       title: r.title ?? "",
-      comment: r.comment ?? ""
+      comment: r.comment ?? "",
     })
   }
 
   async function saveEdit() {
     if (!editing) return
     const updated = await api.updateReview(editing.product_id, editing.id, {
-      rating: form.rating, title: form.title || null, comment: form.comment || null
+      rating: form.rating,
+      title: form.title || null,
+      comment: form.comment || null,
     })
-    setReviews(reviews.map(r => r.id === updated.id ? updated : r))
+    setReviews(reviews.map((r) => (r.id === updated.id ? updated : r)))
     setEditing(null)
   }
 
   async function confirmDelete() {
     if (!toDelete) return
     await api.deleteReview(toDelete.product_id, toDelete.id)
-    setReviews(reviews.filter(r => r.id !== toDelete.id))
+    setReviews(reviews.filter((r) => r.id !== toDelete.id))
     setToDelete(null)
   }
 
-  // NEW: fetch des avis
+  // fetch des avis
   const fetchReviews = async () => {
     try {
       const data = await api.getMyReviews()
@@ -106,19 +112,6 @@ export default function ProfilePage() {
       setLoadingReviews(false)
     }
   }
-
-  // utilitaire pour étoiles
-  const Stars = ({ rating }: { rating: number }) => (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map(i => (
-        <StarIcon
-          key={i}
-          className={`h-4 w-4 ${i <= rating ? "text-gold" : "text-gray-600"}`}
-          fill={i <= rating ? "currentColor" : "none"}
-        />
-      ))}
-    </div>
-  )
 
   const fetchOrders = async () => {
     try {
@@ -134,14 +127,14 @@ export default function ProfilePage() {
   const fetchWishlist = async () => {
     try {
       setLoadingWishlist(true)
-      const raw = await api.getWishlist() // <- WishlistItem[]
+      const raw = await api.getWishlist()
       const enriched: WishlistWithProduct[] = await Promise.all(
         raw.map(async (w) => {
           try {
             const product = await api.getProduct(w.product_id)
             return { ...w, product }
           } catch {
-            return { ...w } // si le produit n'est pas trouvé
+            return { ...w }
           }
         })
       )
@@ -191,7 +184,7 @@ export default function ProfilePage() {
   const handleCancelOrder = async (orderId: string) => {
     try {
       await api.cancelOrder(orderId)
-      fetchOrders() // Refresh orders
+      fetchOrders()
     } catch (error) {
       console.error("Error cancelling order:", error)
     }
@@ -208,9 +201,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!isAuthenticated || !user) {
-    return null
-  }
+  if (!isAuthenticated || !user) return null
 
   return (
     <div className="min-h-screen bg-black text-white pt-20">
@@ -233,10 +224,9 @@ export default function ProfilePage() {
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
-            const t = v as Tab;
-            setActiveTab(t);
-            // garde l’URL en phase avec l’onglet
-            router.replace(`/profile?tab=${t}`, { scroll: false });
+            const t = v as Tab
+            setActiveTab(t)
+            router.replace(`/profile?tab=${t}`, { scroll: false })
           }}
           className="space-y-6"
         >
@@ -364,9 +354,7 @@ export default function ProfilePage() {
                         onClick={() => router.push(`/products/${item.product_id}`)}
                         className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:border-gold/60 transition-colors"
                       >
-                        <p className="text-white">
-                          {item.product?.name ?? `Produit ${item.product_id}`}
-                        </p>
+                        <p className="text-white">{item.product?.name ?? `Produit ${item.product_id}`}</p>
                         <p className="text-sm text-gray-400">
                           Ajouté le {new Date(item.added_at).toLocaleDateString("fr-FR")}
                         </p>
@@ -376,7 +364,7 @@ export default function ProfilePage() {
                           size="sm"
                           className="mt-2 border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent"
                           onClick={(e) => {
-                            e.stopPropagation() // évite la navigation quand on clique sur le bouton
+                            e.stopPropagation()
                             api.removeFromWishlist(item.product_id).then(fetchWishlist)
                           }}
                         >
@@ -393,7 +381,9 @@ export default function ProfilePage() {
           {/* Reviews Tab */}
           <TabsContent value="reviews">
             <Card className="bg-gray-900 border-gray-800">
-              <CardHeader><CardTitle className="text-white">Mes Avis</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-white">Mes Avis</CardTitle>
+              </CardHeader>
               <CardContent>
                 {loadingReviews ? (
                   <div className="text-center py-8">
@@ -407,24 +397,35 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {reviews.map(r => (
+                    {reviews.map((r) => (
                       <div key={r.id} className="border border-gray-700 rounded-lg p-4 flex items-start justify-between">
                         <div>
-                          {/* étoiles */}
                           <div className="flex items-center gap-1 mb-1">
-                            {[1, 2, 3, 4, 5].map(i => (
+                            {[1, 2, 3, 4, 5].map((i) => (
                               <Star key={i} className={`h-4 w-4 ${i <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
                             ))}
                           </div>
                           {r.title && <p className="text-white font-medium">{r.title}</p>}
                           {r.comment && <p className="text-gray-300 text-sm">{r.comment}</p>}
-                          <a href={`/products/${r.product_id}`} className="text-gold text-sm underline mt-2 inline-block">Voir le produit</a>
+                          <a href={`/products/${r.product_id}`} className="text-gold text-sm underline mt-2 inline-block">
+                            Voir le produit
+                          </a>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent" onClick={() => openEdit(r)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                            onClick={() => openEdit(r)}
+                          >
                             Modifier
                           </Button>
-                          <Button variant="outline" size="sm" className="border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent" onClick={() => setToDelete(r)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent"
+                            onClick={() => setToDelete(r)}
+                          >
                             Supprimer
                           </Button>
                         </div>
@@ -438,21 +439,38 @@ export default function ProfilePage() {
             {/* Dialog édition */}
             <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
               <DialogContent className="bg-gray-900 border-gray-800 text-white">
-                <DialogHeader><DialogTitle>Modifier mon avis</DialogTitle></DialogHeader>
+                <DialogHeader>
+                  <DialogTitle>Modifier mon avis</DialogTitle>
+                </DialogHeader>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <button key={i} onClick={() => setForm(f => ({ ...f, rating: i }))}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <button key={i} onClick={() => setForm((f) => ({ ...f, rating: i }))}>
                         <Star className={`h-6 w-6 ${i <= form.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
                       </button>
                     ))}
                   </div>
-                  <Input placeholder="Titre (optionnel)" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="bg-gray-800 border-gray-700" />
-                  <Textarea placeholder="Commentaire (optionnel)" rows={4} value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} className="bg-gray-800 border-gray-700" />
+                  <Input
+                    placeholder="Titre (optionnel)"
+                    value={form.title}
+                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                    className="bg-gray-800 border-gray-700"
+                  />
+                  <Textarea
+                    placeholder="Commentaire (optionnel)"
+                    rows={4}
+                    value={form.comment}
+                    onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
+                    className="bg-gray-800 border-gray-700"
+                  />
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" className="border-gray-600 text-white bg-transparent" onClick={() => setEditing(null)}>Annuler</Button>
-                  <Button className="bg-gold text-black hover:bg-gold/90" onClick={saveEdit}>Enregistrer</Button>
+                  <Button variant="outline" className="border-gray-600 text-white bg-transparent" onClick={() => setEditing(null)}>
+                    Annuler
+                  </Button>
+                  <Button className="bg-gold text-black hover:bg-gold/90" onClick={saveEdit}>
+                    Enregistrer
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -460,11 +478,15 @@ export default function ProfilePage() {
             {/* Confirmation suppression */}
             <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
               <AlertDialogContent className="bg-gray-900 border-gray-800 text-white">
-                <AlertDialogHeader><AlertDialogTitle>Supprimer cet avis ?</AlertDialogTitle></AlertDialogHeader>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer cet avis ?</AlertDialogTitle>
+                </AlertDialogHeader>
                 <p className="text-gray-300 text-sm">Cette action est irréversible.</p>
                 <AlertDialogFooter>
                   <AlertDialogCancel className="bg-transparent border-gray-600 text-white">Annuler</AlertDialogCancel>
-                  <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmDelete}>Supprimer</AlertDialogAction>
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmDelete}>
+                    Supprimer
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -512,5 +534,23 @@ export default function ProfilePage() {
         </Tabs>
       </div>
     </div>
+  )
+}
+
+// --------- wrapper avec Suspense (obligatoire pour useSearchParams) ---------
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
+            <p className="text-gray-400">Chargement...</p>
+          </div>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   )
 }
