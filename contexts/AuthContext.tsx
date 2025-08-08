@@ -13,7 +13,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>
-  signup: (email: string, password: string) => Promise<void>
+  signup: (email: string, password: string, fullName: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
 }
@@ -67,9 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signup = async (email: string, password: string) => {
+  const signup = async (email: string, password: string, fullName: string) => {
     try {
-      await api.signup(email, password)
+      await api.signup(email, password, fullName)
       // Note: User needs to verify email before they can login
     } catch (error) {
       console.error("Signup failed:", error)

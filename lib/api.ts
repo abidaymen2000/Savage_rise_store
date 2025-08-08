@@ -149,7 +149,7 @@ export const api = {
   },
 
   // Auth
-  async signup(email: string, password: string): Promise<User> {
+  async signup(email: string, password: string, fullName: string): Promise<User> {
     const userData: UserCreate = { email, password }
     return fetchApi<User>("/auth/signup", {
       method: "POST",

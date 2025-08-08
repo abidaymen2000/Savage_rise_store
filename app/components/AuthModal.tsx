@@ -25,7 +25,12 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
   const [success, setSuccess] = useState<string | null>(null)
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" })
-  const [signupForm, setSignupForm] = useState({ email: "", password: "", confirmPassword: "" })
+  const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "", confirmPassword: "" })
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+
 
   const { login, signup } = useAuth()
 
@@ -63,9 +68,9 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     }
 
     try {
-      await signup(signupForm.email, signupForm.password)
+      await signup(signupForm.email, signupForm.password, signupForm.fullName)
       setSuccess("Compte créé avec succès ! Vérifiez votre email pour activer votre compte.")
-      setSignupForm({ email: "", password: "", confirmPassword: "" })
+      setSignupForm({ fullName: "", email: "", password: "", confirmPassword: "" })
     } catch (err) {
       setError("Erreur lors de la création du compte. Cet email est peut-être déjà utilisé.")
     } finally {
@@ -75,7 +80,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
 
   const resetForms = () => {
     setLoginForm({ email: "", password: "" })
-    setSignupForm({ email: "", password: "", confirmPassword: "" })
+    setSignupForm({ fullName: "", email: "", password: "", confirmPassword: "" })
     setError(null)
     setSuccess(null)
   }
@@ -138,13 +143,20 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     id="login-password"
-                    type="password"
+                    type={showLoginPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
                     className="pl-10 bg-gray-900 border-gray-700 text-white"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                    {showLoginPassword ? "👁️" : "👁️‍🗨️"}
+                  </button>
                 </div>
               </div>
 
@@ -182,14 +194,27 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   />
                 </div>
               </div>
-
+              <div className="space-y-2">
+                <Label htmlFor="signup-fullname">Nom complet</Label>
+                <Input
+                  id="signup-fullname"
+                  type="text"
+                  placeholder="Votre nom complet"
+                  value={signupForm.fullName}
+                  onChange={(e) =>
+                    setSignupForm((prev) => ({ ...prev, fullName: e.target.value }))
+                  }
+                  className="bg-gray-900 border-gray-700 text-white"
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Mot de passe</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     id="signup-password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={signupForm.password}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, password: e.target.value }))}
@@ -197,6 +222,13 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                     required
                     minLength={6}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                    {showPassword ? "👁️" : "👁️‍🗨️"}
+                  </button>
                 </div>
               </div>
 
@@ -206,14 +238,21 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     id="signup-confirm"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={signupForm.confirmPassword}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white"
+                    className="pl-10 pr-10 bg-gray-900 border-gray-700 text-white"
                     required
                     minLength={6}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                    {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                  </button>
                 </div>
               </div>
 
