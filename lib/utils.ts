@@ -91,5 +91,5 @@ export function isProductInStock(product: Product): boolean {
 }
 
 export function formatPrice(price: number): string {
-  return `${price.toFixed(2)} €`
+  return `${price.toFixed(2)} TND`
 }

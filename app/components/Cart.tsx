@@ -141,7 +141,7 @@ export default function Cart() {
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
-                          <p className="font-semibold text-gold">{(item.product.price * item.quantity).toFixed(2)} €</p>
+                          <p className="font-semibold text-gold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
                         </div>
                       </div>
                     </div>
@@ -155,22 +155,22 @@ export default function Cart() {
               <div className="space-y-4 py-6">
                 <div className="flex items-center gap-2 text-sm text-gray-400">
                   <Truck className="h-4 w-4" />
-                  <span>Livraison gratuite dès 200€</span>
+                  <span>Livraison gratuite dès 300TND</span>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Sous-total</span>
-                    <span>{state.total.toFixed(2)} €</span>
+                    <span>{state.total.toFixed(2)} TND</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Livraison</span>
-                    <span>{state.total >= 200 ? "Gratuite" : "15,00 €"}</span>
+                    <span>{state.total >= 300 ? "Gratuite" : "7,00 TND"}</span>
                   </div>
                   <Separator className="bg-gray-800" />
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
-                    <span className="text-gold">{(state.total + (state.total >= 200 ? 0 : 15)).toFixed(2)} €</span>
+                    <span className="text-gold">{(state.total + (state.total >= 300 ? 0 : 7)).toFixed(2)} TND</span>
                   </div>
                 </div>
 

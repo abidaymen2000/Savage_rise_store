@@ -423,11 +423,11 @@ export default function ProductDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" />
-                <span>Livraison gratuite dès 200€</span>
+                <span>Livraison gratuite dès 300TND</span>
               </div>
               <div className="flex items-center gap-3">
                 <RotateCcw className="h-5 w-5 text-gold" />
-                <span>Retours gratuits sous 30 jours</span>
+                <span>Retours gratuits sous 7 jours</span>
               </div>
               <div className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-gold" />

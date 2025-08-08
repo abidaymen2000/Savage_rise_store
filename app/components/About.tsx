@@ -15,7 +15,7 @@ export default function About() {
             </p>
             <div className="grid grid-cols-3 gap-8 text-center">
               <div>
-                <div className="text-3xl font-bold text-gold mb-2">2019</div>
+                <div className="text-3xl font-bold text-gold mb-2">2025</div>
                 <div className="text-sm text-gray-400">FONDATION</div>
               </div>
               <div>
@@ -23,7 +23,7 @@ export default function About() {
                 <div className="text-sm text-gray-400">ARTISANS</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-gold mb-2">15</div>
+                <div className="text-3xl font-bold text-gold mb-2">3</div>
                 <div className="text-sm text-gray-400">PAYS</div>
               </div>
             </div>

@@ -108,7 +108,7 @@ export interface Review {
 }
 
 export interface ReviewStats {
-  average_rating?: number | null
+  average_rating: number | null
   count: number
 }
 

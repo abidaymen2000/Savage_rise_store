@@ -114,7 +114,7 @@ export default function CheckoutPage() {
   }
 
   const subtotal = cartState.total
-  const shipping = subtotal >= 200 ? 0 : 15
+  const shipping = subtotal >= 300 ? 0 : 7
   const total = subtotal + shipping
 
   if (authLoading) {
@@ -187,7 +187,7 @@ export default function CheckoutPage() {
                       <p className="text-sm text-gray-400">
                         {item.selectedVariant.color} • {item.selectedSize} • Qté: {item.quantity}
                       </p>
-                      <p className="text-gold font-semibold">{(item.product.price * item.quantity).toFixed(2)} €</p>
+                      <p className="text-gold font-semibold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
                     </div>
                   </div>
                 ))}
@@ -303,19 +303,19 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Sous-total</span>
-                  <span className="text-white">{subtotal.toFixed(2)} €</span>
+                  <span className="text-white">{subtotal.toFixed(2)} TND</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-gray-400">Livraison</span>
-                  <span className="text-white">{shipping === 0 ? "Gratuite" : `${shipping.toFixed(2)} €`}</span>
+                  <span className="text-white">{shipping === 0 ? "Gratuite" : `${shipping.toFixed(2)} TND`}</span>
                 </div>
 
                 <Separator className="bg-gray-700" />
 
                 <div className="flex justify-between text-lg font-semibold">
                   <span className="text-white">Total</span>
-                  <span className="text-gold">{total.toFixed(2)} €</span>
+                  <span className="text-gold">{total.toFixed(2)} TND</span>
                 </div>
 
                 {error && (
@@ -327,7 +327,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Truck className="h-4 w-4" />
-                    <span>Livraison gratuite dès 200€</span>
+                    <span>Livraison gratuite dès 300TND</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Shield className="h-4 w-4" />
@@ -350,7 +350,7 @@ export default function CheckoutPage() {
                       Traitement...
                     </>
                   ) : (
-                    `Confirmer la commande • ${total.toFixed(2)} €`
+                    `Confirmer la commande • ${total.toFixed(2)} TND`
                   )}
                 </Button>
 

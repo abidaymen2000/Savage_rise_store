@@ -152,7 +152,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm">© 2024 Savage Rise. Tous droits réservés.</p>
+          <p className="text-gray-500 text-sm">© 2025 Savage Rise. Tous droits réservés.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link href="/mentions-legales" className="text-gray-500 hover:text-white text-sm transition-colors">
               Mentions légales
