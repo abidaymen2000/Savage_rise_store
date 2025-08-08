@@ -193,3 +193,11 @@ export interface OrderCreate {
   shipping: ShippingInfo      // infos de livraison
   payment_method: "cod" | "stripe" | "paypal"
 }
+
+// apres WishlistCreate
+export interface ContactMessage {
+  full_name: string
+  email:     string
+  subject:   string
+  message:   string
+}

@@ -1,14 +1,78 @@
+"use client"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, Phone, MapPin, XCircle } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { api } from '@/lib/api'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+
+type Notification = {
+  type: "success" | "error"
+  message: string
+}
+
 
 export default function ContactPage() {
+  const [notification, setNotification] = useState<Notification | null>(null)
+
+    const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const data = Object.fromEntries(new FormData(form).entries()) as {
+      full_name: string
+      email: string
+      subject: string
+      message: string
+    }
+    try {
+      await api.sendContact({
+        full_name: data.full_name,
+        email:     data.email,
+        subject:   data.subject,
+        message:   data.message,
+      })
+ form.reset()
+      setNotification({
+        type: "success",
+        message: "Votre message a bien été envoyé, nous vous répondrons sous peu."
+      })
+    } catch (err) {
+      console.error(err)
+      setNotification({
+        type: "error",
+        message: "Échec de l’envoi, réessayez plus tard."
+      })
+    }
+  }, [])
   return (
     <main className="min-h-screen bg-black text-white py-12 pt-24">
       <div className="container mx-auto px-4">
+                {/* ─────────────── Notification ─────────────────── */}
+        {notification && (
+          <div className="fixed top-24 right-4 z-50 w-full max-w-sm">
+            <Alert
+              variant={notification.type === "success" ? "default" : "destructive"}
+              className="mb-4"
+            >
+              <AlertDescription className="pr-8">
+                {notification.message}
+              </AlertDescription>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-6 w-6"
+                onClick={() => setNotification(null)}
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            </Alert>
+          </div>
+        )}
+        {/* ───────────────────────────────────────────────── */}
+
         <h1 className="text-4xl font-bold text-gold mb-8 text-center">Contactez-nous</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -18,11 +82,12 @@ export default function ContactPage() {
               <CardTitle className="text-gold">Envoyez-nous un message</CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                  <Label htmlFor="name" className="text-white">Nom complet</Label>
+                  <Label htmlFor="full_name" className="text-white">Nom complet</Label>
                   <Input
-                    id="name"
+                    id="full_name"
+                    name="full_name"
                     type="text"
                     placeholder="Votre nom"
                     className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
@@ -32,6 +97,7 @@ export default function ContactPage() {
                   <Label htmlFor="email" className="text-white">Email</Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="Votre email"
                     className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
@@ -41,6 +107,7 @@ export default function ContactPage() {
                   <Label htmlFor="subject" className="text-white">Sujet</Label>
                   <Input
                     id="subject"
+                    name="subject"
                     type="text"
                     placeholder="Sujet de votre message"
                     className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
@@ -50,6 +117,7 @@ export default function ContactPage() {
                   <Label htmlFor="message" className="text-white">Message</Label>
                   <Textarea
                     id="message"
+                    name="message"
                     placeholder="Votre message..."
                     rows={5}
                     className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"

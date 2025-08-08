@@ -20,6 +20,7 @@ import type {
   WishlistCreate,
   OrderCreate,
   HealthStatus,
+  ContactMessage,
 } from "@/types/api"
 
 const API_BASE_URL = "https://savage-rise-backend-d86a05fb19d4.herokuapp.com"
@@ -337,6 +338,13 @@ export const api = {
     return fetchApi<Product[]>(`/categories/${categoryName}/products?skip=${skip}&limit=${limit}`)
   },
 
+  async sendContact(data: ContactMessage): Promise<void> {
+    await fetchApi<void>("/contact", {
+      method: "POST",
+      body: data,
+    })
+  },
+  
   // Health-check
   async checkHealth(): Promise<HealthStatus> {
     return fetchApi<HealthStatus>(`/health`)
