@@ -12,7 +12,7 @@ const slides = [
     type: "video" as const,
     src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/video-header.mp4?updatedAt=1754345500707",
     title: "NOUVELLE COLLECTION",
-    subtitle: "AUTOMNE/HIVER 2024",
+    subtitle: "AUTOMNE/HIVER 2025",
     description: "Découvrez l'élégance redéfinie",
   },
   {

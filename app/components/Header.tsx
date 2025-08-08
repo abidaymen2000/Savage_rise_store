@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Menu, X, User, Search, Heart } from 'lucide-react'
+import { Menu, X, User, Search, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -16,14 +16,14 @@ import Cart from "./Cart"
 import AuthModal from "./AuthModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
-import type { Category, WishlistItem } from "@/types/api"
+import type { Category } from "@/types/api"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const { user, isAuthenticated, logout } = useAuth()
-  const [wishlistCount, setWishlistCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0)
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -32,29 +32,29 @@ export default function Header() {
     } catch (error) {
       console.error("Error fetching categories:", error)
     }
-  }, []);
+  }, [])
 
   const fetchWishlistCount = useCallback(async () => {
     if (!isAuthenticated) {
-      setWishlistCount(0);
-      return;
+      setWishlistCount(0)
+      return
     }
     try {
-      const wishlistData = await api.getWishlist();
-      setWishlistCount(wishlistData.length);
+      const wishlistData = await api.getWishlist()
+      setWishlistCount(wishlistData.length)
     } catch (error) {
-      console.error("Error fetching wishlist count:", error);
-      setWishlistCount(0);
+      console.error("Error fetching wishlist count:", error)
+      setWishlistCount(0)
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated])
 
   useEffect(() => {
     fetchCategories()
   }, [fetchCategories])
 
   useEffect(() => {
-    fetchWishlistCount();
-  }, [isAuthenticated, fetchWishlistCount]);
+    fetchWishlistCount()
+  }, [isAuthenticated, fetchWishlistCount])
 
   return (
     <>
@@ -88,9 +88,6 @@ export default function Header() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              {/* <Link href="/nouveautes" className="text-white hover:text-gold transition-colors">
-                Nouveautés
-              </Link> */}
               <Link href="/about" className="text-white hover:text-gold transition-colors">
                 À Propos
               </Link>
@@ -162,15 +159,18 @@ export default function Header() {
               <Cart />
             </div>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden text-white"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+            {/* Mobile actions (Cart + Menu toggle) */}
+            <div className="md:hidden flex items-center gap-2">
+              <Cart />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white"
+                onClick={() => setIsMenuOpen((v) => !v)}
+              >
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Menu */}
@@ -189,23 +189,22 @@ export default function Header() {
                     {category.name}
                   </Link>
                 ))}
-                <Link href="/nouveautes" className="text-white hover:text-gold transition-colors">
-                  Nouveautés
-                </Link>
                 <Link href="/about" className="text-white hover:text-gold transition-colors">
                   À Propos
                 </Link>
                 <Link href="/contact" className="text-white hover:text-gold transition-colors">
                   Contact
                 </Link>
+
                 {isAuthenticated && (
                   <Link href="/profile?tab=wishlist" className="text-white hover:text-gold transition-colors">
                     Ma Wishlist ({wishlistCount})
                   </Link>
                 )}
+
                 {isAuthenticated ? (
                   <>
-                    <Link href="/profile" className="text-white hover:text-gold transition-colors">
+                    <Link href="/profile?tab=settings" className="text-white hover:text-gold transition-colors">
                       Mon Profil
                     </Link>
                     <button onClick={logout} className="text-red-400 hover:text-red-300 text-left">
