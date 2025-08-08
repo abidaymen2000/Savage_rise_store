@@ -285,6 +285,7 @@ export const api = {
     }
     return fetchApi<Review>(`/products/${productId}/reviews/`, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: reviewData,
     })
   },
@@ -292,6 +293,7 @@ export const api = {
   async updateReview(productId: string, reviewId: string, data: ReviewUpdate): Promise<Review> {
     return fetchApi<Review>(`/products/${productId}/reviews/${reviewId}`, {
       method: "PUT",
+      headers: getAuthHeaders(),
       body: data,
     })
   },
@@ -299,6 +301,7 @@ export const api = {
   async deleteReview(productId: string, reviewId: string): Promise<void> {
     await fetchApi(`/products/${productId}/reviews/${reviewId}`, {
       method: "DELETE",
+      headers: getAuthHeaders(), 
     })
   },
 
@@ -351,7 +354,7 @@ export const api = {
       headers: getAuthHeaders(),
     })
   },
-  
+
   // Health-check
   async checkHealth(): Promise<HealthStatus> {
     return fetchApi<HealthStatus>(`/health`)

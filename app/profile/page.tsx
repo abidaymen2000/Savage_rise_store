@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Package, Heart, Star, Settings, LogOut, StarIcon } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
-import type { Order, Review, WishlistItem } from "@/types/api"
+import type { Order, Product, Review, WishlistItem } from "@/types/api"
 import Link from "next/link"
 import { formatPrice } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -26,11 +26,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
+type Tab = "orders" | "wishlist" | "reviews" | "settings";
+type WishlistWithProduct = WishlistItem & { product?: Product }
 export default function ProfilePage() {
   const router = useRouter()
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, logout, isLoading } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([])
+  const [wishlist, setWishlist] = useState<WishlistWithProduct[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   const [loadingWishlist, setLoadingWishlist] = useState(true)
 
@@ -40,6 +43,18 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState<Review | null>(null)
   const [form, setForm] = useState<{ rating: number; title: string; comment: string }>({ rating: 5, title: "", comment: "" })
   const [toDelete, setToDelete] = useState<Review | null>(null)
+
+  // onglet depuis l'URL ou "orders" par défaut
+  const qp = searchParams.get("tab");
+  const allowed: Tab[] = ["orders", "wishlist", "reviews", "settings"];
+  const urlTab = (searchParams.get("tab") as Tab) ?? "orders";
+  const [activeTab, setActiveTab] = useState<Tab>(urlTab);
+
+
+  // si l'URL change (ex: /profile?tab=wishlist), on met à jour l'état
+  useEffect(() => {
+    setActiveTab(urlTab);
+  }, [urlTab]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -52,19 +67,6 @@ export default function ProfilePage() {
       fetchOrders()
       fetchWishlist()
       fetchReviews()
-    }
-  }, [isAuthenticated])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      (async () => {
-        setLoadingReviews(true)
-        try {
-          setReviews(await api.getMyReviews())
-        } finally {
-          setLoadingReviews(false)
-        }
-      })()
     }
   }, [isAuthenticated])
 
@@ -131,10 +133,22 @@ export default function ProfilePage() {
 
   const fetchWishlist = async () => {
     try {
-      const data = await api.getWishlist()
-      setWishlist(data)
+      setLoadingWishlist(true)
+      const raw = await api.getWishlist() // <- WishlistItem[]
+      const enriched: WishlistWithProduct[] = await Promise.all(
+        raw.map(async (w) => {
+          try {
+            const product = await api.getProduct(w.product_id)
+            return { ...w, product }
+          } catch {
+            return { ...w } // si le produit n'est pas trouvé
+          }
+        })
+      )
+      setWishlist(enriched)
     } catch (error) {
       console.error("Error fetching wishlist:", error)
+      setWishlist([])
     } finally {
       setLoadingWishlist(false)
     }
@@ -216,7 +230,16 @@ export default function ProfilePage() {
           </Button>
         </div>
 
-        <Tabs defaultValue="orders" className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            const t = v as Tab;
+            setActiveTab(t);
+            // garde l’URL en phase avec l’onglet
+            router.replace(`/profile?tab=${t}`, { scroll: false });
+          }}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-4 bg-gray-900">
             <TabsTrigger value="orders" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Package className="h-4 w-4 mr-2" />
@@ -335,16 +358,27 @@ export default function ProfilePage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {wishlist.map((item) => (
-                      <div key={item.id} className="border border-gray-700 rounded-lg p-4">
-                        <p className="text-white">Produit {item.product_id}</p>
+                      <div
+                        key={item.id}
+                        role="button"
+                        onClick={() => router.push(`/products/${item.product_id}`)}
+                        className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:border-gold/60 transition-colors"
+                      >
+                        <p className="text-white">
+                          {item.product?.name ?? `Produit ${item.product_id}`}
+                        </p>
                         <p className="text-sm text-gray-400">
                           Ajouté le {new Date(item.added_at).toLocaleDateString("fr-FR")}
                         </p>
+
                         <Button
                           variant="outline"
                           size="sm"
                           className="mt-2 border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent"
-                          onClick={() => api.removeFromWishlist(item.product_id).then(fetchWishlist)}
+                          onClick={(e) => {
+                            e.stopPropagation() // évite la navigation quand on clique sur le bouton
+                            api.removeFromWishlist(item.product_id).then(fetchWishlist)
+                          }}
                         >
                           Retirer
                         </Button>

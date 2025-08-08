@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Instagram, Facebook, Twitter } from "lucide-react"
+import { Instagram } from "lucide-react"
+import { SiTiktok } from "react-icons/si"
 import { useState, useEffect } from "react"
 import { api } from "@/lib/api"
 
@@ -84,16 +85,29 @@ export default function Footer() {
               sophistication.
             </p>
             <div className="flex space-x-4">
-              <Link href="#" className="text-gray-400 hover:text-gold transition-colors">
+              <a
+                href="https://www.instagram.com/savage_rise_tn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram Savage Rise"
+                title="Instagram"
+                className="text-gray-400 hover:text-gold transition-colors"
+              >
                 <Instagram className="h-6 w-6" />
-              </Link>
-              <Link href="#" className="text-gray-400 hover:text-gold transition-colors">
-                <Facebook className="h-6 w-6" />
-              </Link>
-              <Link href="#" className="text-gray-400 hover:text-gold transition-colors">
-                <Twitter className="h-6 w-6" />
-              </Link>
+              </a>
+
+              <a
+                href="https://www.tiktok.com/@savage.rise"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok Savage Rise"
+                title="TikTok"
+                className="text-gray-400 hover:text-gold transition-colors"
+              >
+                <SiTiktok className="h-6 w-6" />
+              </a>
             </div>
+
           </div>
 
           {/* Quick Links */}
@@ -105,11 +119,11 @@ export default function Footer() {
                   Collections
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/nouveautes" className="text-gray-400 hover:text-white transition-colors">
                   Nouveautés
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/about" className="text-gray-400 hover:text-white transition-colors">
                   À Propos
@@ -128,22 +142,22 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">SERVICE CLIENT</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/aide" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="" className="text-gray-400 hover:text-white transition-colors">
                   Aide
                 </Link>
               </li>
               <li>
-                <Link href="/livraison" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="" className="text-gray-400 hover:text-white transition-colors">
                   Livraison
                 </Link>
               </li>
               <li>
-                <Link href="/retours" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="" className="text-gray-400 hover:text-white transition-colors">
                   Retours
                 </Link>
               </li>
               <li>
-                <Link href="/taille" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="" className="text-gray-400 hover:text-white transition-colors">
                   Guide des tailles
                 </Link>
               </li>

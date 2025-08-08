@@ -128,7 +128,7 @@ export default function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-black border-gray-800" align="end">
                     <DropdownMenuItem asChild>
-                      <Link href="/profile" className="text-white hover:text-gold">
+                      <Link href="/profile?tab=settings" className="text-white hover:text-gold">
                         Mon Profil
                       </Link>
                     </DropdownMenuItem>
