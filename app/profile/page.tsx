@@ -7,12 +7,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Package, Heart, Star, Settings, LogOut } from "lucide-react"
+import { Package, Heart, Star, Settings, LogOut, StarIcon } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
-import type { Order, WishlistItem } from "@/types/api"
+import type { Order, Review, WishlistItem } from "@/types/api"
 import Link from "next/link"
 import { formatPrice } from "@/lib/utils"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -21,6 +33,13 @@ export default function ProfilePage() {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   const [loadingWishlist, setLoadingWishlist] = useState(true)
+
+  // NEW: états pour les avis
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loadingReviews, setLoadingReviews] = useState(true)
+  const [editing, setEditing] = useState<Review | null>(null)
+  const [form, setForm] = useState<{ rating: number; title: string; comment: string }>({ rating: 5, title: "", comment: "" })
+  const [toDelete, setToDelete] = useState<Review | null>(null)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -32,8 +51,72 @@ export default function ProfilePage() {
     if (isAuthenticated) {
       fetchOrders()
       fetchWishlist()
+      fetchReviews()
     }
   }, [isAuthenticated])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      (async () => {
+        setLoadingReviews(true)
+        try {
+          setReviews(await api.getMyReviews())
+        } finally {
+          setLoadingReviews(false)
+        }
+      })()
+    }
+  }, [isAuthenticated])
+
+  function openEdit(r: Review) {
+    setEditing(r)
+    setForm({
+      rating: r.rating,
+      title: r.title ?? "",
+      comment: r.comment ?? ""
+    })
+  }
+
+  async function saveEdit() {
+    if (!editing) return
+    const updated = await api.updateReview(editing.product_id, editing.id, {
+      rating: form.rating, title: form.title || null, comment: form.comment || null
+    })
+    setReviews(reviews.map(r => r.id === updated.id ? updated : r))
+    setEditing(null)
+  }
+
+  async function confirmDelete() {
+    if (!toDelete) return
+    await api.deleteReview(toDelete.product_id, toDelete.id)
+    setReviews(reviews.filter(r => r.id !== toDelete.id))
+    setToDelete(null)
+  }
+
+  // NEW: fetch des avis
+  const fetchReviews = async () => {
+    try {
+      const data = await api.getMyReviews()
+      setReviews(data)
+    } catch (error) {
+      console.error("Error fetching reviews:", error)
+    } finally {
+      setLoadingReviews(false)
+    }
+  }
+
+  // utilitaire pour étoiles
+  const Stars = ({ rating }: { rating: number }) => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map(i => (
+        <StarIcon
+          key={i}
+          className={`h-4 w-4 ${i <= rating ? "text-gold" : "text-gray-600"}`}
+          fill={i <= rating ? "currentColor" : "none"}
+        />
+      ))}
+    </div>
+  )
 
   const fetchOrders = async () => {
     try {
@@ -276,16 +359,81 @@ export default function ProfilePage() {
           {/* Reviews Tab */}
           <TabsContent value="reviews">
             <Card className="bg-gray-900 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white">Mes Avis</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-white">Mes Avis</CardTitle></CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Star className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400">Fonctionnalité en cours de développement</p>
-                </div>
+                {loadingReviews ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4" />
+                    <p className="text-gray-400">Chargement des avis...</p>
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Star className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400">Vous n’avez pas encore laissé d’avis.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map(r => (
+                      <div key={r.id} className="border border-gray-700 rounded-lg p-4 flex items-start justify-between">
+                        <div>
+                          {/* étoiles */}
+                          <div className="flex items-center gap-1 mb-1">
+                            {[1, 2, 3, 4, 5].map(i => (
+                              <Star key={i} className={`h-4 w-4 ${i <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
+                            ))}
+                          </div>
+                          {r.title && <p className="text-white font-medium">{r.title}</p>}
+                          {r.comment && <p className="text-gray-300 text-sm">{r.comment}</p>}
+                          <a href={`/products/${r.product_id}`} className="text-gold text-sm underline mt-2 inline-block">Voir le produit</a>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent" onClick={() => openEdit(r)}>
+                            Modifier
+                          </Button>
+                          <Button variant="outline" size="sm" className="border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent" onClick={() => setToDelete(r)}>
+                            Supprimer
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Dialog édition */}
+            <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+              <DialogContent className="bg-gray-900 border-gray-800 text-white">
+                <DialogHeader><DialogTitle>Modifier mon avis</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <button key={i} onClick={() => setForm(f => ({ ...f, rating: i }))}>
+                        <Star className={`h-6 w-6 ${i <= form.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
+                      </button>
+                    ))}
+                  </div>
+                  <Input placeholder="Titre (optionnel)" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="bg-gray-800 border-gray-700" />
+                  <Textarea placeholder="Commentaire (optionnel)" rows={4} value={form.comment} onChange={e => setForm(f => ({ ...f, comment: e.target.value }))} className="bg-gray-800 border-gray-700" />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" className="border-gray-600 text-white bg-transparent" onClick={() => setEditing(null)}>Annuler</Button>
+                  <Button className="bg-gold text-black hover:bg-gold/90" onClick={saveEdit}>Enregistrer</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Confirmation suppression */}
+            <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+              <AlertDialogContent className="bg-gray-900 border-gray-800 text-white">
+                <AlertDialogHeader><AlertDialogTitle>Supprimer cet avis ?</AlertDialogTitle></AlertDialogHeader>
+                <p className="text-gray-300 text-sm">Cette action est irréversible.</p>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-transparent border-gray-600 text-white">Annuler</AlertDialogCancel>
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmDelete}>Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </TabsContent>
 
           {/* Settings Tab */}
@@ -312,15 +460,15 @@ export default function ProfilePage() {
                   </div>
                   <Separator className="bg-gray-700" />
                   <div className="space-y-2">
-                     <Link href="/profile/edit">
-                    <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
-                      Modifier le profil
-                    </Button>
+                    <Link href="/profile/edit">
+                      <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
+                        Modifier le profil
+                      </Button>
                     </Link>
-                     <Link href="/profile/change-password">
-                    <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
-                      Changer le mot de passe
-                    </Button>
+                    <Link href="/profile/change-password">
+                      <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
+                        Changer le mot de passe
+                      </Button>
                     </Link>
                   </div>
                 </div>

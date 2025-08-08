@@ -344,6 +344,13 @@ export const api = {
       body: data,
     })
   },
+
+  // Reviews (profil)
+  async getMyReviews(skip = 0, limit = 20) {
+    return fetchApi<Review[]>(`/profile/reviews?skip=${skip}&limit=${limit}`, {
+      headers: getAuthHeaders(),
+    })
+  },
   
   // Health-check
   async checkHealth(): Promise<HealthStatus> {
