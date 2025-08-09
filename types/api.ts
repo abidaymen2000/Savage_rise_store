@@ -147,6 +147,7 @@ export interface SearchFilters {
 // Auth types
 export interface UserCreate {
   email: string
+  full_name?: string | null
   password: string
 }
 

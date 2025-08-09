@@ -149,8 +149,8 @@ export const api = {
   },
 
   // Auth
-  async signup(email: string, password: string, fullName: string): Promise<User> {
-    const userData: UserCreate = { email, password }
+  async signup(email: string, password: string, full_name: string): Promise<User> {
+    const userData: UserCreate = { email, password, full_name }
     return fetchApi<User>("/auth/signup", {
       method: "POST",
       body: userData,
