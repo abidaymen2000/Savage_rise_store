@@ -98,9 +98,8 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
         {Array.from({ length: maxStars }, (_, i) => i + 1).map((starValue) => (
           <Star
             key={starValue}
-            className={`h-5 w-5 ${
-              starValue <= rating ? "text-gold fill-gold" : "text-gray-500"
-            } ${clickable ? "cursor-pointer" : ""}`}
+            className={`h-5 w-5 ${starValue <= rating ? "text-gold fill-gold" : "text-gray-500"
+              } ${clickable ? "cursor-pointer" : ""}`}
             onClick={clickable ? () => handleStarClick(starValue) : undefined}
           />
         ))}
@@ -220,7 +219,9 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                   </div>
                   {review.title && <h4 className="font-semibold text-white text-lg mb-1">{review.title}</h4>}
                   {review.comment && <p className="text-gray-300 text-sm">{review.comment}</p>}
-                  <p className="text-xs text-gray-500 mt-2">Par: {review.user_id.slice(0, 8)}...</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Par: {review.author?.trim() || "Utilisateur"}
+                  </p>
                 </div>
               ))}
             </div>

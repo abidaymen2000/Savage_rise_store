@@ -94,6 +94,9 @@ export interface Order {
   payment_status: "unpaid" | "paid" | "refunded"
   created_at: string
   updated_at: string
+  promo_code?: string | null;     // <-- optionnel si le back le renvoie
+  subtotal?: number | null;
+  discount_value?: number | null;
 }
 
 export interface Review {
@@ -105,6 +108,7 @@ export interface Review {
   comment?: string | null
   created_at: string
   updated_at: string
+  author?: string | null   // <-- NEW
 }
 
 export interface ReviewStats {
@@ -194,6 +198,7 @@ export interface OrderCreate {
   items: OrderItem[]          // liste des produits/quantités
   shipping: ShippingInfo      // infos de livraison
   payment_method: "cod" | "stripe" | "paypal"
+  promo_code?: string | null;
 }
 
 // apres WishlistCreate
@@ -203,3 +208,19 @@ export interface ContactMessage {
   subject:   string
   message:   string
 }
+
+export type ApplyRequest = {
+  code: string;
+  user_id?: string | null;
+  order_total: number;
+  product_ids?: string[] | null;
+  category_ids?: string[] | null;
+};
+
+export type ApplyResponse = {
+  valid: boolean;
+  reason?: string | null;
+  discounted_total?: number | null;
+  discount_value?: number | null;
+  code?: string | null;
+};

@@ -21,6 +21,7 @@ import type {
   OrderCreate,
   HealthStatus,
   ContactMessage,
+  ApplyResponse,
 } from "@/types/api"
 
 const API_BASE_URL =
@@ -223,11 +224,16 @@ export const api = {
   },
 
   // Orders
-  async createOrder(items: OrderItem[], shipping: ShippingInfo): Promise<Order> {
+  async createOrder(
+    items: OrderItem[],
+    shipping: ShippingInfo,
+    promoCode?: string
+  ): Promise<Order> {
     const orderData: OrderCreate = {
       items,
       shipping,
       payment_method: "cod",
+      ...(promoCode ? { promo_code: promoCode } : {}),
     }
     return fetchApi<Order>("/orders/", {
       method: "POST",
@@ -363,4 +369,22 @@ export const api = {
   async checkHealth(): Promise<HealthStatus> {
     return fetchApi<HealthStatus>(`/health`)
   },
+
+  // Promo codes
+async applyPromo(code: string, items: OrderItem[]): Promise<ApplyResponse> {
+  const order_total = items.reduce((s, it) => s + it.qty * it.unit_price, 0)
+  const product_ids = items.map((it) => it.product_id)
+
+  return fetchApi<ApplyResponse>("/promocodes/apply", {
+    method: "POST",
+    headers: getAuthHeaders(),                // ⬅️ IMPORTANT
+    body: {
+      code: code.trim().toUpperCase(),
+      order_total,
+      product_ids,
+      category_ids: [],
+      // user_id: inutile → le back utilise l'utilisateur authentifié
+    },
+  })
+}
 }

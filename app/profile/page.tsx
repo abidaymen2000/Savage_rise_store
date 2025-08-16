@@ -30,6 +30,10 @@ import { Textarea } from "@/components/ui/textarea"
 type Tab = "orders" | "wishlist" | "reviews" | "settings"
 type WishlistWithProduct = WishlistItem & { product?: Product }
 
+// Règles de livraison (cohérentes avec le panier/checkout)
+const SHIPPING_THRESHOLD = 300
+const SHIPPING_COST = 7
+
 // --------- tout ton ancien code est ici, mais dans ProfileContent ---------
 function ProfileContent() {
   const router = useRouter()
@@ -50,6 +54,9 @@ function ProfileContent() {
     comment: "",
   })
   const [toDelete, setToDelete] = useState<Review | null>(null)
+
+  // Map idProduit -> nom pour lister joliment les commandes
+  const [productNames, setProductNames] = useState<Record<string, string>>({})
 
   // onglet depuis l'URL ou "orders" par défaut
   const urlTab = (searchParams.get("tab") as Tab) ?? "orders"
@@ -117,11 +124,33 @@ function ProfileContent() {
     try {
       const data = await api.getMyOrders()
       setOrders(data)
+      await enrichProductNames(data) // <- ajoute les noms produits
     } catch (error) {
       console.error("Error fetching orders:", error)
     } finally {
       setLoadingOrders(false)
     }
+  }
+
+  // Récupère les noms une seule fois pour tous les produits trouvés dans les commandes
+  const enrichProductNames = async (orders: Order[]) => {
+    const ids = Array.from(new Set(orders.flatMap((o) => o.items.map((it) => it.product_id))))
+    if (ids.length === 0) return
+
+    const entries = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const p = await api.getProduct(id)
+          return [id, p.name] as const
+        } catch {
+          return [id, `Produit ${id.slice(-6)}`] as const
+        }
+      })
+    )
+
+    const map: Record<string, string> = {}
+    entries.forEach(([id, name]) => (map[id] = name))
+    setProductNames(map)
   }
 
   const fetchWishlist = async () => {
@@ -179,6 +208,12 @@ function ProfileContent() {
       default:
         return status
     }
+  }
+
+  // Total incluant la livraison
+  const computeGrandTotal = (order: Order) => {
+    const shipping = order.total_amount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+    return order.total_amount + shipping
   }
 
   const handleCancelOrder = async (orderId: string) => {
@@ -284,14 +319,22 @@ function ProfileContent() {
                             <Badge className={`${getStatusColor(order.status)} text-white`}>
                               {getStatusText(order.status)}
                             </Badge>
-                            <p className="text-gold font-semibold mt-1">{formatPrice(order.total_amount)}</p>
+                            {/* Total incluant la livraison */}
+                            <p className="text-gold font-semibold mt-1">
+                              {formatPrice(computeGrandTotal(order))}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {order.total_amount >= SHIPPING_THRESHOLD
+                                ? "Livraison: Gratuite"
+                                : `Livraison: ${formatPrice(SHIPPING_COST)}`}
+                            </p>
                           </div>
                         </div>
 
                         <div className="space-y-2 mb-4">
                           {order.items.map((item, index) => (
                             <div key={index} className="text-sm text-gray-300">
-                              {item.qty}x Produit {item.product_id} - {item.color} ({item.size})
+                              {item.qty}x {productNames[item.product_id] ?? `Produit ${item.product_id.slice(-6)}`} — {item.color} ({item.size})
                             </div>
                           ))}
                         </div>
@@ -402,7 +445,7 @@ function ProfileContent() {
                         <div>
                           <div className="flex items-center gap-1 mb-1">
                             {[1, 2, 3, 4, 5].map((i) => (
-                              <Star key={i} className={`h-4 w-4 ${i <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
+                              <StarIcon key={i} className={`h-4 w-4 ${i <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
                             ))}
                           </div>
                           {r.title && <p className="text-white font-medium">{r.title}</p>}
@@ -446,7 +489,7 @@ function ProfileContent() {
                   <div className="flex items-center gap-2">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <button key={i} onClick={() => setForm((f) => ({ ...f, rating: i }))}>
-                        <Star className={`h-6 w-6 ${i <= form.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
+                        <StarIcon className={`h-6 w-6 ${i <= form.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
                       </button>
                     ))}
                   </div>

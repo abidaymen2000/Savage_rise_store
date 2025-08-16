@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Truck, Shield, CreditCard, Loader2 } from 'lucide-react'
+import { ArrowLeft, Truck, Shield, CreditCard, Loader2, Ticket, X } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
@@ -16,7 +16,11 @@ import AuthModal from "@/app/components/AuthModal"
 import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
-import type { ShippingInfo, OrderItem } from "@/types/api"
+import type { ShippingInfo, OrderItem, ApplyResponse } from "@/types/api"
+
+const SHIPPING_THRESHOLD = 300
+const SHIPPING_COST = 7
+const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -40,6 +44,12 @@ export default function CheckoutPage() {
     country: "Tunisie",
   })
 
+  // --- Promo state ---
+  const [promoCode, setPromoCode] = useState<string | null>(null)
+  const [promoResult, setPromoResult] = useState<ApplyResponse | null>(null)
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+
   // Redirect if cart is empty
   useEffect(() => {
     if (cartState.items.length === 0 && !authLoading) {
@@ -57,6 +67,60 @@ export default function CheckoutPage() {
       }))
     }
   }, [user])
+
+  // Convert cart items to OrderItem[] (pour API)
+  const orderItems: OrderItem[] = useMemo(
+    () =>
+      cartState.items.map((item) => ({
+        product_id: item.product.id,
+        color: item.selectedVariant.color,
+        size: item.selectedSize,
+        qty: item.quantity,
+        unit_price: item.product.price,
+      })),
+    [cartState.items]
+  )
+
+  // (Re)valider un code promo sauvegardé
+  const revalidatePromo = async (code: string) => {
+    if (!code || orderItems.length === 0) return
+    setPromoLoading(true)
+    setPromoError(null)
+    try {
+      const res = await api.applyPromo(code, orderItems)
+      setPromoResult(res)
+      setPromoCode(res.valid ? code : null)
+      if (!res.valid) {
+        localStorage.removeItem(PROMO_STORAGE_KEY)
+      }
+    } catch {
+      setPromoError("Impossible de valider le code promo pour le moment.")
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  // Charger et valider le code promo stocké quand on arrive sur le checkout
+  useEffect(() => {
+    const saved = localStorage.getItem(PROMO_STORAGE_KEY)
+    if (saved) {
+      setPromoCode(saved)
+      revalidatePromo(saved)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Si le panier change (quantités), on revalide le code
+  useEffect(() => {
+    if (promoCode) revalidatePromo(promoCode)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderItems.map((i) => `${i.product_id}-${i.size}-${i.qty}`).join("|")])
+
+  const handleRemovePromo = () => {
+    setPromoCode(null)
+    setPromoResult(null)
+    localStorage.removeItem(PROMO_STORAGE_KEY)
+  }
 
   const handleInputChange = (field: keyof ShippingInfo, value: string) => {
     setShippingInfo((prev) => ({ ...prev, [field]: value }))
@@ -87,21 +151,12 @@ export default function CheckoutPage() {
     setError(null)
 
     try {
-      // Convert cart items to order items
-      const orderItems: OrderItem[] = cartState.items.map((item) => ({
-        product_id: item.product.id,
-        color: item.selectedVariant.color,
-        size: item.selectedSize,
-        qty: item.quantity, // Changed to 'qty' as per OpenAPI spec
-        unit_price: item.product.price,
-      }))
-
-      const order = await api.createOrder(orderItems, shippingInfo)
+      const order = await api.createOrder(orderItems, shippingInfo, promoCode ?? undefined)
 
       setSuccess(true)
       clearCart()
+      localStorage.removeItem(PROMO_STORAGE_KEY)
 
-      // Redirect to order confirmation after 2 seconds
       setTimeout(() => {
         router.push(`/profile/orders/${order.id}`)
       }, 2000)
@@ -113,9 +168,16 @@ export default function CheckoutPage() {
     }
   }
 
-  const subtotal = cartState.total
-  const shipping = subtotal >= 300 ? 0 : 7
-  const total = subtotal + shipping
+  // Totaux
+  const subtotal = useMemo(
+    () => orderItems.reduce((s, it) => s + it.qty * it.unit_price, 0),
+    [orderItems]
+  )
+
+  const discount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
+  const afterDiscount = Math.max(0, subtotal - discount)
+  const shipping = afterDiscount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const total = afterDiscount + shipping
 
   if (authLoading) {
     return (
@@ -128,9 +190,7 @@ export default function CheckoutPage() {
     )
   }
 
-  if (cartState.items.length === 0) {
-    return null // Will redirect
-  }
+  if (cartState.items.length === 0) return null // redirect déjà programmé
 
   if (success) {
     return (
@@ -306,9 +366,37 @@ export default function CheckoutPage() {
                   <span className="text-white">{subtotal.toFixed(2)} TND</span>
                 </div>
 
+                {/* Ligne remise si code valide */}
+                {promoResult?.valid && (
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2 text-green-500">
+                      <Ticket className="h-4 w-4" />
+                      <span>Code {promoResult.code}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-green-500">- { (promoResult.discount_value ?? 0).toFixed(2) } TND</span>
+                      <button
+                        className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
+                        onClick={handleRemovePromo}
+                        disabled={promoLoading}
+                        title="Retirer le code"
+                      >
+                        <X className="h-3 w-3" /> Retirer
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Erreur promo éventuelle */}
+                {promoError && (
+                  <Alert className="border-red-600 bg-red-900/20">
+                    <AlertDescription className="text-red-400">{promoError}</AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="flex justify-between">
                   <span className="text-gray-400">Livraison</span>
-                  <span className="text-white">{shipping === 0 ? "Gratuite" : `${shipping.toFixed(2)} TND`}</span>
+                  <span className="text-white">{shipping === 0 ? "Gratuite" : `${SHIPPING_COST.toFixed(2)} TND`}</span>
                 </div>
 
                 <Separator className="bg-gray-700" />
@@ -327,7 +415,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Truck className="h-4 w-4" />
-                    <span>Livraison gratuite dès 300TND</span>
+                    <span>Livraison gratuite dès {SHIPPING_THRESHOLD}TND</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Shield className="h-4 w-4" />
@@ -341,7 +429,7 @@ export default function CheckoutPage() {
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing}
+                  disabled={isProcessing || promoLoading}
                   className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3"
                 >
                   {isProcessing ? (
