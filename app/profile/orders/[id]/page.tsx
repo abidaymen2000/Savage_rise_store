@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Package, MapPin, Phone, Mail, CalendarDays, DollarSign, TicketPercent, Truck } from "lucide-react"
 import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
-import type { Order } from "@/types/api"
+import type { Order, Product } from "@/types/api"
 import { formatPrice } from "@/lib/utils"
 
 const SHIPPING_THRESHOLD = 300
@@ -26,6 +26,9 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // map produit_id -> Product (pour nom + images)
+  const [productMap, setProductMap] = useState<Record<string, Product | null>>({})
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -49,6 +52,19 @@ export default function OrderDetailPage() {
       setLoading(false)
     }
   }
+
+  // Récupérer les produits pour afficher nom + image (variante couleur si possible)
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (!order) return
+      const ids = Array.from(new Set(order.items.map((i) => i.product_id)))
+      const results = await Promise.all(ids.map((id) => api.getProduct(id).catch(() => null)))
+      const map: Record<string, Product | null> = {}
+      ids.forEach((id, idx) => (map[id] = results[idx]))
+      setProductMap(map)
+    }
+    loadProducts()
+  }, [order])
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
@@ -104,15 +120,38 @@ export default function OrderDetailPage() {
     )
   }
 
-  // --- Paiement / promo (robuste) ---
-  const computedSubtotal = order.subtotal ?? order.items.reduce((s, it) => s + it.unit_price * it.qty, 0)
-  const computedDiscount = order.discount_value ?? Math.max(0, computedSubtotal - order.total_amount)
-  const hasPromo = (!!order.promo_code && computedDiscount > 0) || computedDiscount > 0.0001
+  // ---- Totaux & affichage fiables (alignés au backend) ----
+  const subtotal = order.subtotal ?? order.items.reduce((s, it) => s + it.unit_price * it.qty, 0)
+  const discountValue = order.discount_value ?? 0
+  const afterDiscount = Math.max(0, subtotal - discountValue)
+
+  // Utilise la valeur de la DB si dispo, sinon on recalcule comme fallback
+  const shippingAmount =
+    (order as any).shipping_amount ?? (afterDiscount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
+
+  // ATTENTION: total_amount côté backend inclut déjà la livraison.
+  const grandTotal =
+    order.total_amount ?? afterDiscount + shippingAmount
+
+  const hasPromo = (order.promo_code && discountValue > 0) || discountValue > 0.0001
   const promoLabel = order.promo_code ? `Code promo ${order.promo_code}` : "Remise"
 
-  // --- Livraison & total final ---
-  const shippingAmount = order.total_amount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
-  const grandTotal = order.total_amount + shippingAmount
+  // ---- Helpers d'affichage produit ----
+  const productName = (product_id: string) =>
+    productMap[product_id]?.name ?? `Produit ${product_id}`
+
+  const productImage = (product_id: string, color: string | undefined) => {
+    const p = productMap[product_id]
+    if (!p) return { url: "/placeholder.svg?height=80&width=80", alt: `Produit ${product_id}` }
+    const variant =
+      p.variants?.find((v) => v.color?.toLowerCase() === (color || "").toLowerCase()) ||
+      p.variants?.[0]
+    const img = variant?.images?.[0]
+    return {
+      url: img?.url ?? "/placeholder.svg?height=80&width=80",
+      alt: img?.alt_text || p.name || `Produit ${product_id}`,
+    }
+  }
 
   return (
     <div className="min-h-screen bg-black text-white pt-20">
@@ -138,32 +177,30 @@ export default function OrderDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex gap-4 items-center">
-                    <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">
-                      <Image
-                        src="/placeholder.svg?height=80&width=80"
-                        alt={`Produit ${item.product_id}`}
-                        fill
-                        className="object-cover"
-                      />
+                {order.items.map((item, index) => {
+                  const { url, alt } = productImage(item.product_id, item.color)
+                  return (
+                    <div key={index} className="flex gap-4 items-center">
+                      <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">
+                        <Image src={url} alt={alt} fill className="object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white">{productName(item.product_id)}</h3>
+                        <p className="text-sm text-gray-400">
+                          Couleur: {item.color} • Taille: {item.size} • Qté: {item.qty}
+                        </p>
+                        <p className="text-gold font-semibold">{formatPrice(item.unit_price * item.qty)}</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">Produit {item.product_id}</h3>
-                      <p className="text-sm text-gray-400">
-                        Couleur: {item.color} • Taille: {item.size} • Qté: {item.qty}
-                      </p>
-                      <p className="text-gold font-semibold">{formatPrice(item.unit_price * item.qty)}</p>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
 
                 {/* Résumé paiement (avec remise + livraison) */}
                 <Separator className="bg-gray-700" />
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Sous-total</span>
-                    <span>{formatPrice(computedSubtotal)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
 
                   {hasPromo && (
@@ -175,7 +212,7 @@ export default function OrderDetailPage() {
                           <Badge className="bg-green-700/40 text-green-300">{order.promo_code}</Badge>
                         ) : null}
                       </span>
-                      <span className="text-green-400">- {formatPrice(computedDiscount)}</span>
+                      <span className="text-green-400">- {formatPrice(discountValue)}</span>
                     </div>
                   )}
 
