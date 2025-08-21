@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,29 +20,46 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
   const [isLoading, setIsLoading] = useState(false)
+  const [isResending, setIsResending] = useState(false) // 👈 pour le bouton de renvoi
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" })
   const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "", confirmPassword: "" })
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
 
-
-  const { login, signup } = useAuth()
+  // 👇 Assure-toi que resendVerification est bien exposé par le context
+  const { login, signup, resendVerification } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    setSuccess(null)
 
     try {
       await login(loginForm.email, loginForm.password)
       onClose()
-    } catch (err) {
-      setError("Email ou mot de passe incorrect")
+    } catch (err: any) {
+      const status = err?.status
+      const detail = typeof err?.message === "string" ? err.message : ""
+
+      if (status === 401 && detail === "EMAIL_NOT_VERIFIED") {
+        // renvoi auto (optionnel)
+        try {
+          if (loginForm.email.trim()) await resendVerification(loginForm.email.trim())
+          setError("Votre compte n’est pas encore vérifié. Nous venons de renvoyer l’email de vérification. Vérifiez votre boîte de réception et vos spams.")
+        } catch {
+          setError("Votre compte n’est pas encore vérifié. Cliquez sur “Renvoyer l’email de vérification”.")
+        }
+      } else if (status === 401 && detail === "INVALID_CREDENTIALS") {
+        setError("Email ou mot de passe incorrect")
+      } else {
+        setError("Une erreur est survenue. Réessayez.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -70,11 +86,40 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     try {
       await signup(signupForm.email, signupForm.password, signupForm.fullName)
       setSuccess("Compte créé avec succès ! Vérifiez votre email pour activer votre compte.")
-      setSignupForm({ fullName: "", email: "", password: "", confirmPassword: "" })
+      // 🔒 On garde l'email (et même le nom si tu veux), on vide juste les mdp
+      setSignupForm(prev => ({
+        ...prev,
+        password: "",
+        confirmPassword: "",
+      }))
+      // (optionnel) rester sur l’onglet signup
+      // setActiveTab("signup")
     } catch (err) {
       setError("Erreur lors de la création du compte. Cet email est peut-être déjà utilisé.")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // 👇 Renvoi email de vérification
+  const handleResend = async () => {
+    setError(null)
+    setSuccess(null)
+
+    const email = (signupForm.email || loginForm.email).trim()
+    if (!email) {
+      setError("Veuillez saisir votre email avant de renvoyer la vérification.")
+      return
+    }
+
+    try {
+      setIsResending(true)
+      await resendVerification(email)
+      setSuccess("Email de vérification renvoyé ! Vérifiez votre boîte de réception et vos spams.")
+    } catch {
+      setError("Impossible de renvoyer l'email pour le moment. Réessayez plus tard.")
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -94,7 +139,9 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-black text-white border-gray-800 max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-playfair text-center text-gold">Bienvenue chez Savage Rise</DialogTitle>
+          <DialogTitle className="text-2xl font-playfair text-center text-gold">
+            Bienvenue chez Savage Rise
+          </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "signup")}>
@@ -119,6 +166,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
             </Alert>
           )}
 
+          {/* --- LOGIN --- */}
           <TabsContent value="login" className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
@@ -177,6 +225,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
             </form>
           </TabsContent>
 
+          {/* --- SIGNUP --- */}
           <TabsContent value="signup" className="space-y-4">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
@@ -194,6 +243,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="signup-fullname">Nom complet</Label>
                 <Input
@@ -201,13 +251,12 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   type="text"
                   placeholder="Votre nom complet"
                   value={signupForm.fullName}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({ ...prev, fullName: e.target.value }))
-                  }
+                  onChange={(e) => setSignupForm((prev) => ({ ...prev, fullName: e.target.value }))}
                   className="bg-gray-900 border-gray-700 text-white"
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Mot de passe</Label>
                 <div className="relative">
@@ -271,6 +320,30 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 )}
               </Button>
             </form>
+
+            {/* 👇 Bouton renvoyer l'email de vérification */}
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResend}
+                disabled={isResending || !signupForm.email.trim()}
+                className="w-full border-gold text-gold hover:bg-gold hover:text-black font-semibold"
+              >
+                {isResending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Envoi...
+                  </>
+                ) : (
+                  "Renvoyer l’email de vérification"
+                )}
+              </Button>
+
+              <p className="text-xs text-gray-400 text-center">
+                Saisissez votre email ci‑dessus puis cliquez si vous n’avez pas reçu le mail.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
 

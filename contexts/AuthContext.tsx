@@ -16,6 +16,7 @@ interface AuthContextType extends AuthState {
   signup: (email: string, password: string, fullName: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
+  resendVerification: (email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -27,7 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: true,
   })
 
-  // Check for existing token on mount
   useEffect(() => {
     const token = localStorage.getItem("savage_rise_token")
     if (token) {
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signup = async (email: string, password: string, fullName: string) => {
     try {
       await api.signup(email, password, fullName)
-      // Note: User needs to verify email before they can login
+      // L'utilisateur doit vérifier son email avant de pouvoir se connecter
     } catch (error) {
       console.error("Signup failed:", error)
       throw error
@@ -86,6 +86,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
+  // ✅ Utiliser la méthode dédiée de ton api
+  const resendVerification = async (email: string) => {
+    try {
+      await api.resendVerification(email)
+    } catch (error) {
+      console.error("Resend verification failed:", error)
+      throw error
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -94,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
         logout,
         refreshUser,
+        resendVerification,
       }}
     >
       {children}

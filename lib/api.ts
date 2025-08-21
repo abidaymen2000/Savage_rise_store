@@ -169,8 +169,13 @@ export const api = {
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new ApiError(response.status, errorText || "Login failed")
+      const text = await response.text()
+      let detail = text || "Login failed"
+      try {
+        const j = JSON.parse(text)
+        if (typeof j?.detail === "string") detail = j.detail
+      } catch { }
+      throw new ApiError(response.status, detail)
     }
 
     return await response.json()
@@ -196,6 +201,13 @@ export const api = {
     })
   },
 
+  async resendVerification(email: string): Promise<void> {
+    const data: PasswordResetRequest = { email }
+    await fetchApi("/auth/resend-verification", {
+      method: "POST",
+      body: data,
+    })
+  },
   // Profile
   async getProfile(): Promise<User> {
     return fetchApi<User>("/profile/me", {
@@ -311,7 +323,7 @@ export const api = {
   async deleteReview(productId: string, reviewId: string): Promise<void> {
     await fetchApi(`/products/${productId}/reviews/${reviewId}`, {
       method: "DELETE",
-      headers: getAuthHeaders(), 
+      headers: getAuthHeaders(),
     })
   },
 
@@ -371,20 +383,20 @@ export const api = {
   },
 
   // Promo codes
-async applyPromo(code: string, items: OrderItem[]): Promise<ApplyResponse> {
-  const order_total = items.reduce((s, it) => s + it.qty * it.unit_price, 0)
-  const product_ids = items.map((it) => it.product_id)
+  async applyPromo(code: string, items: OrderItem[]): Promise<ApplyResponse> {
+    const order_total = items.reduce((s, it) => s + it.qty * it.unit_price, 0)
+    const product_ids = items.map((it) => it.product_id)
 
-  return fetchApi<ApplyResponse>("/promocodes/apply", {
-    method: "POST",
-    headers: getAuthHeaders(),                // ⬅️ IMPORTANT
-    body: {
-      code: code.trim().toUpperCase(),
-      order_total,
-      product_ids,
-      category_ids: [],
-      // user_id: inutile → le back utilise l'utilisateur authentifié
-    },
-  })
-}
+    return fetchApi<ApplyResponse>("/promocodes/apply", {
+      method: "POST",
+      headers: getAuthHeaders(),                // ⬅️ IMPORTANT
+      body: {
+        code: code.trim().toUpperCase(),
+        order_total,
+        product_ids,
+        category_ids: [],
+        // user_id: inutile → le back utilise l'utilisateur authentifié
+      },
+    })
+  }
 }
