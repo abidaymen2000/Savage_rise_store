@@ -28,7 +28,7 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   (process.env.NODE_ENV === "development"
     ? "http://localhost:8000"
-    : "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/");
+    : "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com");
 
 class ApiError extends Error {
   constructor(
