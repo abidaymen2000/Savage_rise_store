@@ -12,16 +12,16 @@ export default function Hero() {
     {
       type: "video" as const,
       src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/video-header.mp4?updatedAt=1754345500707",
-      title: "NOUVELLE COLLECTION",
-      subtitle: "AUTOMNE/HIVER 2025",
-      description: "Découvrez l'élégance redéfinie",
+      title: "NEW COLLECTION",
+      subtitle: "FALL/WINTER 2025",
+      description: "Discover redefined elegance",
     },
     {
       type: "image" as const,
       src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/banniere-blan.jpeg?updatedAt=1754345638832",
-      title: "STYLE INTEMPOREL",
+      title: "TIMELESS STYLE",
       subtitle: "PREMIUM",
-      description: "Les détails qui font la différence",
+      description: "Details that make the difference",
     },
   ]
 
@@ -69,7 +69,7 @@ export default function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-gold text-black hover:bg-gold/90 font-semibold px-8 py-3 text-lg">
                 <Link href="/products">
-                  DÉCOUVRIR
+                  DISCOVER
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>

@@ -49,7 +49,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       setReviewStats(fetchedStats)
     } catch (err) {
       console.error("Error fetching reviews:", err)
-      setReviewError("Impossible de charger les avis.")
+      setReviewError("Unable to load reviews.")
     } finally {
       setLoadingReviews(false)
     }
@@ -58,8 +58,8 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
   const handleStarClick = (rating: number) => {
     if (!isAuthenticated) {
       toast({
-        title: "Connexion requise",
-        description: "Veuillez vous connecter pour laisser un avis.",
+        title: "Sign in required",
+        description: "Please sign in to leave a review.",
         variant: "destructive",
       })
       return
@@ -77,8 +77,8 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
     try {
       await api.addReview(productId, userRating, userComment, userReviewTitle)
       toast({
-        title: "Avis soumis",
-        description: "Merci pour votre avis !",
+        title: "Review submitted",
+        description: "Thank you for your review!",
       })
       setUserRating(0)
       setUserComment("")
@@ -86,7 +86,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       setHasSubmittedReview(true) // Trigger re-fetch of reviews
     } catch (err) {
       console.error("Error submitting review:", err)
-      setReviewError("Impossible de soumettre votre avis. Veuillez réessayer.")
+      setReviewError("Unable to submit your review. Please try again.")
     } finally {
       setIsSubmittingReview(false)
     }
@@ -112,7 +112,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       <CardHeader>
         <CardTitle className="text-white flex items-center gap-2">
           <Star className="h-5 w-5 text-gold" />
-          Avis des clients
+          Customer reviews
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -123,7 +123,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
             </div>
             <div className="flex flex-col">
               {renderStars(reviewStats.average_rating || 0)}
-              <p className="text-gray-400 text-sm">Basé sur {reviewStats.count} avis</p>
+              <p className="text-gray-400 text-sm">Based on {reviewStats.count} reviews</p>
             </div>
           </div>
         )}
@@ -132,27 +132,27 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
 
         {/* Review Submission Form */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Laisser un avis</h3>
+          <h3 className="text-lg font-semibold text-white">Leave a review</h3>
           {!isAuthenticated && !authLoading ? (
             <Alert className="border-blue-600 bg-blue-900/20">
               <AlertDescription className="text-blue-400">
-                Veuillez vous connecter pour laisser un avis sur ce produit.
+                Please sign in to leave a review for this product.
               </AlertDescription>
             </Alert>
           ) : (
             <form onSubmit={handleSubmitReview} className="space-y-4">
               <div>
-                <Label htmlFor="rating">Votre note *</Label>
+                <Label htmlFor="rating">Your rating *</Label>
                 {renderStars(userRating, 5, true)}
               </div>
 
               {userRating > 0 && (
                 <>
                   <div>
-                    <Label htmlFor="review-title">Titre (facultatif)</Label>
+                    <Label htmlFor="review-title">Title (optional)</Label>
                     <Textarea
                       id="review-title"
-                      placeholder="Un titre pour votre avis..."
+                      placeholder="A title for your review..."
                       value={userReviewTitle}
                       onChange={(e) => setUserReviewTitle(e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white"
@@ -160,10 +160,10 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                     />
                   </div>
                   <div>
-                    <Label htmlFor="review-comment">Commentaire (facultatif)</Label>
+                    <Label htmlFor="review-comment">Comment (optional)</Label>
                     <Textarea
                       id="review-comment"
-                      placeholder="Partagez votre expérience avec ce produit..."
+                      placeholder="Share your experience with this product..."
                       value={userComment}
                       onChange={(e) => setUserComment(e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white"
@@ -183,10 +183,10 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                     {isSubmittingReview ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Soumission...
+                        Submitting...
                       </>
                     ) : (
-                      "Soumettre l'avis"
+                      "Submit review"
                     )}
                   </Button>
                 </>
@@ -199,14 +199,14 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
 
         {/* Existing Reviews */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Tous les avis ({reviews.length})</h3>
+          <h3 className="text-lg font-semibold text-white">All reviews ({reviews.length})</h3>
           {loadingReviews ? (
             <div className="text-center py-4">
               <Loader2 className="h-8 w-8 animate-spin text-gold mx-auto" />
-              <p className="text-gray-400 mt-2">Chargement des avis...</p>
+              <p className="text-gray-400 mt-2">Loading reviews...</p>
             </div>
           ) : reviews.length === 0 ? (
-            <p className="text-gray-400">Soyez le premier à laisser un avis pour ce produit !</p>
+            <p className="text-gray-400">Be the first to review this product!</p>
           ) : (
             <div className="space-y-6">
               {reviews.map((review) => (
@@ -214,13 +214,13 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                   <div className="flex items-center gap-2 mb-2">
                     {renderStars(review.rating)}
                     <span className="text-sm text-gray-400">
-                      {new Date(review.created_at).toLocaleDateString("fr-FR")}
+                      {new Date(review.created_at).toLocaleDateString("en-US")}
                     </span>
                   </div>
                   {review.title && <h4 className="font-semibold text-white text-lg mb-1">{review.title}</h4>}
                   {review.comment && <p className="text-gray-300 text-sm">{review.comment}</p>}
                   <p className="text-xs text-gray-500 mt-2">
-                    Par: {review.author?.trim() || "Utilisateur"}
+                    By: {review.author?.trim() || "User"}
                   </p>
                 </div>
               ))}

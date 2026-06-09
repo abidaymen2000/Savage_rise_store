@@ -27,15 +27,15 @@ export default function ChangePasswordPage() {
     e.preventDefault()
     if (!isAuthenticated) {
       toast({
-        title: 'Erreur',
-        description: 'Vous devez être connecté pour changer votre mot de passe.',
+        title: 'Error',
+        description: 'You must be signed in to change your password.',
         variant: 'destructive',
       })
       return
     }
 
     if (newPassword !== confirmNewPassword) {
-      setError('Les nouveaux mots de passe ne correspondent pas.')
+      setError('New passwords do not match.')
       return
     }
 
@@ -48,8 +48,8 @@ export default function ChangePasswordPage() {
       }
       await api.changePassword(passwordData.current_password, passwordData.new_password)
       toast({
-        title: 'Succès',
-        description: 'Votre mot de passe a été mis à jour avec succès.',
+        title: 'Success',
+        description: 'Your password has been updated successfully.',
       })
       setCurrentPassword('')
       setNewPassword('')
@@ -57,10 +57,10 @@ export default function ChangePasswordPage() {
       router.push('/profile')
     } catch (err: any) {
       console.error('Failed to change password:', err)
-      setError(err.message || 'Échec du changement de mot de passe.')
+      setError(err.message || 'Password change failed.')
       toast({
-        title: 'Erreur',
-        description: err.message || 'Impossible de changer votre mot de passe.',
+        title: 'Error',
+        description: err.message || 'Unable to change your password.',
         variant: 'destructive',
       })
     } finally {
@@ -72,7 +72,7 @@ export default function ChangePasswordPage() {
     return (
       <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
         <Loader2 className="h-8 w-8 animate-spin text-gold" />
-        <p className="ml-4 text-gray-400">Chargement...</p>
+        <p className="ml-4 text-gray-400">Loading...</p>
       </div>
     )
   }
@@ -80,7 +80,7 @@ export default function ChangePasswordPage() {
   if (!isAuthenticated) {
     return (
       <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
-        <p className="text-red-500">Vous devez être connecté pour accéder à cette page.</p>
+        <p className="text-red-500">You must be signed in to access this page.</p>
       </div>
     )
   }
@@ -90,12 +90,12 @@ export default function ChangePasswordPage() {
       <div className="container mx-auto px-4">
         <Card className="bg-gray-900 border-gray-800 text-white max-w-lg mx-auto">
           <CardHeader>
-            <CardTitle className="text-gold text-2xl">Changer le mot de passe</CardTitle>
+            <CardTitle className="text-gold text-2xl">Change password</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="currentPassword" className="text-white">Mot de passe actuel</Label>
+                <Label htmlFor="currentPassword" className="text-white">Current password</Label>
                 <Input
                   id="currentPassword"
                   type="password"
@@ -106,7 +106,7 @@ export default function ChangePasswordPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="newPassword" className="text-white">Nouveau mot de passe</Label>
+                <Label htmlFor="newPassword" className="text-white">New password</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -117,7 +117,7 @@ export default function ChangePasswordPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="confirmNewPassword" className="text-white">Confirmer le nouveau mot de passe</Label>
+                <Label htmlFor="confirmNewPassword" className="text-white">Confirm new password</Label>
                 <Input
                   id="confirmNewPassword"
                   type="password"
@@ -133,10 +133,10 @@ export default function ChangePasswordPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Changement...
+                      Updating...
                     </>
                   ) : (
-                    'Changer le mot de passe'
+                    'Change password'
                   )}
                 </Button>
                 <Button
@@ -145,7 +145,7 @@ export default function ChangePasswordPage() {
                   onClick={() => router.push('/profile')}
                   className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
                 >
-                  Annuler
+                  Cancel
                 </Button>
               </div>
             </form>

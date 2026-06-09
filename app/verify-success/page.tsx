@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic"; // empêche le prerender
+export const dynamic = "force-dynamic";
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,6 @@ export default function VerifySuccess() {
 
     (async () => {
       try {
-        // Lire token depuis l'URL côté client
         const params = new URLSearchParams(window.location.search);
         const token = params.get("token");
 
@@ -25,15 +24,13 @@ export default function VerifySuccess() {
           localStorage.setItem("savage_rise_token", token);
           await refreshUser();
 
-          // Nettoyer l'URL
           params.delete("token");
           const clean = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
           window.history.replaceState({}, "", clean);
         }
       } catch (e) {
-        console.error("Erreur vérification :", e);
+        console.error("Verification error:", e);
       } finally {
-        // Redirection vers accueil
         router.replace("/");
       }
     })();
@@ -42,8 +39,8 @@ export default function VerifySuccess() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="text-center">
-        <p className="text-lg mb-2">Vérification réussie ✅</p>
-        <p className="text-gray-400">Connexion en cours...</p>
+        <p className="text-lg mb-2">Verification successful</p>
+        <p className="text-gray-400">Signing you in...</p>
       </div>
     </div>
   );

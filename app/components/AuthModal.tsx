@@ -51,14 +51,14 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
         // renvoi auto (optionnel)
         try {
           if (loginForm.email.trim()) await resendVerification(loginForm.email.trim())
-          setError("Votre compte n’est pas encore vérifié. Nous venons de renvoyer l’email de vérification. Vérifiez votre boîte de réception et vos spams.")
+          setError("Your account is not verified yet. We just resent the verification email. Please check your inbox and spam folder.")
         } catch {
-          setError("Votre compte n’est pas encore vérifié. Cliquez sur “Renvoyer l’email de vérification”.")
+          setError("Your account is not verified yet. Click “Resend verification email”.")
         }
       } else if (status === 401 && detail === "INVALID_CREDENTIALS") {
-        setError("Email ou mot de passe incorrect")
+        setError("Incorrect email or password")
       } else {
-        setError("Une erreur est survenue. Réessayez.")
+        setError("Something went wrong. Please try again.")
       }
     } finally {
       setIsLoading(false)
@@ -72,20 +72,20 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     setSuccess(null)
 
     if (signupForm.password !== signupForm.confirmPassword) {
-      setError("Les mots de passe ne correspondent pas")
+      setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
     if (signupForm.password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères")
+      setError("Password must contain at least 6 characters")
       setIsLoading(false)
       return
     }
 
     try {
       await signup(signupForm.email, signupForm.password, signupForm.fullName)
-      setSuccess("Compte créé avec succès ! Vérifiez votre email pour activer votre compte.")
+      setSuccess("Account created successfully. Check your email to activate your account.")
       // 🔒 On garde l'email (et même le nom si tu veux), on vide juste les mdp
       setSignupForm(prev => ({
         ...prev,
@@ -95,7 +95,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
       // (optionnel) rester sur l’onglet signup
       // setActiveTab("signup")
     } catch (err) {
-      setError("Erreur lors de la création du compte. Cet email est peut-être déjà utilisé.")
+      setError("Account creation failed. This email may already be in use.")
     } finally {
       setIsLoading(false)
     }
@@ -108,16 +108,16 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
 
     const email = (signupForm.email || loginForm.email).trim()
     if (!email) {
-      setError("Veuillez saisir votre email avant de renvoyer la vérification.")
+      setError("Please enter your email before resending verification.")
       return
     }
 
     try {
       setIsResending(true)
       await resendVerification(email)
-      setSuccess("Email de vérification renvoyé ! Vérifiez votre boîte de réception et vos spams.")
+      setSuccess("Verification email resent. Please check your inbox and spam folder.")
     } catch {
-      setError("Impossible de renvoyer l'email pour le moment. Réessayez plus tard.")
+      setError("Unable to resend the email right now. Please try again later.")
     } finally {
       setIsResending(false)
     }
@@ -140,17 +140,17 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
       <DialogContent className="bg-black text-white border-gray-800 max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-playfair text-center text-gold">
-            Bienvenue chez Savage Rise
+            Welcome to Savage Rise
           </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "signup")}>
           <TabsList className="grid w-full grid-cols-2 bg-gray-900">
             <TabsTrigger value="login" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-              Connexion
+              Sign in
             </TabsTrigger>
             <TabsTrigger value="signup" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-              Inscription
+              Sign up
             </TabsTrigger>
           </TabsList>
 
@@ -176,7 +176,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="votre@email.com"
+                    placeholder="your@email.com"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
                     className="pl-10 bg-gray-900 border-gray-700 text-white"
@@ -186,7 +186,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="login-password">Mot de passe</Label>
+                <Label htmlFor="login-password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
@@ -216,10 +216,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connexion...
+                    Signing in...
                   </>
                 ) : (
-                  "Se connecter"
+                  "Sign in"
                 )}
               </Button>
             </form>
@@ -235,7 +235,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="votre@email.com"
+                    placeholder="your@email.com"
                     value={signupForm.email}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, email: e.target.value }))}
                     className="pl-10 bg-gray-900 border-gray-700 text-white"
@@ -245,11 +245,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-fullname">Nom complet</Label>
+                <Label htmlFor="signup-fullname">Full name</Label>
                 <Input
                   id="signup-fullname"
                   type="text"
-                  placeholder="Votre nom complet"
+                  placeholder="Your full name"
                   value={signupForm.fullName}
                   onChange={(e) => setSignupForm((prev) => ({ ...prev, fullName: e.target.value }))}
                   className="bg-gray-900 border-gray-700 text-white"
@@ -258,7 +258,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Mot de passe</Label>
+                <Label htmlFor="signup-password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
@@ -282,7 +282,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-confirm">Confirmer le mot de passe</Label>
+                <Label htmlFor="signup-confirm">Confirm password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
@@ -313,10 +313,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Création...
+                    Creating...
                   </>
                 ) : (
-                  "Créer mon compte"
+                  "Create my account"
                 )}
               </Button>
             </form>
@@ -333,28 +333,28 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 {isResending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Envoi...
+                    Sending...
                   </>
                 ) : (
-                  "Renvoyer l’email de vérification"
+                  "Resend verification email"
                 )}
               </Button>
 
               <p className="text-xs text-gray-400 text-center">
-                Saisissez votre email ci‑dessus puis cliquez si vous n’avez pas reçu le mail.
+                Enter your email above, then click if you did not receive the email.
               </p>
             </div>
           </TabsContent>
         </Tabs>
 
         <div className="text-center text-sm text-gray-400">
-          En vous inscrivant, vous acceptez nos{" "}
+          By signing up, you agree to our{" "}
           <a href="/terms" className="text-gold hover:underline">
-            conditions d'utilisation
+            terms of use
           </a>{" "}
-          et notre{" "}
+          and our{" "}
           <a href="/privacy" className="text-gold hover:underline">
-            politique de confidentialité
+            privacy policy
           </a>
           .
         </div>

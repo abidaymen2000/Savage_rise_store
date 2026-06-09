@@ -37,7 +37,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
         window.location.reload() // Refresh to update user state
       }, 2000)
     } catch (err) {
-      setError("Code de vérification invalide ou expiré")
+      setError("Invalid or expired verification code")
     } finally {
       setIsLoading(false)
     }
@@ -53,7 +53,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
       setError(null)
       // Show success message briefly
     } catch (err) {
-      setError("Erreur lors de l'envoi du code")
+      setError("Error sending the code")
     } finally {
       setIsResending(false)
     }
@@ -65,8 +65,8 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
         <DialogContent className="bg-black text-white border-gray-800 max-w-md">
           <div className="text-center py-6">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Email vérifié !</h2>
-            <p className="text-gray-400">Votre compte est maintenant activé.</p>
+            <h2 className="text-2xl font-bold mb-2">Email verified!</h2>
+            <p className="text-gray-400">Your account is now active.</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -77,13 +77,13 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-black text-white border-gray-800 max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-playfair text-center text-gold">Vérification Email</DialogTitle>
+          <DialogTitle className="text-2xl font-playfair text-center text-gold">Email verification</DialogTitle>
         </DialogHeader>
 
         <div className="text-center mb-6">
           <Mail className="h-12 w-12 text-gold mx-auto mb-4" />
           <p className="text-gray-400">
-            Un code de vérification a été envoyé à <strong>{email}</strong>
+            A verification code has been sent to <strong>{email}</strong>
           </p>
         </div>
 
@@ -95,11 +95,11 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
 
         <form onSubmit={handleVerify} className="space-y-4">
           <div>
-            <Label htmlFor="verification-code">Code de vérification</Label>
+            <Label htmlFor="verification-code">Verification code</Label>
             <Input
               id="verification-code"
               type="text"
-              placeholder="Entrez le code reçu par email"
+              placeholder="Enter the code received by email"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
               className="bg-gray-900 border-gray-700 text-white text-center text-lg tracking-widest"
@@ -116,16 +116,16 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Vérification...
+                Verifying...
               </>
             ) : (
-              "Vérifier"
+              "Verify"
             )}
           </Button>
         </form>
 
         <div className="text-center mt-4">
-          <p className="text-gray-400 text-sm mb-2">Vous n'avez pas reçu le code ?</p>
+          <p className="text-gray-400 text-sm mb-2">Did not receive the code?</p>
           <Button
             variant="ghost"
             onClick={handleResendCode}
@@ -135,10 +135,10 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
             {isResending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Envoi...
+                Sending...
               </>
             ) : (
-              "Renvoyer le code"
+              "Resend code"
             )}
           </Button>
         </div>

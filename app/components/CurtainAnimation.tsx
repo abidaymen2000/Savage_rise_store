@@ -212,4 +212,3 @@ export default function CurtainAnimation({ onComplete }: CurtainAnimationProps) 
     </AnimatePresence>
   )
 }
-</merged_code>

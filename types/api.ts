@@ -25,6 +25,7 @@ export interface Product {
   sku?: string | null
   description?: string | null
   packaging?: string | null
+  gender?: "men" | "women" | "unisex" | string | null
   style?: string | null
   season?: string | null
   target_audience?: string | null
@@ -86,6 +87,8 @@ export interface OrderItem {
 export interface Order {
   id: string
   user_id?: string | null
+  user_email?: string | null
+  is_guest?: boolean
   items: OrderItem[]
   shipping: ShippingInfo
   payment_method: "cod" | "stripe" | "paypal"
@@ -97,6 +100,9 @@ export interface Order {
   promo_code?: string | null;     // <-- optionnel si le back le renvoie
   subtotal?: number | null;
   discount_value?: number | null;
+  shipping_amount?: number | null;
+  shipping_rate_id?: string | null;
+  shipping_rate_name?: string | null;
 }
 
 export interface Review {
@@ -143,6 +149,7 @@ export interface SearchFilters {
   text?: string
   min_price?: number
   max_price?: number
+  gender?: "men" | "women" | "unisex" | string
   color?: string
   size?: string
   sort?: string
@@ -178,7 +185,6 @@ export interface ReviewCreate {
   rating: number
   title?: string | null
   comment?: string | null
-  user_id: string
 }
 
 export interface ReviewUpdate {
@@ -197,7 +203,8 @@ export interface HealthStatus {
 export interface OrderCreate {
   items: OrderItem[]          // liste des produits/quantités
   shipping: ShippingInfo      // infos de livraison
-  payment_method: "cod" | "stripe" | "paypal"
+  payment_method?: "cod" | "stripe" | "paypal"
+  user_id?: string | null
   promo_code?: string | null;
 }
 
@@ -224,3 +231,16 @@ export type ApplyResponse = {
   discount_value?: number | null;
   code?: string | null;
 };
+
+export interface ShippingQuoteRequest {
+  country: string
+  city: string
+  order_total: number
+}
+
+export interface ShippingQuoteResponse {
+  shipping_rate_id: string
+  shipping_rate_name: string
+  shipping_amount: number
+  free_shipping_threshold?: number | null
+}

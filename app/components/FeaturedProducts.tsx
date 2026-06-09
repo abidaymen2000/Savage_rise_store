@@ -85,7 +85,7 @@ export default function FeaturedProducts() {
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-            <p className="text-gray-400">Chargement des produits...</p>
+            <p className="text-gray-400">Loading products...</p>
           </div>
         </div>
       </section>
@@ -96,10 +96,10 @@ export default function FeaturedProducts() {
     <section className="py-20 bg-gray-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-playfair font-bold mb-4">PRODUITS PHARES</h2>
+          <h2 className="text-4xl md:text-5xl font-playfair font-bold mb-4">FEATURED PRODUCTS</h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Une sélection exclusive de nos pièces les plus emblématiques, conçues pour l'homme moderne qui ne fait aucun
-            compromis sur l'élégance.
+            An exclusive selection of our most iconic pieces, designed for a confident style that never compromises
+            on elegance.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export default function FeaturedProducts() {
                     {!productInStock && (
                       <div className="absolute top-4 left-4">
                         <span className="bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded-full">
-                          Rupture de stock
+                          Out of stock
                         </span>
                       </div>
                     )}
@@ -178,7 +178,7 @@ export default function FeaturedProducts() {
               variant="outline"
               className="border-gold text-gold hover:bg-gold hover:text-black px-8 py-3 bg-transparent"
             >
-              VOIR TOUTE LA COLLECTION
+              VIEW THE FULL COLLECTION
             </Button>
           </Link>
         </div>

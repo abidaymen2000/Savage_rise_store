@@ -16,10 +16,8 @@ import AuthModal from "@/app/components/AuthModal"
 import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
-import type { ShippingInfo, OrderItem, ApplyResponse } from "@/types/api"
+import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse } from "@/types/api"
 
-const SHIPPING_THRESHOLD = 300
-const SHIPPING_COST = 7
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
 export default function CheckoutPage() {
@@ -32,6 +30,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null)
 
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     full_name: "",
@@ -41,7 +40,7 @@ export default function CheckoutPage() {
     address_line2: "",
     postal_code: "",
     city: "",
-    country: "Tunisie",
+    country: "Tunisia",
   })
 
   // --- Promo state ---
@@ -49,6 +48,9 @@ export default function CheckoutPage() {
   const [promoResult, setPromoResult] = useState<ApplyResponse | null>(null)
   const [promoLoading, setPromoLoading] = useState(false)
   const [promoError, setPromoError] = useState<string | null>(null)
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuoteResponse | null>(null)
+  const [shippingLoading, setShippingLoading] = useState(false)
+  const [shippingError, setShippingError] = useState<string | null>(null)
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function CheckoutPage() {
 
   // (Re)valider un code promo sauvegardé
   const revalidatePromo = async (code: string) => {
-    if (!code || orderItems.length === 0) return
+    if (!isAuthenticated || !code || orderItems.length === 0) return
     setPromoLoading(true)
     setPromoError(null)
     try {
@@ -94,7 +96,7 @@ export default function CheckoutPage() {
         localStorage.removeItem(PROMO_STORAGE_KEY)
       }
     } catch {
-      setPromoError("Impossible de valider le code promo pour le moment.")
+      setPromoError("Unable to validate the promo code right now.")
     } finally {
       setPromoLoading(false)
     }
@@ -102,17 +104,24 @@ export default function CheckoutPage() {
 
   // Charger et valider le code promo stocké quand on arrive sur le checkout
   useEffect(() => {
+    if (!isAuthenticated) {
+      setPromoCode(null)
+      setPromoResult(null)
+      setPromoError(null)
+      localStorage.removeItem(PROMO_STORAGE_KEY)
+      return
+    }
     const saved = localStorage.getItem(PROMO_STORAGE_KEY)
     if (saved) {
       setPromoCode(saved)
       revalidatePromo(saved)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isAuthenticated])
 
   // Si le panier change (quantités), on revalide le code
   useEffect(() => {
-    if (promoCode) revalidatePromo(promoCode)
+    if (isAuthenticated && promoCode) revalidatePromo(promoCode)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderItems.map((i) => `${i.product_id}-${i.size}-${i.qty}`).join("|")])
 
@@ -132,18 +141,18 @@ export default function CheckoutPage() {
   }
 
   const handlePlaceOrder = async () => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true)
-      return
-    }
-
-    if (!user?.is_active) {
+    if (isAuthenticated && !user?.is_active) {
       setShowEmailVerification(true)
       return
     }
 
     if (!validateShippingInfo()) {
-      setError("Veuillez remplir tous les champs obligatoires")
+      setError("Please fill in all required fields")
+      return
+    }
+
+    if (!shippingQuote) {
+      setError("Please wait while shipping is calculated.")
       return
     }
 
@@ -151,18 +160,26 @@ export default function CheckoutPage() {
     setError(null)
 
     try {
-      const order = await api.createOrder(orderItems, shippingInfo, promoCode ?? undefined)
+      const order = await api.createOrder(
+        orderItems,
+        shippingInfo,
+        isAuthenticated ? promoCode : null,
+        isAuthenticated ? user?.id ?? null : null
+      )
 
+      setCreatedOrder(order)
       setSuccess(true)
       clearCart()
       localStorage.removeItem(PROMO_STORAGE_KEY)
 
-      setTimeout(() => {
-        router.push(`/profile/orders/${order.id}`)
-      }, 2000)
+      if (isAuthenticated) {
+        setTimeout(() => {
+          router.push(`/profile/orders/${order.id}`)
+        }, 2000)
+      }
     } catch (err) {
       console.error("Order creation failed:", err)
-      setError(err instanceof Error ? err.message : "Erreur lors de la création de la commande")
+      setError(err instanceof Error ? err.message : "Error creating the order")
     } finally {
       setIsProcessing(false)
     }
@@ -176,15 +193,47 @@ export default function CheckoutPage() {
 
   const discount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
   const afterDiscount = Math.max(0, subtotal - discount)
-  const shipping = afterDiscount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const shipping = shippingQuote?.shipping_amount ?? 0
   const total = afterDiscount + shipping
+
+  useEffect(() => {
+    const country = shippingInfo.country.trim()
+    const city = shippingInfo.city.trim()
+
+    if (!country || !city || orderItems.length === 0) {
+      setShippingQuote(null)
+      setShippingError(null)
+      return
+    }
+
+    const timeout = setTimeout(async () => {
+      setShippingLoading(true)
+      setShippingError(null)
+      try {
+        const quote = await api.getShippingQuote({
+          country,
+          city,
+          order_total: afterDiscount,
+        })
+        setShippingQuote(quote)
+      } catch (err) {
+        console.error("Shipping quote failed:", err)
+        setShippingQuote(null)
+        setShippingError("Unable to calculate shipping for this address.")
+      } finally {
+        setShippingLoading(false)
+      }
+    }, 400)
+
+    return () => clearTimeout(timeout)
+  }, [shippingInfo.country, shippingInfo.city, afterDiscount, orderItems.length])
 
   if (authLoading) {
     return (
       <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Chargement...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     )
@@ -199,11 +248,34 @@ export default function CheckoutPage() {
           <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Shield className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Commande confirmée !</h1>
+          <h1 className="text-2xl font-bold mb-2">Order confirmed!</h1>
           <p className="text-gray-400 mb-4">
-            Votre commande a été créée avec succès. Vous allez être redirigé vers les détails de votre commande.
+            Your order has been created successfully. You will be redirected to your order details.
           </p>
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold mx-auto"></div>
+          {isAuthenticated ? (
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold mx-auto"></div>
+          ) : (
+            <div className="space-y-4">
+              {createdOrder && (
+                <p className="text-sm text-gray-500">Order reference #{createdOrder.id.slice(-8)}</p>
+              )}
+              <p className="text-sm text-gray-400">
+                A confirmation email will be sent to {shippingInfo.email}. Create an account to track your next orders.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/products">
+                  <Button className="bg-gold text-black hover:bg-gold/90">Continue shopping</Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                  onClick={() => setShowAuthModal(true)}
+                >
+                  Create an account
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -216,17 +288,25 @@ export default function CheckoutPage() {
         <div className="flex items-center gap-4 mb-8">
           <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Continuer mes achats
+            Continue shopping
           </Link>
-          <h1 className="text-3xl font-playfair font-bold">Finaliser ma commande</h1>
+          <h1 className="text-3xl font-playfair font-bold">Checkout</h1>
         </div>
+
+        {!isAuthenticated && (
+          <Alert className="mb-8 border-gold/40 bg-gold/10">
+            <AlertDescription className="text-gold">
+              You are checking out as a guest. Sign in if you want to use a promo code and track orders from your profile.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Order Summary */}
           <div className="lg:col-span-2">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Récapitulatif de commande</CardTitle>
+                <CardTitle className="text-white">Order summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {cartState.items.map((item) => (
@@ -245,7 +325,7 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-white">{item.product.name}</h3>
                       <p className="text-sm text-gray-400">
-                        {item.selectedVariant.color} • {item.selectedSize} • Qté: {item.quantity}
+                        {item.selectedVariant.color} • {item.selectedSize} • Qty: {item.quantity}
                       </p>
                       <p className="text-gold font-semibold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
                     </div>
@@ -257,12 +337,12 @@ export default function CheckoutPage() {
             {/* Shipping Form */}
             <Card className="bg-gray-900 border-gray-800 mt-6">
               <CardHeader>
-                <CardTitle className="text-white">Informations de livraison</CardTitle>
+                <CardTitle className="text-white">Shipping information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="full_name">Nom complet *</Label>
+                    <Label htmlFor="full_name">Full name *</Label>
                     <Input
                       id="full_name"
                       value={shippingInfo.full_name}
@@ -285,7 +365,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Téléphone *</Label>
+                  <Label htmlFor="phone">Phone *</Label>
                   <Input
                     id="phone"
                     value={shippingInfo.phone}
@@ -297,7 +377,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line1">Adresse *</Label>
+                  <Label htmlFor="address_line1">Address *</Label>
                   <Input
                     id="address_line1"
                     value={shippingInfo.address_line1}
@@ -308,19 +388,19 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line2">Complément d'adresse</Label>
+                  <Label htmlFor="address_line2">Address details</Label>
                   <Input
                     id="address_line2"
                     value={shippingInfo.address_line2 || ""}
                     onChange={(e) => handleInputChange("address_line2", e.target.value)}
                     className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="Appartement, étage, etc."
+                    placeholder="Apartment, floor, etc."
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="postal_code">Code postal *</Label>
+                    <Label htmlFor="postal_code">Postal code *</Label>
                     <Input
                       id="postal_code"
                       value={shippingInfo.postal_code}
@@ -330,7 +410,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="city">Ville *</Label>
+                    <Label htmlFor="city">City *</Label>
                     <Input
                       id="city"
                       value={shippingInfo.city}
@@ -340,7 +420,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Pays *</Label>
+                    <Label htmlFor="country">Country *</Label>
                     <Input
                       id="country"
                       value={shippingInfo.country}
@@ -358,16 +438,16 @@ export default function CheckoutPage() {
           <div>
             <Card className="bg-gray-900 border-gray-800 sticky top-24">
               <CardHeader>
-                <CardTitle className="text-white">Total de la commande</CardTitle>
+                <CardTitle className="text-white">Order total</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Sous-total</span>
+                  <span className="text-gray-400">Subtotal</span>
                   <span className="text-white">{subtotal.toFixed(2)} TND</span>
                 </div>
 
                 {/* Ligne remise si code valide */}
-                {promoResult?.valid && (
+                {isAuthenticated && promoResult?.valid && (
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2 text-green-500">
                       <Ticket className="h-4 w-4" />
@@ -379,25 +459,43 @@ export default function CheckoutPage() {
                         className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
                         onClick={handleRemovePromo}
                         disabled={promoLoading}
-                        title="Retirer le code"
+                        title="Remove code"
                       >
-                        <X className="h-3 w-3" /> Retirer
+                        <X className="h-3 w-3" /> Remove
                       </button>
                     </div>
                   </div>
                 )}
 
                 {/* Erreur promo éventuelle */}
-                {promoError && (
+                {isAuthenticated && promoError && (
                   <Alert className="border-red-600 bg-red-900/20">
                     <AlertDescription className="text-red-400">{promoError}</AlertDescription>
                   </Alert>
                 )}
 
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Livraison</span>
-                  <span className="text-white">{shipping === 0 ? "Gratuite" : `${SHIPPING_COST.toFixed(2)} TND`}</span>
+                  <span className="text-gray-400">Shipping</span>
+                  <span className="text-white">
+                    {shippingLoading
+                      ? "Calculating..."
+                      : shippingQuote
+                        ? shipping === 0
+                          ? "Free"
+                          : `${shipping.toFixed(2)} TND`
+                        : "To calculate"}
+                  </span>
                 </div>
+
+                {shippingQuote?.shipping_rate_name && (
+                  <p className="text-xs text-gray-500 text-right">{shippingQuote.shipping_rate_name}</p>
+                )}
+
+                {shippingError && (
+                  <Alert className="border-red-600 bg-red-900/20">
+                    <AlertDescription className="text-red-400">{shippingError}</AlertDescription>
+                  </Alert>
+                )}
 
                 <Separator className="bg-gray-700" />
 
@@ -415,35 +513,39 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Truck className="h-4 w-4" />
-                    <span>Livraison gratuite dès {SHIPPING_THRESHOLD}TND</span>
+                    <span>
+                      {shippingQuote?.free_shipping_threshold
+                        ? `Free shipping from ${shippingQuote.free_shipping_threshold.toFixed(2)} TND`
+                        : "Shipping is calculated based on your address"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Shield className="h-4 w-4" />
-                    <span>Paiement sécurisé</span>
+                    <span>Secure payment</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <CreditCard className="h-4 w-4" />
-                    <span>Paiement à la livraison</span>
+                    <span>Cash on delivery</span>
                   </div>
                 </div>
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || promoLoading}
+                  disabled={isProcessing || promoLoading || shippingLoading || !shippingQuote}
                   className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3"
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Traitement...
+                      Processing...
                     </>
                   ) : (
-                    `Confirmer la commande • ${total.toFixed(2)} TND`
+                    `Confirm order • ${total.toFixed(2)} TND`
                   )}
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  En confirmant votre commande, vous acceptez nos conditions de vente.
+                  By confirming your order, you accept our terms of sale.
                 </p>
               </CardContent>
             </Card>

@@ -129,7 +129,7 @@ export default function EntranceAnimation({ onComplete }: EntranceAnimationProps
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
                   >
-                    Bienvenue dans l'univers du luxe masculin
+                    Welcome to the world of contemporary luxury
                   </motion.p>
 
                   {/* Decorative Elements */}
@@ -151,7 +151,7 @@ export default function EntranceAnimation({ onComplete }: EntranceAnimationProps
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.4, delay: 1 }}
                   >
-                    EXCELLENCE • ÉLÉGANCE • SOPHISTICATION
+                    EXCELLENCE • ELEGANCE • SOPHISTICATION
                   </motion.p>
                 </motion.div>
               )}

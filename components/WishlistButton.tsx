@@ -37,8 +37,8 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
   const handleToggleWishlist = async () => {
     if (!isAuthenticated) {
       toast({
-        title: "Connexion requise",
-        description: "Veuillez vous connecter pour ajouter des produits à votre wishlist.",
+        title: "Sign in required",
+        description: "Please sign in to add products to your wishlist.",
         variant: "destructive",
       })
       return
@@ -50,22 +50,22 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
         await api.removeFromWishlist(productId)
         setIsInWishlist(false)
         toast({
-          title: "Produit retiré",
-          description: "Le produit a été retiré de votre wishlist.",
+          title: "Product removed",
+          description: "The product has been removed from your wishlist.",
         })
       } else {
         await api.addToWishlist(productId)
         setIsInWishlist(true)
         toast({
-          title: "Produit ajouté",
-          description: "Le produit a été ajouté à votre wishlist.",
+          title: "Product added",
+          description: "The product has been added to your wishlist.",
         })
       }
     } catch (error) {
       console.error("Failed to update wishlist:", error)
       toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour la wishlist. Veuillez réessayer.",
+        title: "Error",
+        description: "Unable to update the wishlist. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -82,7 +82,7 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
       disabled={isUpdating || authLoading}
     >
       <Heart className={`h-5 w-5 ${isInWishlist ? "fill-current text-red-500" : ""}`} />
-      <span className="sr-only">{isInWishlist ? "Retirer de la wishlist" : "Ajouter à la wishlist"}</span>
+      <span className="sr-only">{isInWishlist ? "Remove from wishlist" : "Add to wishlist"}</span>
     </Button>
   )
 }

@@ -14,9 +14,6 @@ import { useAuth } from "@/contexts/AuthContext"
 import type { Order, Product } from "@/types/api"
 import { formatPrice } from "@/lib/utils"
 
-const SHIPPING_THRESHOLD = 300
-const SHIPPING_COST = 7
-
 export default function OrderDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -47,7 +44,7 @@ export default function OrderDetailPage() {
       const data = await api.getMyOrder(orderId)
       setOrder(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors du chargement des détails de la commande")
+      setError(err instanceof Error ? err.message : "Error loading order details")
     } finally {
       setLoading(false)
     }
@@ -79,11 +76,11 @@ export default function OrderDetailPage() {
 
   const getStatusText = (status: Order["status"]) => {
     switch (status) {
-      case "pending": return "En attente"
-      case "confirmed": return "Confirmée"
-      case "shipped": return "Expédiée"
-      case "delivered": return "Livrée"
-      case "cancelled": return "Annulée"
+      case "pending": return "Pending"
+      case "confirmed": return "Confirmed"
+      case "shipped": return "Shipped"
+      case "delivered": return "Delivered"
+      case "cancelled": return "Cancelled"
       default: return status
     }
   }
@@ -102,7 +99,7 @@ export default function OrderDetailPage() {
       <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Chargement des détails de la commande...</p>
+          <p className="text-gray-400">Loading order details...</p>
         </div>
       </div>
     )
@@ -111,9 +108,9 @@ export default function OrderDetailPage() {
     return (
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="container mx-auto px-4 py-20 text-center">
-          <p className="text-red-400 mb-4">Erreur: {error || "Commande non trouvée"}</p>
+          <p className="text-red-400 mb-4">Error: {error || "Order not found"}</p>
           <Link href="/profile?tab=orders">
-            <Button className="bg-gold text-black hover:bg-gold/90">Retour à mes commandes</Button>
+            <Button className="bg-gold text-black hover:bg-gold/90">Back to my orders</Button>
           </Link>
         </div>
       </div>
@@ -125,31 +122,28 @@ export default function OrderDetailPage() {
   const discountValue = order.discount_value ?? 0
   const afterDiscount = Math.max(0, subtotal - discountValue)
 
-  // Utilise la valeur de la DB si dispo, sinon on recalcule comme fallback
-  const shippingAmount =
-    (order as any).shipping_amount ?? (afterDiscount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
+  const shippingAmount = order.shipping_amount ?? 0
 
   // ATTENTION: total_amount côté backend inclut déjà la livraison.
-  const grandTotal =
-    order.total_amount ?? afterDiscount + shippingAmount
+  const grandTotal = order.total_amount ?? afterDiscount + shippingAmount
 
   const hasPromo = (order.promo_code && discountValue > 0) || discountValue > 0.0001
-  const promoLabel = order.promo_code ? `Code promo ${order.promo_code}` : "Remise"
+  const promoLabel = order.promo_code ? `Promo code ${order.promo_code}` : "Discount"
 
   // ---- Helpers d'affichage produit ----
   const productName = (product_id: string) =>
-    productMap[product_id]?.name ?? `Produit ${product_id}`
+    productMap[product_id]?.name ?? `Product ${product_id}`
 
   const productImage = (product_id: string, color: string | undefined) => {
     const p = productMap[product_id]
-    if (!p) return { url: "/placeholder.svg?height=80&width=80", alt: `Produit ${product_id}` }
+    if (!p) return { url: "/placeholder.svg?height=80&width=80", alt: `Product ${product_id}` }
     const variant =
       p.variants?.find((v) => v.color?.toLowerCase() === (color || "").toLowerCase()) ||
       p.variants?.[0]
     const img = variant?.images?.[0]
     return {
       url: img?.url ?? "/placeholder.svg?height=80&width=80",
-      alt: img?.alt_text || p.name || `Produit ${product_id}`,
+      alt: img?.alt_text || p.name || `Product ${product_id}`,
     }
   }
 
@@ -160,9 +154,9 @@ export default function OrderDetailPage() {
         <div className="flex items-center gap-4 mb-8">
           <Link href="/profile?tab=orders" className="flex items-center text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à mes commandes
+            Back to my orders
           </Link>
-          <h1 className="text-3xl font-playfair font-bold">Détails de la commande #{order.id.slice(-8)}</h1>
+          <h1 className="text-3xl font-playfair font-bold">Order details #{order.id.slice(-8)}</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -173,7 +167,7 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Package className="h-5 w-5 text-gold" />
-                  Produits commandés
+                  Ordered products
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -187,7 +181,7 @@ export default function OrderDetailPage() {
                       <div className="flex-1">
                         <h3 className="font-semibold text-white">{productName(item.product_id)}</h3>
                         <p className="text-sm text-gray-400">
-                          Couleur: {item.color} • Taille: {item.size} • Qté: {item.qty}
+                          Color: {item.color} • Size: {item.size} • Qty: {item.qty}
                         </p>
                         <p className="text-gold font-semibold">{formatPrice(item.unit_price * item.qty)}</p>
                       </div>
@@ -199,7 +193,7 @@ export default function OrderDetailPage() {
                 <Separator className="bg-gray-700" />
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Sous-total</span>
+                    <span className="text-gray-400">Subtotal</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
 
@@ -219,14 +213,14 @@ export default function OrderDetailPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400 flex items-center gap-2">
                       <Truck className="h-4 w-4" />
-                      Livraison
+                      {order.shipping_rate_name ?? "Shipping"}
                     </span>
-                    <span>{shippingAmount === 0 ? "Gratuite" : formatPrice(shippingAmount)}</span>
+                    <span>{shippingAmount === 0 ? "Free" : formatPrice(shippingAmount)}</span>
                   </div>
 
                   <Separator className="bg-gray-700" />
                   <div className="flex justify-between text-lg font-semibold">
-                    <span className="text-white">Total (articles + livraison)</span>
+                    <span className="text-white">Total (items + shipping)</span>
                     <span className="text-gold">{formatPrice(grandTotal)}</span>
                   </div>
                 </div>
@@ -238,11 +232,12 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-gold" />
-                  Informations de livraison
+                  Shipping information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-gray-300">
-                <p><strong>Nom complet:</strong> {order.shipping.full_name}</p>
+                <p><strong>Full name:</strong> {order.shipping.full_name}</p>
+                <p><strong>Customer type:</strong> {order.is_guest ? `Guest (${order.user_email ?? order.shipping.email})` : "Signed-in customer"}</p>
                 <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> {order.shipping.email}</p>
                 <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> {order.shipping.phone}</p>
                 <p>
@@ -259,7 +254,7 @@ export default function OrderDetailPage() {
           <div>
             <Card className="bg-gray-900 border-gray-800 sticky top-24">
               <CardHeader>
-                <CardTitle className="text-white">Statut de la commande</CardTitle>
+                <CardTitle className="text-white">Order status</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -269,25 +264,25 @@ export default function OrderDetailPage() {
                   {hasPromo && (
                     <Badge variant="outline" className="border-green-600 text-green-400 flex items-center gap-1">
                       <TicketPercent className="h-4 w-4" />
-                      {order.promo_code ? `Promo ${order.promo_code}` : "Remise appliquée"}
+                      {order.promo_code ? `Promo ${order.promo_code}` : "Discount applied"}
                     </Badge>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2 text-gray-300">
                   <CalendarDays className="h-4 w-4" />
-                  <span>Date de commande: {new Date(order.created_at).toLocaleDateString("fr-FR")}</span>
+                  <span>Order date: {new Date(order.created_at).toLocaleDateString("en-US")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <DollarSign className="h-4 w-4" />
                   <span>
-                    Méthode de paiement: {order.payment_method === "cod" ? "Paiement à la livraison" : order.payment_method}
+                    Payment method: {order.payment_method === "cod" ? "Cash on delivery" : order.payment_method}
                   </span>
                 </div>
 
                 <Separator className="bg-gray-700" />
                 <p className="text-sm text-gray-400">
-                  Vous recevrez des mises à jour par email concernant l'état de votre commande.
+                  You will receive email updates about your order status.
                 </p>
 
                 {order.status === "pending" && (
@@ -296,7 +291,7 @@ export default function OrderDetailPage() {
                     className="w-full border-red-600 text-red-400 hover:bg-red-900/20"
                     onClick={() => handleCancelOrder(order.id)}
                   >
-                    Annuler la commande
+                    Cancel order
                   </Button>
                 )}
               </CardContent>

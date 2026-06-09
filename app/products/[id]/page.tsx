@@ -85,7 +85,7 @@ export default function ProductDetailPage() {
       setReviewStats(stats)
     } catch (err) {
       console.error("Error fetching product or reviews:", err)
-      setError(err instanceof Error ? err.message : "Erreur lors du chargement du produit ou des avis")
+      setError(err instanceof Error ? err.message : "Error loading product or reviews")
     } finally {
       setLoading(false)
       setLoadingReviews(false)
@@ -158,7 +158,7 @@ export default function ProductDetailPage() {
       return;
     }
     if (!product || userRating === null) {
-      setReviewError("Veuillez sélectionner une note.");
+      setReviewError("Please select a rating.");
       return;
     }
 
@@ -168,14 +168,14 @@ export default function ProductDetailPage() {
 
     try {
       await api.addReview(product.id, userRating, userComment);
-      setReviewSuccess("Votre avis a été soumis avec succès !");
+      setReviewSuccess("Your review has been submitted successfully!");
       setUserRating(null);
       setUserComment("");
       setShowReviewForm(false);
       await fetchProductAndReviews(); // Refresh reviews
     } catch (err) {
       console.error("Error submitting review:", err);
-      setReviewError(err instanceof Error ? err.message : "Erreur lors de la soumission de l'avis.");
+      setReviewError(err instanceof Error ? err.message : "Error submitting your review.");
     } finally {
       setIsSubmittingReview(false);
     }
@@ -208,7 +208,7 @@ export default function ProductDetailPage() {
           <div className="flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-              <p className="text-gray-400">Chargement du produit...</p>
+              <p className="text-gray-400">Loading product...</p>
             </div>
           </div>
         </div>
@@ -221,9 +221,9 @@ export default function ProductDetailPage() {
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <p className="text-red-400 mb-4">Erreur: {error || "Produit non trouvé"}</p>
+            <p className="text-red-400 mb-4">Error: {error || "Product not found"}</p>
             <Link href="/products">
-              <Button className="bg-gold text-black hover:bg-gold/90">Retour aux produits</Button>
+              <Button className="bg-gold text-black hover:bg-gold/90">Back to products</Button>
             </Link>
           </div>
         </div>
@@ -238,7 +238,7 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-2 mb-8">
           <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour aux produits
+            Back to products
           </Link>
         </div>
 
@@ -287,13 +287,13 @@ export default function ProductDetailPage() {
             {/* Stock Status */}
             <div>
               {productInStock ? (
-                <Badge className="bg-green-600 text-white">En stock</Badge>
+                <Badge className="bg-green-600 text-white">In stock</Badge>
               ) : (
-                <Badge className="bg-red-600 text-white">Rupture de stock</Badge>
+                <Badge className="bg-red-600 text-white">Out of stock</Badge>
               )}
               {selectedSize && currentStock > 0 && (
                 <span className="ml-2 text-sm text-gray-400">
-                  ({currentStock} disponible{currentStock > 1 ? "s" : ""})
+                  ({currentStock} available)
                 </span>
               )}
             </div>
@@ -309,7 +309,7 @@ export default function ProductDetailPage() {
             {/* Color Selection */}
             {availableColors.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold mb-3">Couleur</h3>
+                <h3 className="text-lg font-semibold mb-3">Color</h3>
                 <Select value={selectedColor} onValueChange={setSelectedColor}>
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue placeholder="Choisir une couleur" />
@@ -328,7 +328,7 @@ export default function ProductDetailPage() {
             {/* Size Selection */}
             {availableSizes.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold mb-3">Taille</h3>
+                <h3 className="text-lg font-semibold mb-3">Size</h3>
                 <Select value={selectedSize} onValueChange={setSelectedSize}>
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue placeholder="Choisir une taille" />
@@ -339,7 +339,7 @@ export default function ProductDetailPage() {
                       return (
                         <SelectItem key={size} value={size} className="text-white" disabled={stock === 0}>
                           {size}{" "}
-                          {stock === 0 ? "(Rupture)" : stock < 5 ? `(${stock} restant${stock > 1 ? "s" : ""})` : ""}
+                          {stock === 0 ? "(Out of stock)" : stock < 5 ? `(${stock} left)` : ""}
                         </SelectItem>
                       )
                     })}
@@ -350,7 +350,7 @@ export default function ProductDetailPage() {
 
             {/* Quantity */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Quantité</h3>
+              <h3 className="text-lg font-semibold mb-3">Quantity</h3>
               <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))}>
                 <SelectTrigger className="w-24 bg-gray-900 border-gray-700 text-white">
                   <SelectValue />
@@ -373,7 +373,7 @@ export default function ProductDetailPage() {
                 className="flex-1 bg-gold text-black hover:bg-gold/90 font-semibold py-3"
               >
                 <ShoppingBag className="h-5 w-5 mr-2" />
-                Ajouter au panier
+                Add to cart
               </Button>
               <WishlistButton productId={product.id} className="h-12 w-12" />
             </div>
@@ -382,11 +382,11 @@ export default function ProductDetailPage() {
             <Separator className="bg-gray-700" />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Détails du produit</h3>
+              <h3 className="text-lg font-semibold">Product details</h3>
 
               {product.fabric && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Tissu:</span>
+                  <span className="text-gray-400">Fabric:</span>
                   <span>{product.fabric}</span>
                 </div>
               )}
@@ -404,7 +404,7 @@ export default function ProductDetailPage() {
 
               {product.care_instructions && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Entretien:</span>
+                  <span className="text-gray-400">Care:</span>
                   <span>{product.care_instructions}</span>
                 </div>
               )}
@@ -423,15 +423,15 @@ export default function ProductDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" />
-                <span>Livraison gratuite dès 300TND</span>
+                <span>Free shipping from 300 TND</span>
               </div>
               <div className="flex items-center gap-3">
                 <RotateCcw className="h-5 w-5 text-gold" />
-                <span>Retours gratuits sous 7 jours</span>
+                <span>Free returns within 7 days</span>
               </div>
               <div className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-gold" />
-                <span>Garantie qualité 2 ans</span>
+                <span>2-year quality guarantee</span>
               </div>
             </div>
 

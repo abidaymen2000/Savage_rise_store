@@ -43,7 +43,7 @@ export default function CategoryPage() {
       setProducts(data)
     } catch (err) {
       console.error("Error fetching category products:", err)
-      setError(err instanceof Error ? err.message : "Erreur lors du chargement des produits")
+      setError(err instanceof Error ? err.message : "Error loading products")
     } finally {
       setLoading(false)
     }
@@ -133,7 +133,7 @@ export default function CategoryPage() {
           <div className="flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-              <p className="text-gray-400">Chargement des produits...</p>
+              <p className="text-gray-400">Loading products...</p>
             </div>
           </div>
         </div>
@@ -146,9 +146,9 @@ export default function CategoryPage() {
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <p className="text-red-400 mb-4">Erreur: {error}</p>
+            <p className="text-red-400 mb-4">Error: {error}</p>
             <Button onClick={() => fetchCategoryProducts()} className="bg-gold text-black hover:bg-gold/90">
-              Réessayer
+              Try again
             </Button>
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function CategoryPage() {
         <div className="flex items-center gap-2 mb-8">
           <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Tous les produits
+            All products
           </Link>
           <span className="text-gray-500">/</span>
           <span className="text-gold">{categoryName}</span>
@@ -173,7 +173,7 @@ export default function CategoryPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4">{categoryName.toUpperCase()}</h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Découvrez notre sélection exclusive de {categoryName.toLowerCase()} pour l'homme moderne.
+            Discover our exclusive selection of {categoryName.toLowerCase()} for a contemporary and confident style.
           </p>
         </div>
 
@@ -182,7 +182,7 @@ export default function CategoryPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Rechercher un produit..."
+              placeholder="Search for a product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-400"
@@ -191,12 +191,12 @@ export default function CategoryPage() {
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full md:w-48 bg-gray-900 border-gray-700 text-white">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Trier par" />
+              <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-gray-900 border-gray-700">
-              <SelectItem value="name">Nom A-Z</SelectItem>
-              <SelectItem value="price-asc">Prix croissant</SelectItem>
-              <SelectItem value="price-desc">Prix décroissant</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
+              <SelectItem value="price-asc">Price: low to high</SelectItem>
+              <SelectItem value="price-desc">Price: high to low</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -204,7 +204,7 @@ export default function CategoryPage() {
         {/* Products Grid */}
         {filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">Aucun produit trouvé dans cette catégorie.</p>
+            <p className="text-gray-400 text-lg">No products found in this category.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -234,7 +234,7 @@ export default function CategoryPage() {
                       {!productInStock && (
                         <div className="absolute top-4 left-4">
                           <span className="bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded-full">
-                            Rupture de stock
+                            Out of stock
                           </span>
                         </div>
                       )}

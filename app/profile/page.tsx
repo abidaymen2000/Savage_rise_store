@@ -31,9 +31,6 @@ type Tab = "orders" | "wishlist" | "reviews" | "settings"
 type WishlistWithProduct = WishlistItem & { product?: Product }
 
 // Règles de livraison (cohérentes avec le panier/checkout)
-const SHIPPING_THRESHOLD = 300
-const SHIPPING_COST = 7
-
 // --------- tout ton ancien code est ici, mais dans ProfileContent ---------
 function ProfileContent() {
   const router = useRouter()
@@ -143,7 +140,7 @@ function ProfileContent() {
           const p = await api.getProduct(id)
           return [id, p.name] as const
         } catch {
-          return [id, `Produit ${id.slice(-6)}`] as const
+          return [id, `Product ${id.slice(-6)}`] as const
         }
       })
     )
@@ -196,15 +193,15 @@ function ProfileContent() {
   const getStatusText = (status: Order["status"]) => {
     switch (status) {
       case "pending":
-        return "En attente"
+        return "Pending"
       case "confirmed":
-        return "Confirmée"
+        return "Confirmed"
       case "shipped":
-        return "Expédiée"
+        return "Shipped"
       case "delivered":
-        return "Livrée"
+        return "Delivered"
       case "cancelled":
-        return "Annulée"
+        return "Cancelled"
       default:
         return status
     }
@@ -212,8 +209,7 @@ function ProfileContent() {
 
   // Total incluant la livraison
   const computeGrandTotal = (order: Order) => {
-    const shipping = order.total_amount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
-    return order.total_amount + shipping
+    return order.total_amount
   }
 
   const handleCancelOrder = async (orderId: string) => {
@@ -230,7 +226,7 @@ function ProfileContent() {
       <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Chargement...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     )
@@ -243,8 +239,8 @@ function ProfileContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-playfair font-bold">Mon Profil</h1>
-            <p className="text-gray-400">Bienvenue, {user.full_name || user.email}</p>
+            <h1 className="text-3xl font-playfair font-bold">My Profile</h1>
+            <p className="text-gray-400">Welcome, {user.full_name || user.email}</p>
           </div>
           <Button
             variant="outline"
@@ -252,7 +248,7 @@ function ProfileContent() {
             className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Déconnexion
+            Log out
           </Button>
         </div>
 
@@ -268,7 +264,7 @@ function ProfileContent() {
           <TabsList className="grid w-full grid-cols-4 bg-gray-900">
             <TabsTrigger value="orders" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Package className="h-4 w-4 mr-2" />
-              Commandes
+              Orders
             </TabsTrigger>
             <TabsTrigger value="wishlist" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Heart className="h-4 w-4 mr-2" />
@@ -276,11 +272,11 @@ function ProfileContent() {
             </TabsTrigger>
             <TabsTrigger value="reviews" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Star className="h-4 w-4 mr-2" />
-              Avis
+              Reviews
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Settings className="h-4 w-4 mr-2" />
-              Paramètres
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -288,20 +284,20 @@ function ProfileContent() {
           <TabsContent value="orders">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Mes Commandes</CardTitle>
+                <CardTitle className="text-white">My Orders</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingOrders ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4"></div>
-                    <p className="text-gray-400">Chargement des commandes...</p>
+                    <p className="text-gray-400">Loading orders...</p>
                   </div>
                 ) : orders.length === 0 ? (
                   <div className="text-center py-8">
                     <Package className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">Aucune commande trouvée</p>
+                    <p className="text-gray-400 mb-4">No orders found</p>
                     <Link href="/products">
-                      <Button className="bg-gold text-black hover:bg-gold/90">Découvrir nos produits</Button>
+                      <Button className="bg-gold text-black hover:bg-gold/90">Discover our products</Button>
                     </Link>
                   </div>
                 ) : (
@@ -310,9 +306,12 @@ function ProfileContent() {
                       <div key={order.id} className="border border-gray-700 rounded-lg p-4">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <p className="font-semibold text-white">Commande #{order.id.slice(-8)}</p>
+                            <p className="font-semibold text-white">Order #{order.id.slice(-8)}</p>
                             <p className="text-sm text-gray-400">
-                              {new Date(order.created_at).toLocaleDateString("fr-FR")}
+                              {new Date(order.created_at).toLocaleDateString("en-US")}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {order.is_guest ? `Guest - ${order.user_email ?? order.shipping.email}` : "Signed-in customer"}
                             </p>
                           </div>
                           <div className="text-right">
@@ -324,9 +323,8 @@ function ProfileContent() {
                               {formatPrice(computeGrandTotal(order))}
                             </p>
                             <p className="text-xs text-gray-400">
-                              {order.total_amount >= SHIPPING_THRESHOLD
-                                ? "Livraison: Gratuite"
-                                : `Livraison: ${formatPrice(SHIPPING_COST)}`}
+                              Shipping: {order.shipping_amount === 0 ? "Free" : formatPrice(order.shipping_amount ?? 0)}
+                              {order.shipping_rate_name ? ` - ${order.shipping_rate_name}` : ""}
                             </p>
                           </div>
                         </div>
@@ -334,7 +332,7 @@ function ProfileContent() {
                         <div className="space-y-2 mb-4">
                           {order.items.map((item, index) => (
                             <div key={index} className="text-sm text-gray-300">
-                              {item.qty}x {productNames[item.product_id] ?? `Produit ${item.product_id.slice(-6)}`} — {item.color} ({item.size})
+                              {item.qty}x {productNames[item.product_id] ?? `Product ${item.product_id.slice(-6)}`} — {item.color} ({item.size})
                             </div>
                           ))}
                         </div>
@@ -346,7 +344,7 @@ function ProfileContent() {
                               size="sm"
                               className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
                             >
-                              Voir détails
+                              View details
                             </Button>
                           </Link>
                           {order.status === "pending" && (
@@ -356,7 +354,7 @@ function ProfileContent() {
                               onClick={() => handleCancelOrder(order.id)}
                               className="border-red-600 text-red-400 hover:bg-red-900/20"
                             >
-                              Annuler
+                              Cancel
                             </Button>
                           )}
                         </div>
@@ -372,20 +370,20 @@ function ProfileContent() {
           <TabsContent value="wishlist">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Ma Wishlist</CardTitle>
+                <CardTitle className="text-white">My Wishlist</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingWishlist ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4"></div>
-                    <p className="text-gray-400">Chargement de la wishlist...</p>
+                    <p className="text-gray-400">Loading wishlist...</p>
                   </div>
                 ) : wishlist.length === 0 ? (
                   <div className="text-center py-8">
                     <Heart className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">Votre wishlist est vide</p>
+                    <p className="text-gray-400 mb-4">Your wishlist is empty</p>
                     <Link href="/products">
-                      <Button className="bg-gold text-black hover:bg-gold/90">Découvrir nos produits</Button>
+                      <Button className="bg-gold text-black hover:bg-gold/90">Discover our products</Button>
                     </Link>
                   </div>
                 ) : (
@@ -397,9 +395,9 @@ function ProfileContent() {
                         onClick={() => router.push(`/products/${item.product_id}`)}
                         className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:border-gold/60 transition-colors"
                       >
-                        <p className="text-white">{item.product?.name ?? `Produit ${item.product_id}`}</p>
+                        <p className="text-white">{item.product?.name ?? `Product ${item.product_id}`}</p>
                         <p className="text-sm text-gray-400">
-                          Ajouté le {new Date(item.added_at).toLocaleDateString("fr-FR")}
+                          Added on {new Date(item.added_at).toLocaleDateString("en-US")}
                         </p>
 
                         <Button
@@ -411,7 +409,7 @@ function ProfileContent() {
                             api.removeFromWishlist(item.product_id).then(fetchWishlist)
                           }}
                         >
-                          Retirer
+                          Remove
                         </Button>
                       </div>
                     ))}
@@ -425,18 +423,18 @@ function ProfileContent() {
           <TabsContent value="reviews">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Mes Avis</CardTitle>
+                <CardTitle className="text-white">My Reviews</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingReviews ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4" />
-                    <p className="text-gray-400">Chargement des avis...</p>
+                    <p className="text-gray-400">Loading reviews...</p>
                   </div>
                 ) : reviews.length === 0 ? (
                   <div className="text-center py-8">
                     <Star className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">Vous n’avez pas encore laissé d’avis.</p>
+                    <p className="text-gray-400">You have not left any reviews yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -451,7 +449,7 @@ function ProfileContent() {
                           {r.title && <p className="text-white font-medium">{r.title}</p>}
                           {r.comment && <p className="text-gray-300 text-sm">{r.comment}</p>}
                           <a href={`/products/${r.product_id}`} className="text-gold text-sm underline mt-2 inline-block">
-                            Voir le produit
+                            View product
                           </a>
                         </div>
                         <div className="flex gap-2">
@@ -461,7 +459,7 @@ function ProfileContent() {
                             className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
                             onClick={() => openEdit(r)}
                           >
-                            Modifier
+                            Edit
                           </Button>
                           <Button
                             variant="outline"
@@ -469,7 +467,7 @@ function ProfileContent() {
                             className="border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent"
                             onClick={() => setToDelete(r)}
                           >
-                            Supprimer
+                            Delete
                           </Button>
                         </div>
                       </div>
@@ -483,7 +481,7 @@ function ProfileContent() {
             <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
               <DialogContent className="bg-gray-900 border-gray-800 text-white">
                 <DialogHeader>
-                  <DialogTitle>Modifier mon avis</DialogTitle>
+                  <DialogTitle>Edit my review</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -494,13 +492,13 @@ function ProfileContent() {
                     ))}
                   </div>
                   <Input
-                    placeholder="Titre (optionnel)"
+                    placeholder="Title (optional)"
                     value={form.title}
                     onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                     className="bg-gray-800 border-gray-700"
                   />
                   <Textarea
-                    placeholder="Commentaire (optionnel)"
+                    placeholder="Comment (optional)"
                     rows={4}
                     value={form.comment}
                     onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
@@ -509,10 +507,10 @@ function ProfileContent() {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" className="border-gray-600 text-white bg-transparent" onClick={() => setEditing(null)}>
-                    Annuler
+                    Cancel
                   </Button>
                   <Button className="bg-gold text-black hover:bg-gold/90" onClick={saveEdit}>
-                    Enregistrer
+                    Save
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -522,13 +520,13 @@ function ProfileContent() {
             <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
               <AlertDialogContent className="bg-gray-900 border-gray-800 text-white">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer cet avis ?</AlertDialogTitle>
+                  <AlertDialogTitle>Delete this review?</AlertDialogTitle>
                 </AlertDialogHeader>
-                <p className="text-gray-300 text-sm">Cette action est irréversible.</p>
+                <p className="text-gray-300 text-sm">This action cannot be undone.</p>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="bg-transparent border-gray-600 text-white">Annuler</AlertDialogCancel>
+                  <AlertDialogCancel className="bg-transparent border-gray-600 text-white">Cancel</AlertDialogCancel>
                   <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmDelete}>
-                    Supprimer
+                    Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -539,7 +537,7 @@ function ProfileContent() {
           <TabsContent value="settings">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Paramètres du compte</CardTitle>
+                <CardTitle className="text-white">Account settings</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -548,25 +546,25 @@ function ProfileContent() {
                     <p className="text-white">{user.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-400">Nom complet</label>
-                    <p className="text-white">{user.full_name || "Non renseigné"}</p>
+                    <label className="text-sm font-medium text-gray-400">Full name</label>
+                    <p className="text-white">{user.full_name || "Not provided"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-400">Statut du compte</label>
+                    <label className="text-sm font-medium text-gray-400">Account status</label>
                     <Badge className={user.is_active ? "bg-green-600" : "bg-red-600"}>
-                      {user.is_active ? "Vérifié" : "Non vérifié"}
+                      {user.is_active ? "Verified" : "Not verified"}
                     </Badge>
                   </div>
                   <Separator className="bg-gray-700" />
                   <div className="space-y-2">
                     <Link href="/profile/edit">
                       <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
-                        Modifier le profil
+                        Edit profile
                       </Button>
                     </Link>
                     <Link href="/profile/change-password">
                       <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
-                        Changer le mot de passe
+                        Change password
                       </Button>
                     </Link>
                   </div>
@@ -588,7 +586,7 @@ export default function ProfilePage() {
         <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-            <p className="text-gray-400">Chargement...</p>
+            <p className="text-gray-400">Loading...</p>
           </div>
         </div>
       }

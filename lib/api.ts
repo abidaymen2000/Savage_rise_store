@@ -22,6 +22,8 @@ import type {
   HealthStatus,
   ContactMessage,
   ApplyResponse,
+  ShippingQuoteRequest,
+  ShippingQuoteResponse,
 } from "@/types/api"
 
 const API_BASE_URL =
@@ -127,12 +129,7 @@ export const api = {
   },
 
   async getProduct(productId: string): Promise<Product> {
-    const products = await this.getProducts(0, 100)
-    const product = products.find((p) => p.id === productId)
-    if (!product) {
-      throw new Error("Product not found")
-    }
-    return product
+    return fetchApi<Product>(`/products/${productId}`)
   },
 
   async searchProducts(filters: SearchFilters, skip = 0, limit = 10): Promise<Product[]> {
@@ -140,6 +137,7 @@ export const api = {
     if (filters.text) params.append("text", filters.text)
     if (filters.min_price) params.append("min_price", filters.min_price.toString())
     if (filters.max_price) params.append("max_price", filters.max_price.toString())
+    if (filters.gender) params.append("gender", filters.gender)
     if (filters.color) params.append("color", filters.color)
     if (filters.size) params.append("size", filters.size)
     if (filters.sort) params.append("sort", filters.sort)
@@ -208,6 +206,10 @@ export const api = {
       body: data,
     })
   },
+
+  async resendVerificationEmail(email: string): Promise<void> {
+    return this.resendVerification(email)
+  },
   // Profile
   async getProfile(): Promise<User> {
     return fetchApi<User>("/profile/me", {
@@ -239,12 +241,14 @@ export const api = {
   async createOrder(
     items: OrderItem[],
     shipping: ShippingInfo,
-    promoCode?: string
+    promoCode?: string | null,
+    userId?: string | null
   ): Promise<Order> {
     const orderData: OrderCreate = {
       items,
       shipping,
       payment_method: "cod",
+      ...(userId ? { user_id: userId } : {}),
       ...(promoCode ? { promo_code: promoCode } : {}),
     }
     return fetchApi<Order>("/orders/", {
@@ -303,7 +307,6 @@ export const api = {
       rating,
       comment,
       title,
-      user_id: "current_user",
     }
     return fetchApi<Review>(`/products/${productId}/reviews/`, {
       method: "POST",
@@ -380,6 +383,13 @@ export const api = {
   // Health-check
   async checkHealth(): Promise<HealthStatus> {
     return fetchApi<HealthStatus>(`/health`)
+  },
+
+  async getShippingQuote(data: ShippingQuoteRequest): Promise<ShippingQuoteResponse> {
+    return fetchApi<ShippingQuoteResponse>("/shipping-rates/quote", {
+      method: "POST",
+      body: data,
+    })
   },
 
   // Promo codes

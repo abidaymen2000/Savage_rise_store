@@ -33,8 +33,8 @@ export default function EditProfilePage() {
     e.preventDefault()
     if (!isAuthenticated || !user) {
       toast({
-        title: 'Erreur',
-        description: 'Vous devez être connecté pour modifier votre profil.',
+        title: 'Error',
+        description: 'You must be signed in to edit your profile.',
         variant: 'destructive',
       })
       return
@@ -50,16 +50,16 @@ export default function EditProfilePage() {
       await api.updateProfile(updatedData)
       await refreshUser() // Refresh user data in context
       toast({
-        title: 'Succès',
-        description: 'Votre profil a été mis à jour avec succès.',
+        title: 'Success',
+        description: 'Your profile has been updated successfully.',
       })
       router.push('/profile')
     } catch (err: any) {
       console.error('Failed to update profile:', err)
-      setError(err.message || 'Échec de la mise à jour du profil.')
+      setError(err.message || 'Profile update failed.')
       toast({
-        title: 'Erreur',
-        description: err.message || 'Impossible de mettre à jour votre profil.',
+        title: 'Error',
+        description: err.message || 'Unable to update your profile.',
         variant: 'destructive',
       })
     } finally {
@@ -71,7 +71,7 @@ export default function EditProfilePage() {
     return (
       <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
         <Loader2 className="h-8 w-8 animate-spin text-gold" />
-        <p className="ml-4 text-gray-400">Chargement du profil...</p>
+        <p className="ml-4 text-gray-400">Loading profile...</p>
       </div>
     )
   }
@@ -79,7 +79,7 @@ export default function EditProfilePage() {
   if (!isAuthenticated || !user) {
     return (
       <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
-        <p className="text-red-500">Vous devez être connecté pour accéder à cette page.</p>
+        <p className="text-red-500">You must be signed in to access this page.</p>
       </div>
     )
   }
@@ -89,12 +89,12 @@ export default function EditProfilePage() {
       <div className="container mx-auto px-4">
         <Card className="bg-gray-900 border-gray-800 text-white max-w-lg mx-auto">
           <CardHeader>
-            <CardTitle className="text-gold text-2xl">Modifier le profil</CardTitle>
+            <CardTitle className="text-gold text-2xl">Edit profile</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="fullName" className="text-white">Nom complet</Label>
+                <Label htmlFor="fullName" className="text-white">Full name</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -121,10 +121,10 @@ export default function EditProfilePage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Enregistrement...
+                      Saving...
                     </>
                   ) : (
-                    'Enregistrer les modifications'
+                    'Save changes'
                   )}
                 </Button>
                 <Button
@@ -133,7 +133,7 @@ export default function EditProfilePage() {
                   onClick={() => router.push('/profile')}
                   className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
                 >
-                  Annuler
+                  Cancel
                 </Button>
               </div>
             </form>

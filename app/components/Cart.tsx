@@ -55,10 +55,7 @@ export default function Cart() {
   const discount = promo?.valid ? promo.discount_value ?? 0 : 0
   const totalAfterDiscount = Math.max(0, subtotal - discount)
 
-  const SHIPPING_THRESHOLD = 300
-  const SHIPPING_COST = 7
-  const shipping = totalAfterDiscount >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
-  const grandTotal = totalAfterDiscount + shipping
+  const grandTotal = totalAfterDiscount
 
   const handleQuantityChange = (productId: string, color: string, size: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -106,7 +103,7 @@ export default function Cart() {
         }
       }
     } catch {
-      setPromoError("Impossible d'appliquer le code. Réessaie.")
+      setPromoError("Unable to apply this code. Please try again.")
     } finally {
       setPromoLoading(false)
     }
@@ -148,10 +145,6 @@ export default function Cart() {
 
   const handleProceed = () => {
     setIsOpen(false)
-    if (!isAuthenticated) {
-      setShowAuthModal(true)
-      return
-    }
     router.push("/checkout")
   }
 
@@ -171,7 +164,7 @@ export default function Cart() {
 
         <SheetContent className="bg-black text-white border-gray-800 w-full sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle className="text-white font-playfair text-2xl">Panier ({state.itemCount})</SheetTitle>
+            <SheetTitle className="text-white font-playfair text-2xl">Cart ({state.itemCount})</SheetTitle>
           </SheetHeader>
 
           <div className="flex flex-col h-full">
@@ -179,8 +172,8 @@ export default function Cart() {
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <ShoppingBag className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg mb-2">Votre panier est vide</p>
-                  <p className="text-gray-500 text-sm">Ajoutez des produits pour commencer vos achats</p>
+                  <p className="text-gray-400 text-lg mb-2">Your cart is empty</p>
+                  <p className="text-gray-500 text-sm">Add products to start shopping</p>
                 </div>
               </div>
             ) : (
@@ -202,8 +195,8 @@ export default function Cart() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-semibold text-sm line-clamp-2">{item.product.name}</h3>
-                              <p className="text-xs text-gray-400">Couleur: {item.selectedVariant.color}</p>
-                              <p className="text-xs text-gray-400">Taille: {item.selectedSize}</p>
+                              <p className="text-xs text-gray-400">Color: {item.selectedVariant.color}</p>
+                              <p className="text-xs text-gray-400">Size: {item.selectedSize}</p>
                             </div>
                             <Button
                               variant="ghost"
@@ -271,12 +264,12 @@ export default function Cart() {
                   >
                     <div className="flex items-center gap-2">
                       <Ticket className={`h-4 w-4 ${isPromoError ? "text-red-400" : "text-gold"}`} />
-                      <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Code promo</span>
+                      <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Promo code</span>
 
-                      {promo?.valid && <span className="ml-2 text-xs text-green-400">{promo.code} appliqué</span>}
-                      {alreadyUsed && <span className="ml-2 text-xs text-red-400">{promo?.code || promoInput} déjà utilisé</span>}
-                      {loginRequired && <span className="ml-2 text-xs text-red-400">connexion requise</span>}
-                      {maxReached && <span className="ml-2 text-xs text-red-400">quota atteint</span>}
+                      {promo?.valid && <span className="ml-2 text-xs text-green-400">{promo.code} applied</span>}
+                      {alreadyUsed && <span className="ml-2 text-xs text-red-400">{promo?.code || promoInput} already used</span>}
+                      {loginRequired && <span className="ml-2 text-xs text-red-400">sign in required</span>}
+                      {maxReached && <span className="ml-2 text-xs text-red-400">usage limit reached</span>}
                     </div>
                     <ChevronDown className={`h-4 w-4 transition-transform text-gray-400 ${showPromo ? "rotate-180" : ""}`} />
                   </button>
@@ -301,7 +294,7 @@ export default function Cart() {
                               <Input
                                 value={promoInput}
                                 onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                                placeholder="ENTREZ VOTRE CODE"
+                                placeholder="ENTER YOUR CODE"
                                 className={`bg-transparent text-white placeholder:text-gray-500 ${
                                   isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-gray-700"
                                 }`}
@@ -311,25 +304,25 @@ export default function Cart() {
                                 disabled={promoLoading}
                                 className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-gold text-black hover:bg-gold/90"}
                               >
-                                {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Appliquer"}
+                                {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                               </Button>
                             </form>
 
                             {/* messages d’erreur */}
-                            {alreadyUsed && <p className="text-sm text-red-400">Ce code a déjà été utilisé par votre compte.</p>}
+                            {alreadyUsed && <p className="text-sm text-red-400">This code has already been used by your account.</p>}
                             {loginRequired && (
                               <p className="text-sm text-red-400">
-                                Connectez-vous pour utiliser ce code.{" "}
+                                Sign in to use this code.{" "}
                                 <button className="underline hover:opacity-80" onClick={() => setShowAuthModal(true)}>
-                                  Se connecter
+                                  Sign in
                                 </button>
                               </p>
                             )}
-                            {maxReached && <p className="text-sm text-red-400">Le quota d’utilisation pour ce code est atteint.</p>}
+                            {maxReached && <p className="text-sm text-red-400">The usage limit for this code has been reached.</p>}
                             {promoError && <p className="text-sm text-red-500">{promoError}</p>}
                             {promo && !promo.valid && !isPromoError && (
                               <p className="text-sm text-red-500">
-                                Code invalide{promo.reason ? ` : ${promo.reason}` : ""}.
+                                Invalid code{promo.reason ? `: ${promo.reason}` : ""}.
                               </p>
                             )}
                           </>
@@ -337,10 +330,10 @@ export default function Cart() {
                           <div className="flex items-center justify-between rounded-lg border border-green-700/40 p-2">
                             <div className="text-sm">
                               <span className="text-green-500 font-medium">{promo.code}</span>{" "}
-                              <span className="text-gray-400">appliqué</span>
+                              <span className="text-gray-400">applied</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={clearPromo} className="text-gray-400 hover:text-white">
-                              Retirer
+                              Remove
                             </Button>
                           </div>
                         )}
@@ -355,18 +348,18 @@ export default function Cart() {
                 <div className="space-y-4 py-6">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Truck className="h-4 w-4" />
-                    <span>Livraison gratuite dès {SHIPPING_THRESHOLD}TND</span>
+                    <span>Shipping is calculated at the next step</span>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Sous-total</span>
+                      <span className="text-gray-400">Subtotal</span>
                       <span>{subtotal.toFixed(2)} TND</span>
                     </div>
 
                     {promo?.valid && (
                       <div className="flex justify-between text-sm text-green-500">
-                        <span>Remise ({promo.code})</span>
+                        <span>Discount ({promo.code})</span>
                         <span>-{discount.toFixed(2)} TND</span>
                       </div>
                     )}
@@ -374,20 +367,20 @@ export default function Cart() {
                     {alreadyUsed && (
                       <div className="flex justify-between text-sm text-red-400">
                         <span>Code {promo?.code || promoInput}</span>
-                        <span>déjà utilisé</span>
+                        <span>already used</span>
                       </div>
                     )}
 
                     {maxReached && (
                       <div className="flex justify-between text-sm text-red-400">
                         <span>Code {promo?.code || promoInput}</span>
-                        <span>quota atteint</span>
+                        <span>limit reached</span>
                       </div>
                     )}
 
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Livraison</span>
-                      <span>{shipping === 0 ? "Gratuite" : `${SHIPPING_COST.toFixed(2)} TND`}</span>
+                      <span className="text-gray-400">Shipping</span>
+                      <span>To calculate</span>
                     </div>
 
                     <Separator className="bg-gray-800" />
@@ -399,7 +392,7 @@ export default function Cart() {
                   </div>
 
                   <Button className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3" onClick={handleProceed}>
-                    Procéder au paiement
+                    Proceed to checkout
                   </Button>
                 </div>
               </>

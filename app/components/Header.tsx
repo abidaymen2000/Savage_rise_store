@@ -75,7 +75,7 @@ export default function Header() {
                 <DropdownMenuContent className="bg-black border-gray-800">
                   <DropdownMenuItem asChild>
                     <Link href="/products" className="text-white hover:text-gold">
-                      Tous les produits
+                      All products
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-700" />
@@ -89,7 +89,7 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <Link href="/about" className="text-white hover:text-gold transition-colors">
-                À Propos
+                About
               </Link>
               <Link href="/contact" className="text-white hover:text-gold transition-colors">
                 Contact
@@ -126,22 +126,22 @@ export default function Header() {
                   <DropdownMenuContent className="bg-black border-gray-800" align="end">
                     <DropdownMenuItem asChild>
                       <Link href="/profile?tab=settings" className="text-white hover:text-gold">
-                        Mon Profil
+                        My Profile
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/profile?tab=orders" className="text-white hover:text-gold">
-                        Mes Commandes
+                        My Orders
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/profile?tab=wishlist" className="text-white hover:text-gold">
-                        Ma Wishlist
+                        My Wishlist
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-gray-700" />
                     <DropdownMenuItem onClick={logout} className="text-red-400 hover:text-red-300">
-                      Déconnexion
+                      Log out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -178,7 +178,7 @@ export default function Header() {
             <div className="md:hidden py-4 border-t border-gold/20">
               <nav className="flex flex-col space-y-4">
                 <Link href="/products" className="text-white hover:text-gold transition-colors">
-                  Tous les produits
+                  All products
                 </Link>
                 {categories.map((category) => (
                   <Link
@@ -190,7 +190,7 @@ export default function Header() {
                   </Link>
                 ))}
                 <Link href="/about" className="text-white hover:text-gold transition-colors">
-                  À Propos
+                  About
                 </Link>
                 <Link href="/contact" className="text-white hover:text-gold transition-colors">
                   Contact
@@ -198,17 +198,17 @@ export default function Header() {
 
                 {isAuthenticated && (
                   <Link href="/profile?tab=wishlist" className="text-white hover:text-gold transition-colors">
-                    Ma Wishlist ({wishlistCount})
+                    My Wishlist ({wishlistCount})
                   </Link>
                 )}
 
                 {isAuthenticated ? (
                   <>
                     <Link href="/profile?tab=settings" className="text-white hover:text-gold transition-colors">
-                      Mon Profil
+                      My Profile
                     </Link>
                     <button onClick={logout} className="text-red-400 hover:text-red-300 text-left">
-                      Déconnexion
+                      Log out
                     </button>
                   </>
                 ) : (
@@ -216,7 +216,7 @@ export default function Header() {
                     onClick={() => setShowAuthModal(true)}
                     className="text-white hover:text-gold transition-colors text-left"
                   >
-                    Connexion
+                    Sign in
                   </button>
                 )}
               </nav>

@@ -10,20 +10,20 @@ export default function AboutPage() {
         <div className="flex items-center gap-2 mb-8">
           <Link href="/" className="flex items-center text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à l'accueil
+            Back to home
           </Link>
           <span className="text-gray-500">/</span>
-          <span className="text-gold">À Propos</span>
+          <span className="text-gold">About</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6">À PROPOS DE SAVAGE RISE</h1>
+            <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-6">ABOUT SAVAGE RISE</h1>
             <p className="text-gray-300 text-lg mb-6 leading-relaxed">
-              Savage Rise est bien plus qu’une marque de vêtements. C’est l’expression d’un style audacieux, d’une élégance brute et d’une identité affirmée. Pensée pour celles et ceux qui n’acceptent aucun compromis entre qualité, esthétique et singularité, chaque pièce incarne un équilibre entre modernité urbaine et raffinement intemporel.
+              Savage Rise is more than a clothing brand. It is the expression of bold style, raw elegance, and a clear identity. Designed for those who accept no compromise between quality, aesthetics, and individuality, every piece balances urban modernity with timeless refinement.
             </p>
             <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-              Conçue avec exigence, notre collection reflète un engagement profond envers l’artisanat, les matières nobles et le design minimaliste. Entrez dans l’univers Savage Rise, là où le luxe rencontre l’attitude.
+              Crafted with precision, our collection reflects a deep commitment to craftsmanship, premium materials, and minimalist design. Step into the Savage Rise universe, where luxury meets attitude.
             </p>
             <div className="grid grid-cols-3 gap-8 text-center">
               <div>

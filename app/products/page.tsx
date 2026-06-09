@@ -23,6 +23,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [genderFilter, setGenderFilter] = useState("all")
   const [sortBy, setSortBy] = useState("name")
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const { addToCart } = useCart()
@@ -36,12 +37,15 @@ export default function ProductsPage() {
       setLoading(true)
       setError(null)
       console.log("Fetching all products...")
-      const data = await api.getProducts(0, 50) // Fetch more products
+      const data =
+        genderFilter === "all"
+          ? await api.getProducts(0, 50)
+          : await api.searchProducts({ gender: genderFilter }, 0, 50)
       console.log("Products loaded:", data.length)
       setProducts(data)
     } catch (err) {
       console.error("Error fetching products:", err)
-      const errorMessage = err instanceof Error ? err.message : "Erreur lors du chargement des produits"
+      const errorMessage = err instanceof Error ? err.message : "Error loading products"
       setError(errorMessage)
       // Don't show error if we have fallback data
       if (errorMessage.includes("Network error")) {
@@ -50,7 +54,7 @@ export default function ProductsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [genderFilter])
 
   const fetchUserWishlist = useCallback(async () => {
     if (!isAuthenticated) {
@@ -73,6 +77,11 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setGenderFilter(params.get("gender") || "all")
+  }, [])
 
   useEffect(() => {
     fetchUserWishlist()
@@ -117,7 +126,7 @@ export default function ProductsPage() {
           <div className="flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-              <p className="text-gray-400">Chargement des produits...</p>
+              <p className="text-gray-400">Loading products...</p>
             </div>
           </div>
         </div>
@@ -130,9 +139,9 @@ export default function ProductsPage() {
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <p className="text-red-400 mb-4">Erreur: {error}</p>
+            <p className="text-red-400 mb-4">Error: {error}</p>
             <Button onClick={() => window.location.reload()} className="bg-gold text-black hover:bg-gold/90">
-              Réessayer
+              Try again
             </Button>
           </div>
         </div>
@@ -147,7 +156,7 @@ export default function ProductsPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4">COLLECTION SAVAGE RISE</h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Découvrez notre collection exclusive de vêtements masculins de luxe, conçue pour l'homme moderne.
+            Discover our exclusive collection of luxury pieces, designed for a contemporary and confident style.
           </p>
         </div>
 
@@ -156,7 +165,7 @@ export default function ProductsPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Rechercher un produit..."
+              placeholder="Search for a product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-400"
@@ -165,12 +174,23 @@ export default function ProductsPage() {
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full md:w-48 bg-gray-900 border-gray-700 text-white">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Trier par" />
+              <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-gray-900 border-gray-700">
-              <SelectItem value="name">Nom A-Z</SelectItem>
-              <SelectItem value="price-asc">Prix croissant</SelectItem>
-              <SelectItem value="price-desc">Prix décroissant</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
+              <SelectItem value="price-asc">Price: low to high</SelectItem>
+              <SelectItem value="price-desc">Price: high to low</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={genderFilter} onValueChange={setGenderFilter}>
+            <SelectTrigger className="w-full md:w-48 bg-gray-900 border-gray-700 text-white">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-900 border-gray-700">
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="men">Essentiels</SelectItem>
+              <SelectItem value="women">Signature</SelectItem>
+              <SelectItem value="unisex">Unisex</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -178,7 +198,7 @@ export default function ProductsPage() {
         {/* Products Grid */}
         {filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">Aucun produit trouvé.</p>
+            <p className="text-gray-400 text-lg">No products found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -208,7 +228,7 @@ export default function ProductsPage() {
                       {!productInStock && (
                         <div className="absolute top-4 left-4">
                           <span className="bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded-full">
-                            Rupture de stock
+                            Out of stock
                           </span>
                         </div>
                       )}
