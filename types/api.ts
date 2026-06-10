@@ -137,6 +137,23 @@ export interface Category {
   updated_at: string
 }
 
+export interface HeaderVideoAsset {
+  file_id?: string | null
+  name?: string | null
+  url: string
+  thumbnail_url?: string | null
+  file_path?: string | null
+  mime?: string | null
+  size?: number | null
+}
+
+export interface HeaderVideo {
+  title?: string | null
+  subtitle?: string | null
+  description?: string | null
+  video: HeaderVideoAsset
+}
+
 export interface CartItem {
   product: Product
   selectedVariant: Variant

@@ -24,6 +24,7 @@ import type {
   ApplyResponse,
   ShippingQuoteRequest,
   ShippingQuoteResponse,
+  HeaderVideo,
 } from "@/types/api"
 
 const API_BASE_URL =
@@ -364,6 +365,10 @@ export const api = {
 
   async getProductsByCategory(categoryName: string, skip = 0, limit = 10): Promise<Product[]> {
     return fetchApi<Product[]>(`/categories/${categoryName}/products?skip=${skip}&limit=${limit}`)
+  },
+
+  async getHeaderVideo(): Promise<HeaderVideo> {
+    return fetchApi<HeaderVideo>("/storefront/header-video")
   },
 
   async sendContact(data: ContactMessage): Promise<void> {

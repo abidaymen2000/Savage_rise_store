@@ -4,26 +4,67 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronRight } from 'lucide-react'
 import Link from "next/link"
+import { api } from "@/lib/api"
+
+type HeroSlide = {
+  type: "video" | "image"
+  src: string
+  title: string
+  subtitle: string
+  description: string
+}
+
+const fallbackSlides: HeroSlide[] = [
+  {
+    type: "video",
+    src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/video-header.mp4?updatedAt=1754345500707",
+    title: "NEW COLLECTION",
+    subtitle: "FALL/WINTER 2025",
+    description: "Discover redefined elegance",
+  },
+  {
+    type: "image",
+    src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/banniere-blan.jpeg?updatedAt=1754345638832",
+    title: "TIMELESS STYLE",
+    subtitle: "PREMIUM",
+    description: "Details that make the difference",
+  },
+]
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [slides, setSlides] = useState<HeroSlide[]>(fallbackSlides)
 
-  const slides = [
-    {
-      type: "video" as const,
-      src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/video-header.mp4?updatedAt=1754345500707",
-      title: "NEW COLLECTION",
-      subtitle: "FALL/WINTER 2025",
-      description: "Discover redefined elegance",
-    },
-    {
-      type: "image" as const,
-      src: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/banniere-blan.jpeg?updatedAt=1754345638832",
-      title: "TIMELESS STYLE",
-      subtitle: "PREMIUM",
-      description: "Details that make the difference",
-    },
-  ]
+  useEffect(() => {
+    let isMounted = true
+
+    async function fetchHeaderVideo() {
+      try {
+        const headerVideo = await api.getHeaderVideo()
+
+        if (!isMounted || !headerVideo.video?.url) return
+
+        setSlides([
+          {
+            type: "video",
+            src: headerVideo.video.url,
+            title: headerVideo.title ?? fallbackSlides[0].title,
+            subtitle: headerVideo.subtitle ?? fallbackSlides[0].subtitle,
+            description: headerVideo.description ?? fallbackSlides[0].description,
+          },
+          fallbackSlides[1],
+        ])
+      } catch (error) {
+        console.error("Error fetching header video:", error)
+      }
+    }
+
+    fetchHeaderVideo()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
