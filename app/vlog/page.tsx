@@ -329,7 +329,7 @@ export default function VlogPage() {
                 </div>
                 <h3 className="text-2xl font-semibold">The first chapter is being prepared</h3>
                 <p className="mt-3 leading-7 text-gray-400">
-                  When the CMS publishes a chapter, this space will show its three drops, their videos, linked products,
+                  When we publishes a chapter, this space will show its three drops, their videos, linked products,
                   and the final short film.
                 </p>
               </div>

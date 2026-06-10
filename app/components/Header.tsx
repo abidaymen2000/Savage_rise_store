@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Menu, X, User, Search, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,9 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([])
   const { user, isAuthenticated, logout } = useAuth()
   const [wishlistCount, setWishlistCount] = useState(0)
+  const pathname = usePathname()
+
+  const closeMobileMenu = () => setIsMenuOpen(false)
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -56,13 +60,31 @@ export default function Header() {
     fetchWishlistCount()
   }, [isAuthenticated, fetchWishlistCount])
 
+  useEffect(() => {
+    closeMobileMenu()
+  }, [pathname])
+
+  const handleMobileLogout = () => {
+    closeMobileMenu()
+    logout()
+  }
+
+  const handleMobileSignIn = () => {
+    closeMobileMenu()
+    setShowAuthModal(true)
+  }
+
   return (
     <>
       <header className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-gold/20">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="text-2xl font-playfair font-bold text-gold">
+            <Link
+              href="/"
+              className="min-w-0 truncate whitespace-nowrap text-xl sm:text-2xl font-playfair font-bold text-gold"
+              onClick={closeMobileMenu}
+            >
               SAVAGE RISE
             </Link>
 
@@ -163,13 +185,15 @@ export default function Header() {
             </div>
 
             {/* Mobile actions (Cart + Menu toggle) */}
-            <div className="md:hidden flex items-center gap-2">
+            <div className="md:hidden flex shrink-0 items-center gap-1">
               <Cart />
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white"
+                className="text-white shrink-0"
                 onClick={() => setIsMenuOpen((v) => !v)}
+                aria-expanded={isMenuOpen}
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               >
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
@@ -178,9 +202,9 @@ export default function Header() {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gold/20">
-              <nav className="flex flex-col space-y-4">
-                <Link href="/products" className="text-white hover:text-gold transition-colors">
+            <div className="md:hidden absolute left-0 right-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-gold/20 bg-black/95 px-4 py-5 shadow-2xl backdrop-blur-md">
+              <nav className="mx-auto flex w-full max-w-screen-sm flex-col space-y-4">
+                <Link href="/products" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
                   All products
                 </Link>
                 {categories.map((category) => (
@@ -188,38 +212,47 @@ export default function Header() {
                     key={category.id}
                     href={`/categories/${category.name}`}
                     className="text-white hover:text-gold transition-colors pl-4"
+                    onClick={closeMobileMenu}
                   >
                     {category.name}
                   </Link>
                 ))}
-                <Link href="/about" className="text-white hover:text-gold transition-colors">
+                <Link href="/about" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
                   About
                 </Link>
-                <Link href="/vlog" className="text-white hover:text-gold transition-colors">
+                <Link href="/vlog" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
                   Vlog
                 </Link>
-                <Link href="/contact" className="text-white hover:text-gold transition-colors">
+                <Link href="/contact" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
                   Contact
                 </Link>
 
                 {isAuthenticated && (
-                  <Link href="/profile?tab=wishlist" className="text-white hover:text-gold transition-colors">
+                  <Link
+                    href="/profile?tab=wishlist"
+                    className="text-white hover:text-gold transition-colors"
+                    onClick={closeMobileMenu}
+                  >
                     My Wishlist ({wishlistCount})
                   </Link>
                 )}
 
                 {isAuthenticated ? (
                   <>
-                    <Link href="/profile?tab=settings" className="text-white hover:text-gold transition-colors">
+                    <Link
+                      href="/profile?tab=settings"
+                      className="text-white hover:text-gold transition-colors"
+                      onClick={closeMobileMenu}
+                    >
                       My Profile
                     </Link>
-                    <button onClick={logout} className="text-red-400 hover:text-red-300 text-left">
+                    <button onClick={handleMobileLogout} className="text-red-400 hover:text-red-300 text-left">
                       Log out
                     </button>
                   </>
                 ) : (
                   <button
-                    onClick={() => setShowAuthModal(true)}
+                    onClick={handleMobileSignIn}
                     className="text-white hover:text-gold transition-colors text-left"
                   >
                     Sign in
