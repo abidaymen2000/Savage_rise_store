@@ -91,6 +91,9 @@ export default function Header() {
               <Link href="/about" className="text-white hover:text-gold transition-colors">
                 About
               </Link>
+              <Link href="/vlog" className="text-white hover:text-gold transition-colors">
+                Vlog
+              </Link>
               <Link href="/contact" className="text-white hover:text-gold transition-colors">
                 Contact
               </Link>
@@ -191,6 +194,9 @@ export default function Header() {
                 ))}
                 <Link href="/about" className="text-white hover:text-gold transition-colors">
                   About
+                </Link>
+                <Link href="/vlog" className="text-white hover:text-gold transition-colors">
+                  Vlog
                 </Link>
                 <Link href="/contact" className="text-white hover:text-gold transition-colors">
                   Contact

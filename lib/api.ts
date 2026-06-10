@@ -25,6 +25,8 @@ import type {
   ShippingQuoteRequest,
   ShippingQuoteResponse,
   HeaderVideo,
+  VlogChapter,
+  VlogPage,
 } from "@/types/api"
 
 const API_BASE_URL =
@@ -369,6 +371,14 @@ export const api = {
 
   async getHeaderVideo(): Promise<HeaderVideo> {
     return fetchApi<HeaderVideo>("/storefront/header-video")
+  },
+
+  async getVlogPage(): Promise<VlogPage> {
+    return fetchApi<VlogPage>("/storefront/vlog")
+  },
+
+  async getVlogChapter(slug: string): Promise<VlogChapter> {
+    return fetchApi<VlogChapter>(`/storefront/vlog/chapters/${encodeURIComponent(slug)}`)
   },
 
   async sendContact(data: ContactMessage): Promise<void> {

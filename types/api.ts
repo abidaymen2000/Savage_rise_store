@@ -154,6 +154,75 @@ export interface HeaderVideo {
   video: HeaderVideoAsset
 }
 
+export type VlogChapterStatus = "draft" | "coming_soon" | "active" | "completed" | "archived"
+export type VlogEpisodeStatus = "draft" | "coming_soon" | "released" | "hidden"
+
+export interface VlogSettings {
+  title?: string
+  subtitle?: string | null
+  description?: string
+  hero_image_url?: string | null
+  hero_video_url?: string | null
+  is_active?: boolean
+  updated_at?: string | null
+}
+
+export interface ProductSummary {
+  id: string
+  name: string
+  full_name?: string | null
+  price: number
+  image_url?: string | null
+  in_stock?: boolean
+}
+
+export interface ShortFilm {
+  title?: string | null
+  description?: string | null
+  video_url?: string | null
+  thumbnail_url?: string | null
+  release_date?: string | null
+  is_released?: boolean
+}
+
+export interface VlogEpisode {
+  episode_number: number
+  title: string
+  description?: string | null
+  video_url?: string | null
+  thumbnail_url?: string | null
+  release_date?: string | null
+  status?: VlogEpisodeStatus
+  linked_product_ids?: string[]
+  order?: number
+  id: string
+  chapter_id: string
+  products?: ProductSummary[]
+  created_at: string
+  updated_at: string
+}
+
+export interface VlogChapter {
+  title: string
+  slug: string
+  description?: string | null
+  cover_image_url?: string | null
+  trailer_video_url?: string | null
+  status?: VlogChapterStatus
+  order?: number
+  release_date?: string | null
+  short_film?: ShortFilm | null
+  id: string
+  created_at: string
+  updated_at: string
+  episodes?: VlogEpisode[]
+}
+
+export interface VlogPage {
+  settings: VlogSettings
+  chapters?: VlogChapter[]
+}
+
 export interface CartItem {
   product: Product
   selectedVariant: Variant
