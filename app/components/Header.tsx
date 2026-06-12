@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, User, Search, Heart } from "lucide-react"
+import { ChevronRight, Menu, X, User, Search, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -185,55 +185,92 @@ export default function Header() {
             </div>
 
             {/* Mobile actions (Cart + Menu toggle) */}
-            <div className="md:hidden flex shrink-0 items-center gap-1">
+            <div className="md:hidden flex shrink-0 items-center gap-2">
               <Cart />
               <Button
                 variant="ghost"
-                size="icon"
-                className="text-white shrink-0"
+                className="h-10 shrink-0 gap-2 rounded-full border border-gold/70 bg-gold/10 px-3 text-sm font-semibold text-gold shadow-[0_0_18px_rgba(212,175,55,0.22)] hover:bg-gold hover:text-black"
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-expanded={isMenuOpen}
                 aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                <span>{isMenuOpen ? "Close" : "Menu"}</span>
               </Button>
             </div>
           </div>
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute left-0 right-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-gold/20 bg-black/95 px-4 py-5 shadow-2xl backdrop-blur-md">
-              <nav className="mx-auto flex w-full max-w-screen-sm flex-col space-y-4">
-                <Link href="/products" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
-                  All products
+            <div className="md:hidden absolute left-0 right-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-gold/30 bg-[#050505]/95 px-4 py-5 shadow-2xl shadow-black/70 backdrop-blur-md">
+              <nav className="mx-auto flex w-full max-w-screen-sm flex-col gap-3">
+                <div className="mb-1 border-b border-gold/20 pb-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">Savage Rise</p>
+                  <p className="mt-1 text-sm text-white/65">Explore the collection</p>
+                </div>
+                <Link
+                  href="/products"
+                  className="group flex items-center justify-between rounded-lg border border-gold/45 bg-gradient-to-r from-gold/20 via-gold/10 to-transparent px-4 py-4 font-semibold text-gold shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_30px_rgba(0,0,0,0.28)] transition-colors hover:bg-gold hover:text-black"
+                  onClick={closeMobileMenu}
+                >
+                  <span>All products</span>
+                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
+                {categories.length > 0 && (
+                  <p className="mt-2 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
+                    Collections
+                  </p>
+                )}
                 {categories.map((category) => (
                   <Link
                     key={category.id}
                     href={`/categories/${category.name}`}
-                    className="text-white hover:text-gold transition-colors pl-4"
+                    className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
                     onClick={closeMobileMenu}
                   >
-                    {category.name}
+                    <span>{category.name}</span>
+                    <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                   </Link>
                 ))}
-                <Link href="/about" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
-                  About
+                <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
+                  Maison
+                </p>
+                <Link
+                  href="/about"
+                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
+                  onClick={closeMobileMenu}
+                >
+                  <span>About</span>
+                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/vlog" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
-                  Vlog
+                <Link
+                  href="/vlog"
+                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
+                  onClick={closeMobileMenu}
+                >
+                  <span>Vlog</span>
+                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/contact" className="text-white hover:text-gold transition-colors" onClick={closeMobileMenu}>
-                  Contact
+                <Link
+                  href="/contact"
+                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
+                  onClick={closeMobileMenu}
+                >
+                  <span>Contact</span>
+                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                 </Link>
 
+                <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
+                  Account
+                </p>
                 {isAuthenticated && (
                   <Link
                     href="/profile?tab=wishlist"
-                    className="text-white hover:text-gold transition-colors"
+                    className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
                     onClick={closeMobileMenu}
                   >
-                    My Wishlist ({wishlistCount})
+                    <span>My Wishlist ({wishlistCount})</span>
+                    <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                   </Link>
                 )}
 
@@ -241,19 +278,23 @@ export default function Header() {
                   <>
                     <Link
                       href="/profile?tab=settings"
-                      className="text-white hover:text-gold transition-colors"
+                      className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
                       onClick={closeMobileMenu}
                     >
-                      My Profile
+                      <span>My Profile</span>
+                      <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                     </Link>
-                    <button onClick={handleMobileLogout} className="text-red-400 hover:text-red-300 text-left">
+                    <button
+                      onClick={handleMobileLogout}
+                      className="rounded-lg border border-red-400/20 bg-red-500/5 px-4 py-3.5 text-left text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                    >
                       Log out
                     </button>
                   </>
                 ) : (
                   <button
                     onClick={handleMobileSignIn}
-                    className="text-white hover:text-gold transition-colors text-left"
+                    className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
                   >
                     Sign in
                   </button>
