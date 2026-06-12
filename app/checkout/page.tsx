@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Truck, Shield, CreditCard, Loader2, Ticket, X } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowLeft, Coins, Truck, Shield, CreditCard, Loader2, Ticket, X } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
@@ -16,7 +17,7 @@ import AuthModal from "@/app/components/AuthModal"
 import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
-import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse } from "@/types/api"
+import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote } from "@/types/api"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
@@ -51,6 +52,12 @@ export default function CheckoutPage() {
   const [shippingQuote, setShippingQuote] = useState<ShippingQuoteResponse | null>(null)
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
+  const [loyaltyBalance, setLoyaltyBalance] = useState<LoyaltyBalance | null>(null)
+  const [loyaltyQuote, setLoyaltyQuote] = useState<LoyaltyQuote | null>(null)
+  const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false)
+  const [loyaltyPointsToUse, setLoyaltyPointsToUse] = useState(0)
+  const [loyaltyLoading, setLoyaltyLoading] = useState(false)
+  const [loyaltyError, setLoyaltyError] = useState<string | null>(null)
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -119,6 +126,42 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoyaltyBalance(null)
+      setLoyaltyQuote(null)
+      setUseLoyaltyPoints(false)
+      setLoyaltyPointsToUse(0)
+      setLoyaltyError(null)
+      return
+    }
+
+    let isMounted = true
+
+    async function fetchLoyaltyBalance() {
+      setLoyaltyLoading(true)
+      setLoyaltyError(null)
+      try {
+        const balance = await api.getMyLoyaltyBalance()
+        if (isMounted) {
+          setLoyaltyBalance(balance)
+          setLoyaltyPointsToUse(balance.points_balance)
+        }
+      } catch (err) {
+        console.error("Unable to load loyalty balance:", err)
+        if (isMounted) setLoyaltyError("Unable to load your loyalty points right now.")
+      } finally {
+        if (isMounted) setLoyaltyLoading(false)
+      }
+    }
+
+    fetchLoyaltyBalance()
+
+    return () => {
+      isMounted = false
+    }
+  }, [isAuthenticated])
+
   // Si le panier change (quantités), on revalide le code
   useEffect(() => {
     if (isAuthenticated && promoCode) revalidatePromo(promoCode)
@@ -164,13 +207,16 @@ export default function CheckoutPage() {
         orderItems,
         shippingInfo,
         isAuthenticated ? promoCode : null,
-        isAuthenticated ? user?.id ?? null : null
+        isAuthenticated ? user?.id ?? null : null,
+        isAuthenticated ? loyaltyPointsUsed : 0
       )
 
       setCreatedOrder(order)
       setSuccess(true)
       clearCart()
       localStorage.removeItem(PROMO_STORAGE_KEY)
+      setUseLoyaltyPoints(false)
+      setLoyaltyPointsToUse(0)
 
       if (isAuthenticated) {
         setTimeout(() => {
@@ -191,10 +237,49 @@ export default function CheckoutPage() {
     [orderItems]
   )
 
-  const discount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
-  const afterDiscount = Math.max(0, subtotal - discount)
+  const promoDiscount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
+  const afterPromoDiscount = Math.max(0, subtotal - promoDiscount)
+  const loyaltyDiscount = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.discount_value : 0
+  const loyaltyPointsUsed = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
+  const estimatedPointsEarned = isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
+  const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
   const shipping = shippingQuote?.shipping_amount ?? 0
   const total = afterDiscount + shipping
+
+  useEffect(() => {
+    if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || orderItems.length === 0) {
+      setLoyaltyQuote(null)
+      return
+    }
+
+    const requestedPoints = useLoyaltyPoints ? Math.max(0, Math.floor(loyaltyPointsToUse)) : 0
+    const timeout = setTimeout(async () => {
+      setLoyaltyLoading(true)
+      setLoyaltyError(null)
+      try {
+        const quote = await api.quoteLoyaltyRedemption({
+          order_total: afterPromoDiscount,
+          points_to_use: requestedPoints,
+        })
+        setLoyaltyQuote(quote)
+      } catch (err) {
+        console.error("Loyalty quote failed:", err)
+        setLoyaltyQuote(null)
+        setLoyaltyError("Unable to calculate your loyalty discount right now.")
+      } finally {
+        setLoyaltyLoading(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timeout)
+  }, [
+    isAuthenticated,
+    loyaltyBalance?.settings?.is_active,
+    afterPromoDiscount,
+    useLoyaltyPoints,
+    loyaltyPointsToUse,
+    orderItems.length,
+  ])
 
   useEffect(() => {
     const country = shippingInfo.country.trim()
@@ -252,6 +337,16 @@ export default function CheckoutPage() {
           <p className="text-gray-400 mb-4">
             Your order has been created successfully. You will be redirected to your order details.
           </p>
+          {isAuthenticated && createdOrder && (
+            <div className="mb-4 rounded-md border border-gold/25 bg-gold/10 p-3 text-sm text-gold">
+              {createdOrder.loyalty_points_used ? (
+                <p>{createdOrder.loyalty_points_used} loyalty points used on this order.</p>
+              ) : null}
+              {createdOrder.loyalty_points_earned ? (
+                <p>You earned {createdOrder.loyalty_points_earned} loyalty points.</p>
+              ) : null}
+            </div>
+          )}
           {isAuthenticated ? (
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold mx-auto"></div>
           ) : (
@@ -297,6 +392,7 @@ export default function CheckoutPage() {
           <Alert className="mb-8 border-gold/40 bg-gold/10">
             <AlertDescription className="text-gold">
               You are checking out as a guest. Sign in if you want to use a promo code and track orders from your profile.
+              Connected customers can also earn and redeem loyalty points.
             </AlertDescription>
           </Alert>
         )}
@@ -474,6 +570,107 @@ export default function CheckoutPage() {
                   </Alert>
                 )}
 
+                {isAuthenticated && (
+                  <div className="rounded-md border border-gold/25 bg-gold/5 p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-gold/15 p-2 text-gold">
+                          <Coins className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-white">Loyalty points</p>
+                          <p className="text-sm text-gray-400">
+                            {loyaltyLoading && !loyaltyBalance
+                              ? "Loading your balance..."
+                              : loyaltyBalance
+                                ? `${loyaltyBalance.points_balance} points available`
+                                : "No balance available"}
+                          </p>
+                        </div>
+                      </div>
+                      {estimatedPointsEarned > 0 && (
+                        <span className="shrink-0 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-semibold text-green-400">
+                          +{estimatedPointsEarned} pts
+                        </span>
+                      )}
+                    </div>
+
+                    {loyaltyBalance?.settings?.is_active ? (
+                      <>
+                        <label className="flex cursor-pointer items-center gap-3 rounded-md border border-white/10 bg-black/20 p-3">
+                          <Checkbox
+                            checked={useLoyaltyPoints}
+                            disabled={!loyaltyBalance.points_balance || loyaltyLoading}
+                            onCheckedChange={(checked) => {
+                              const nextChecked = checked === true
+                              setUseLoyaltyPoints(nextChecked)
+                              if (nextChecked && loyaltyPointsToUse <= 0) {
+                                setLoyaltyPointsToUse(loyaltyBalance.points_balance)
+                              }
+                            }}
+                          />
+                          <span className="text-sm text-gray-200">
+                            Use points as a discount
+                          </span>
+                        </label>
+
+                        {useLoyaltyPoints && (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <Input
+                                type="number"
+                                min={0}
+                                max={loyaltyBalance.points_balance}
+                                value={loyaltyPointsToUse}
+                                onChange={(event) => {
+                                  const value = Number(event.target.value)
+                                  setLoyaltyPointsToUse(
+                                    Number.isFinite(value)
+                                      ? Math.max(0, Math.min(loyaltyBalance.points_balance, Math.floor(value)))
+                                      : 0,
+                                  )
+                                }}
+                                className="bg-black border-white/10 text-white"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="border-gold/50 bg-transparent text-gold hover:bg-gold hover:text-black"
+                                onClick={() => setLoyaltyPointsToUse(loyaltyBalance.points_balance)}
+                              >
+                                Max
+                              </Button>
+                            </div>
+                            {loyaltyQuote && (
+                              <p className="text-xs text-gray-400">
+                                {loyaltyQuote.usable_points} points apply {loyaltyQuote.discount_value.toFixed(2)} TND discount.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-500">Loyalty rewards are currently unavailable.</p>
+                    )}
+
+                    {loyaltyError && (
+                      <Alert className="border-red-600 bg-red-900/20">
+                        <AlertDescription className="text-red-400">{loyaltyError}</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                )}
+
+                {isAuthenticated && loyaltyDiscount > 0 && (
+                  <div className="flex justify-between text-gold">
+                    <div className="flex items-center gap-2">
+                      <Coins className="h-4 w-4" />
+                      <span>{loyaltyPointsUsed} loyalty points</span>
+                    </div>
+                    <span>- {loyaltyDiscount.toFixed(2)} TND</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between">
                   <span className="text-gray-400">Shipping</span>
                   <span className="text-white">
@@ -531,7 +728,7 @@ export default function CheckoutPage() {
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || promoLoading || shippingLoading || !shippingQuote}
+                  disabled={isProcessing || promoLoading || shippingLoading || (useLoyaltyPoints && loyaltyLoading) || !shippingQuote}
                   className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3"
                 >
                   {isProcessing ? (

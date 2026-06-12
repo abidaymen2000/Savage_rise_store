@@ -21,6 +21,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
   const [activeTab, setActiveTab] = useState(defaultTab)
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false) // 👈 pour le bouton de renvoi
+  const [isSendingReset, setIsSendingReset] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -32,7 +33,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
   const [showLoginPassword, setShowLoginPassword] = useState(false)
 
   // 👇 Assure-toi que resendVerification est bien exposé par le context
-  const { login, signup, resendVerification } = useAuth()
+  const { login, signup, forgotPassword, resendVerification } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,6 +103,28 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
   }
 
   // 👇 Renvoi email de vérification
+  const handleForgotPassword = async () => {
+    setError(null)
+    setSuccess(null)
+
+    const email = loginForm.email.trim()
+    if (!email) {
+      setError("Please enter your email first, then click forgot password.")
+      return
+    }
+
+    try {
+      setIsSendingReset(true)
+      await forgotPassword(email)
+      setSuccess("Password reset email sent. Please check your inbox and spam folder.")
+      setLoginForm((prev) => ({ ...prev, password: "" }))
+    } catch {
+      setError("Unable to send the password reset email right now. Please try again later.")
+    } finally {
+      setIsSendingReset(false)
+    }
+  }
+
   const handleResend = async () => {
     setError(null)
     setSuccess(null)
@@ -186,7 +209,17 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="login-password">Password</Label>
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="login-password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={isSendingReset}
+                    className="text-sm font-medium text-gold hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isSendingReset ? "Sending..." : "Forgot password?"}
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input

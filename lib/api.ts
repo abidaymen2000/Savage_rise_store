@@ -24,6 +24,9 @@ import type {
   ApplyResponse,
   ShippingQuoteRequest,
   ShippingQuoteResponse,
+  LoyaltyBalance,
+  LoyaltyQuote,
+  LoyaltyQuoteRequest,
   HeaderVideo,
   VlogChapter,
   VlogComment,
@@ -249,7 +252,8 @@ export const api = {
     items: OrderItem[],
     shipping: ShippingInfo,
     promoCode?: string | null,
-    userId?: string | null
+    userId?: string | null,
+    loyaltyPointsToUse = 0
   ): Promise<Order> {
     const orderData: OrderCreate = {
       items,
@@ -257,6 +261,7 @@ export const api = {
       payment_method: "cod",
       ...(userId ? { user_id: userId } : {}),
       ...(promoCode ? { promo_code: promoCode } : {}),
+      ...(loyaltyPointsToUse > 0 ? { loyalty_points_to_use: loyaltyPointsToUse } : {}),
     }
     return fetchApi<Order>("/orders/", {
       method: "POST",
@@ -456,6 +461,20 @@ export const api = {
   async getShippingQuote(data: ShippingQuoteRequest): Promise<ShippingQuoteResponse> {
     return fetchApi<ShippingQuoteResponse>("/shipping-rates/quote", {
       method: "POST",
+      body: data,
+    })
+  },
+
+  async getMyLoyaltyBalance(limit = 5): Promise<LoyaltyBalance> {
+    return fetchApi<LoyaltyBalance>(`/loyalty/me?limit=${limit}`, {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async quoteLoyaltyRedemption(data: LoyaltyQuoteRequest): Promise<LoyaltyQuote> {
+    return fetchApi<LoyaltyQuote>("/loyalty/quote", {
+      method: "POST",
+      headers: getAuthHeaders(),
       body: data,
     })
   },

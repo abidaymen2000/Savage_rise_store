@@ -16,6 +16,7 @@ interface AuthContextType extends AuthState {
   signup: (email: string, password: string, fullName: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
+  forgotPassword: (email: string) => Promise<void>
   resendVerification: (email: string) => Promise<void>
 }
 
@@ -96,6 +97,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const forgotPassword = async (email: string) => {
+    try {
+      await api.forgotPassword(email)
+    } catch (error) {
+      console.error("Forgot password failed:", error)
+      throw error
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -104,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
         logout,
         refreshUser,
+        forgotPassword,
         resendVerification,
       }}
     >

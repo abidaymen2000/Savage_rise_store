@@ -100,6 +100,11 @@ export interface Order {
   promo_code?: string | null;     // <-- optionnel si le back le renvoie
   subtotal?: number | null;
   discount_value?: number | null;
+  loyalty_points_to_use?: number;
+  loyalty_points_used?: number;
+  loyalty_discount_value?: number;
+  loyalty_points_earned?: number;
+  loyalty_points_awarded?: boolean;
   shipping_amount?: number | null;
   shipping_rate_id?: string | null;
   shipping_rate_name?: string | null;
@@ -323,6 +328,7 @@ export interface OrderCreate {
   payment_method?: "cod" | "stripe" | "paypal"
   user_id?: string | null
   promo_code?: string | null;
+  loyalty_points_to_use?: number;
 }
 
 // apres WishlistCreate
@@ -360,4 +366,48 @@ export interface ShippingQuoteResponse {
   shipping_rate_name: string
   shipping_amount: number
   free_shipping_threshold?: number | null
+}
+
+export interface LoyaltySettings {
+  is_active?: boolean
+  earning_percentage?: number
+  point_value?: number
+  min_redeem_points?: number
+  max_redeem_percentage?: number
+  updated_at?: string | null
+}
+
+export interface LoyaltyTransaction {
+  id: string
+  user_id: string
+  type: "earn" | "redeem" | "refund" | "adjust"
+  points: number
+  value: number
+  order_id?: string | null
+  reason?: string | null
+  balance_after: number
+  created_at: string
+}
+
+export interface LoyaltyBalance {
+  user_id: string
+  points_balance: number
+  value_balance: number
+  settings: LoyaltySettings
+  recent_transactions?: LoyaltyTransaction[]
+}
+
+export interface LoyaltyQuoteRequest {
+  order_total: number
+  points_to_use?: number
+}
+
+export interface LoyaltyQuote {
+  points_balance: number
+  requested_points: number
+  usable_points: number
+  discount_value: number
+  remaining_total: number
+  estimated_points_earned: number
+  settings: LoyaltySettings
 }
