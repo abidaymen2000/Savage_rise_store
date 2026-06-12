@@ -3,11 +3,15 @@
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Calendar, Clock, Film, Loader2, Play } from "lucide-react"
+import { ArrowRight, Calendar, Clock, Eye, Film, Heart, Loader2, MessageCircle, Play, Send, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import AuthModal from "@/app/components/AuthModal"
+import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
-import type { VlogChapter, VlogEpisode, VlogPage } from "@/types/api"
+import { useToast } from "@/components/ui/use-toast"
+import type { VlogChapter, VlogComment, VlogEpisode, VlogPage } from "@/types/api"
 
 const fallbackVlog: VlogPage = {
   settings: {
@@ -53,9 +57,145 @@ function sortEpisodes(episodes?: VlogEpisode[]) {
   })
 }
 
-function EpisodeCard({ episode }: { episode: VlogEpisode }) {
+function formatCount(value?: number) {
+  return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value ?? 0)
+}
+
+function EpisodeCard({
+  episode,
+  onEpisodeUpdate,
+  onRequireAuth,
+}: {
+  episode: VlogEpisode
+  onEpisodeUpdate: (episodeId: string, updates: Partial<VlogEpisode>) => void
+  onRequireAuth: () => void
+}) {
   const releaseDate = formatDate(episode.release_date)
   const hasVideo = Boolean(episode.video_url)
+  const { user, isAuthenticated } = useAuth()
+  const { toast } = useToast()
+  const [hasTrackedView, setHasTrackedView] = useState(false)
+  const [isLiking, setIsLiking] = useState(false)
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [comments, setComments] = useState<VlogComment[]>([])
+  const [commentText, setCommentText] = useState("")
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
+
+  const handleTrackView = async () => {
+    if (hasTrackedView) return
+    setHasTrackedView(true)
+
+    try {
+      const data = await api.trackVlogEpisodeView(episode.id)
+      onEpisodeUpdate(episode.id, { view_count: data.view_count })
+    } catch (error) {
+      console.error("Error tracking vlog view:", error)
+    }
+  }
+
+  const handleToggleLike = async () => {
+    if (!isAuthenticated) {
+      onRequireAuth()
+      return
+    }
+    if (isLiking) return
+
+    const wasLiked = Boolean(episode.liked_by_current_user)
+    setIsLiking(true)
+    onEpisodeUpdate(episode.id, {
+      liked_by_current_user: !wasLiked,
+      like_count: Math.max(0, (episode.like_count ?? 0) + (wasLiked ? -1 : 1)),
+    })
+
+    try {
+      const data = wasLiked ? await api.unlikeVlogEpisode(episode.id) : await api.likeVlogEpisode(episode.id)
+      onEpisodeUpdate(episode.id, {
+        liked_by_current_user: data.liked,
+        like_count: data.like_count,
+      })
+    } catch (error) {
+      console.error("Error toggling vlog like:", error)
+      onEpisodeUpdate(episode.id, {
+        liked_by_current_user: wasLiked,
+        like_count: episode.like_count,
+      })
+      toast({
+        title: "Like not saved",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLiking(false)
+    }
+  }
+
+  const loadComments = async () => {
+    setCommentsLoading(true)
+    try {
+      const data = await api.getVlogEpisodeComments(episode.id)
+      setComments(data)
+    } catch (error) {
+      console.error("Error loading vlog comments:", error)
+      toast({
+        title: "Comments unavailable",
+        description: "Unable to load comments for this episode.",
+        variant: "destructive",
+      })
+    } finally {
+      setCommentsLoading(false)
+    }
+  }
+
+  const handleToggleComments = () => {
+    const nextOpen = !commentsOpen
+    setCommentsOpen(nextOpen)
+    if (nextOpen && comments.length === 0) {
+      void loadComments()
+    }
+  }
+
+  const handleSubmitComment = async () => {
+    const content = commentText.trim()
+    if (!isAuthenticated) {
+      onRequireAuth()
+      return
+    }
+    if (!content || commentSubmitting) return
+
+    setCommentSubmitting(true)
+    try {
+      const comment = await api.addVlogEpisodeComment(episode.id, content)
+      setComments((current) => [comment, ...current])
+      setCommentText("")
+      onEpisodeUpdate(episode.id, { comment_count: (episode.comment_count ?? 0) + 1 })
+      toast({ title: "Comment posted" })
+    } catch (error) {
+      console.error("Error posting vlog comment:", error)
+      toast({
+        title: "Comment not posted",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      })
+    } finally {
+      setCommentSubmitting(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await api.deleteVlogEpisodeComment(episode.id, commentId)
+      setComments((current) => current.filter((comment) => comment.id !== commentId))
+      onEpisodeUpdate(episode.id, { comment_count: Math.max(0, (episode.comment_count ?? 0) - 1) })
+    } catch (error) {
+      console.error("Error deleting vlog comment:", error)
+      toast({
+        title: "Comment not deleted",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <article className="overflow-hidden rounded-md border border-white/10 bg-zinc-950">
@@ -67,6 +207,7 @@ function EpisodeCard({ episode }: { episode: VlogEpisode }) {
             controls
             playsInline
             preload="metadata"
+            onPlay={handleTrackView}
             className="h-full w-full object-cover"
           />
         ) : episode.thumbnail_url ? (
@@ -104,6 +245,90 @@ function EpisodeCard({ episode }: { episode: VlogEpisode }) {
           {episode.description && <p className="mt-2 text-sm leading-6 text-gray-400">{episode.description}</p>}
         </div>
 
+        <div className="flex flex-wrap items-center gap-2 border-y border-white/10 py-3 text-sm text-gray-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5">
+            <Eye className="h-4 w-4 text-gold" />
+            {formatCount(episode.view_count)} views
+          </span>
+          <button
+            type="button"
+            onClick={handleToggleLike}
+            disabled={isLiking}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+              episode.liked_by_current_user
+                ? "bg-gold text-black"
+                : "bg-white/5 text-gray-300 hover:bg-gold/10 hover:text-gold"
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${episode.liked_by_current_user ? "fill-current" : ""}`} />
+            {formatCount(episode.like_count)}
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleComments}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 transition-colors hover:bg-gold/10 hover:text-gold"
+          >
+            <MessageCircle className="h-4 w-4 text-gold" />
+            {formatCount(episode.comment_count)}
+          </button>
+        </div>
+
+        {commentsOpen && (
+          <div className="space-y-4 rounded-md border border-white/10 bg-black/35 p-3">
+            <div className="space-y-2">
+              <Textarea
+                value={commentText}
+                onChange={(event) => setCommentText(event.target.value)}
+                placeholder={isAuthenticated ? "Write a comment..." : "Sign in to comment"}
+                disabled={!isAuthenticated || commentSubmitting}
+                className="min-h-[88px] border-white/10 bg-black text-white placeholder:text-gray-500"
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleSubmitComment}
+                  disabled={commentSubmitting || (isAuthenticated && !commentText.trim())}
+                  className="bg-gold text-black hover:bg-gold/90"
+                >
+                  {commentSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  {isAuthenticated ? "Post" : "Sign in"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {commentsLoading ? (
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading comments
+                </div>
+              ) : comments.length > 0 ? (
+                comments.map((comment) => (
+                  <div key={comment.id} className="rounded-md border border-white/10 bg-zinc-950 p-3">
+                    <div className="mb-1 flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-white">{comment.author ?? "Savage viewer"}</span>
+                      {user?.id === comment.user_id && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-gray-500 transition-colors hover:text-red-300"
+                          aria-label="Delete comment"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-sm leading-6 text-gray-300">{comment.content}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No comments yet.</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {episode.products && episode.products.length > 0 && (
           <div className="space-y-2 border-t border-white/10 pt-4">
             {episode.products.slice(0, 3).map((product) => (
@@ -123,7 +348,15 @@ function EpisodeCard({ episode }: { episode: VlogEpisode }) {
   )
 }
 
-function ChapterSection({ chapter }: { chapter: VlogChapter }) {
+function ChapterSection({
+  chapter,
+  onEpisodeUpdate,
+  onRequireAuth,
+}: {
+  chapter: VlogChapter
+  onEpisodeUpdate: (episodeId: string, updates: Partial<VlogEpisode>) => void
+  onRequireAuth: () => void
+}) {
   const episodes = sortEpisodes(chapter.episodes)
   const releaseDate = formatDate(chapter.release_date)
   const shortFilm = chapter.short_film
@@ -172,7 +405,14 @@ function ChapterSection({ chapter }: { chapter: VlogChapter }) {
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {episodes.length > 0
-              ? episodes.map((episode) => <EpisodeCard key={episode.id} episode={episode} />)
+              ? episodes.map((episode) => (
+                  <EpisodeCard
+                    key={episode.id}
+                    episode={episode}
+                    onEpisodeUpdate={onEpisodeUpdate}
+                    onRequireAuth={onRequireAuth}
+                  />
+                ))
               : [1, 2, 3].map((dropNumber) => (
                   <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-zinc-950 p-5">
                     <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900">
@@ -232,6 +472,7 @@ export default function VlogPage() {
   const [vlog, setVlog] = useState<VlogPage>(fallbackVlog)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -266,7 +507,20 @@ export default function VlogPage() {
   const heroDescription = settings.description ?? fallbackVlog.settings.description
   const heroVideo = settings.hero_video_url ?? fallbackVlog.settings.hero_video_url
 
+  const updateEpisode = (episodeId: string, updates: Partial<VlogEpisode>) => {
+    setVlog((current) => ({
+      ...current,
+      chapters: current.chapters?.map((chapter) => ({
+        ...chapter,
+        episodes: chapter.episodes?.map((episode) =>
+          episode.id === episodeId ? { ...episode, ...updates } : episode,
+        ),
+      })),
+    }))
+  }
+
   return (
+    <>
     <main className="min-h-screen bg-black text-white">
       <section className="relative flex min-h-[78vh] items-end overflow-hidden pt-20">
         {heroVideo ? (
@@ -319,7 +573,14 @@ export default function VlogPage() {
         {error && <p className="mb-6 rounded-md border border-red-500/30 bg-red-950/30 p-4 text-sm text-red-200">{error}</p>}
 
         {chapters.length > 0 ? (
-          chapters.map((chapter) => <ChapterSection key={chapter.id} chapter={chapter} />)
+          chapters.map((chapter) => (
+            <ChapterSection
+              key={chapter.id}
+              chapter={chapter}
+              onEpisodeUpdate={updateEpisode}
+              onRequireAuth={() => setShowAuthModal(true)}
+            />
+          ))
         ) : (
           <div className="rounded-md border border-white/10 bg-zinc-950 p-6 sm:p-8">
             <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center">
@@ -349,5 +610,7 @@ export default function VlogPage() {
         )}
       </section>
     </main>
+    <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab="login" />
+    </>
   )
 }

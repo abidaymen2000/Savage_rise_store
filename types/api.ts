@@ -198,8 +198,39 @@ export interface VlogEpisode {
   id: string
   chapter_id: string
   products?: ProductSummary[]
+  view_count?: number
+  like_count?: number
+  comment_count?: number
+  liked_by_current_user?: boolean
   created_at: string
   updated_at: string
+}
+
+export interface VlogEpisodeView {
+  episode_id: string
+  view_count: number
+}
+
+export interface VlogEpisodeLike {
+  episode_id: string
+  liked: boolean
+  like_count: number
+}
+
+export interface VlogComment {
+  id: string
+  episode_id: string
+  user_id: string
+  content: string
+  status?: "visible" | "hidden"
+  author?: string | null
+  episode_title?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface VlogCommentCreate {
+  content: string
 }
 
 export interface VlogChapter {

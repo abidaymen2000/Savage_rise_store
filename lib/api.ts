@@ -26,6 +26,10 @@ import type {
   ShippingQuoteResponse,
   HeaderVideo,
   VlogChapter,
+  VlogComment,
+  VlogCommentCreate,
+  VlogEpisodeLike,
+  VlogEpisodeView,
   VlogPage,
 } from "@/types/api"
 
@@ -374,11 +378,60 @@ export const api = {
   },
 
   async getVlogPage(): Promise<VlogPage> {
-    return fetchApi<VlogPage>("/storefront/vlog")
+    return fetchApi<VlogPage>("/storefront/vlog", {
+      headers: getAuthHeaders(),
+    })
   },
 
   async getVlogChapter(slug: string): Promise<VlogChapter> {
-    return fetchApi<VlogChapter>(`/storefront/vlog/chapters/${encodeURIComponent(slug)}`)
+    return fetchApi<VlogChapter>(`/storefront/vlog/chapters/${encodeURIComponent(slug)}`, {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async trackVlogEpisodeView(episodeId: string): Promise<VlogEpisodeView> {
+    return fetchApi<VlogEpisodeView>(`/storefront/vlog/episodes/${encodeURIComponent(episodeId)}/view`, {
+      method: "POST",
+    })
+  },
+
+  async likeVlogEpisode(episodeId: string): Promise<VlogEpisodeLike> {
+    return fetchApi<VlogEpisodeLike>(`/storefront/vlog/episodes/${encodeURIComponent(episodeId)}/like`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async unlikeVlogEpisode(episodeId: string): Promise<VlogEpisodeLike> {
+    return fetchApi<VlogEpisodeLike>(`/storefront/vlog/episodes/${encodeURIComponent(episodeId)}/like`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async getVlogEpisodeComments(episodeId: string, skip = 0, limit = 20): Promise<VlogComment[]> {
+    return fetchApi<VlogComment[]>(
+      `/storefront/vlog/episodes/${encodeURIComponent(episodeId)}/comments?skip=${skip}&limit=${limit}`,
+    )
+  },
+
+  async addVlogEpisodeComment(episodeId: string, content: string): Promise<VlogComment> {
+    const data: VlogCommentCreate = { content }
+    return fetchApi<VlogComment>(`/storefront/vlog/episodes/${encodeURIComponent(episodeId)}/comments`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: data,
+    })
+  },
+
+  async deleteVlogEpisodeComment(episodeId: string, commentId: string): Promise<void> {
+    await fetchApi<void>(
+      `/storefront/vlog/episodes/${encodeURIComponent(episodeId)}/comments/${encodeURIComponent(commentId)}`,
+      {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      },
+    )
   },
 
   async sendContact(data: ContactMessage): Promise<void> {
