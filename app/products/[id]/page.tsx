@@ -181,11 +181,11 @@ export default function ProductDetailPage() {
     }
   };
 
-  const availableColors = product ? getAvailableColors(product) : []
-  const availableSizes = product ? getAvailableSizes(product, selectedColor) : []
-  const currentStock =
-    product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
   const productInStock = product ? isProductInStock(product) : false
+  const availableColors = product ? getAvailableColors(product) : []
+  const availableSizes = product && productInStock ? getAvailableSizes(product, selectedColor) : []
+  const currentStock =
+    productInStock && product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
 
   // Get current images to display
   const currentImages = currentVariant?.images || []
@@ -349,6 +349,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity */}
+            {productInStock && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Quantity</h3>
               <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))}>
@@ -364,6 +365,7 @@ export default function ProductDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-4">
