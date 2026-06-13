@@ -67,6 +67,8 @@ export default function FeaturedProducts() {
   }, [isAuthenticated, fetchUserWishlist])
 
   const handleAddToCart = (product: Product) => {
+    if (!isProductInStock(product)) return
+
     // Get the first available variant and size
     if (product.variants && product.variants.length > 0) {
       const firstVariant = product.variants[0]

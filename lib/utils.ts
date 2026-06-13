@@ -84,6 +84,7 @@ export function getStockForSize(product: Product, color: string, size: string): 
 }
 
 export function isProductInStock(product: Product): boolean {
+  if (!product.in_stock) return false
   if (!product.variants || product.variants.length === 0) return product.in_stock
 
   // Check if any variant has stock

@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Package, Heart, Star, Settings, LogOut, Star as StarIcon } from "lucide-react"
+import { Coins, Gift, Package, Heart, Star, Settings, LogOut, Star as StarIcon } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
-import type { Order, Product, Review, WishlistItem } from "@/types/api"
+import type { LoyaltyBalance, Order, Product, Review, WishlistItem } from "@/types/api"
 import Link from "next/link"
 import { formatPrice } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -27,7 +27,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-type Tab = "orders" | "wishlist" | "reviews" | "settings"
+type Tab = "orders" | "wishlist" | "reviews" | "loyalty" | "settings"
 type WishlistWithProduct = WishlistItem & { product?: Product }
 
 // Règles de livraison (cohérentes avec le panier/checkout)
@@ -41,6 +41,8 @@ function ProfileContent() {
   const [wishlist, setWishlist] = useState<WishlistWithProduct[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   const [loadingWishlist, setLoadingWishlist] = useState(true)
+  const [loyalty, setLoyalty] = useState<LoyaltyBalance | null>(null)
+  const [loadingLoyalty, setLoadingLoyalty] = useState(true)
 
   const [reviews, setReviews] = useState<Review[]>([])
   const [loadingReviews, setLoadingReviews] = useState(true)
@@ -75,6 +77,7 @@ function ProfileContent() {
       fetchOrders()
       fetchWishlist()
       fetchReviews()
+      fetchLoyalty()
     }
   }, [isAuthenticated])
 
@@ -173,6 +176,19 @@ function ProfileContent() {
     }
   }
 
+  const fetchLoyalty = async () => {
+    try {
+      setLoadingLoyalty(true)
+      const data = await api.getMyLoyaltyBalance(20)
+      setLoyalty(data)
+    } catch (error) {
+      console.error("Error fetching loyalty balance:", error)
+      setLoyalty(null)
+    } finally {
+      setLoadingLoyalty(false)
+    }
+  }
+
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
       case "pending":
@@ -261,7 +277,7 @@ function ProfileContent() {
           }}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-4 bg-gray-900">
+          <TabsList className="grid h-auto w-full grid-cols-2 bg-gray-900 sm:grid-cols-5">
             <TabsTrigger value="orders" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Package className="h-4 w-4 mr-2" />
               Orders
@@ -273,6 +289,10 @@ function ProfileContent() {
             <TabsTrigger value="reviews" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Star className="h-4 w-4 mr-2" />
               Reviews
+            </TabsTrigger>
+            <TabsTrigger value="loyalty" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+              <Coins className="h-4 w-4 mr-2" />
+              Points
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Settings className="h-4 w-4 mr-2" />
@@ -531,6 +551,112 @@ function ProfileContent() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </TabsContent>
+
+          {/* Loyalty Tab */}
+          <TabsContent value="loyalty">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Coins className="h-5 w-5 text-gold" />
+                  Loyalty points
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingLoyalty ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4" />
+                    <p className="text-gray-400">Loading loyalty points...</p>
+                  </div>
+                ) : loyalty ? (
+                  <div className="space-y-6">
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <div className="rounded-lg border border-gold/30 bg-gold/10 p-4">
+                        <p className="text-sm text-gold">Available points</p>
+                        <p className="mt-2 text-3xl font-bold text-white">{loyalty.points_balance}</p>
+                      </div>
+                      <div className="rounded-lg border border-gray-700 bg-black/30 p-4">
+                        <p className="text-sm text-gray-400">Points value</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">{formatPrice(loyalty.value_balance)}</p>
+                      </div>
+                      <div className="rounded-lg border border-gray-700 bg-black/30 p-4">
+                        <p className="text-sm text-gray-400">Earn rate</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">
+                          {loyalty.settings.earning_percentage ?? 0}%
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg border border-gray-700 bg-black/25 p-4">
+                      <div className="flex items-start gap-3">
+                        <Gift className="mt-1 h-5 w-5 shrink-0 text-gold" />
+                        <div>
+                          <p className="font-semibold text-white">How it works</p>
+                          <p className="mt-1 text-sm leading-6 text-gray-400">
+                            Earn points when your purchases are confirmed. During checkout, choose whether to redeem
+                            available points as a discount or keep them for later.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-3 text-lg font-semibold text-white">Recent activity</h3>
+                      {loyalty.recent_transactions && loyalty.recent_transactions.length > 0 ? (
+                        <div className="space-y-3">
+                          {loyalty.recent_transactions.map((transaction) => (
+                            <div
+                              key={transaction.id}
+                              className="grid gap-3 rounded-lg border border-gray-700 bg-black/25 p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+                            >
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Badge
+                                    className={
+                                      transaction.type === "earn"
+                                        ? "bg-green-600"
+                                        : transaction.type === "redeem"
+                                          ? "bg-gold text-black"
+                                          : "bg-gray-600"
+                                    }
+                                  >
+                                    {transaction.type}
+                                  </Badge>
+                                  <span className="text-sm text-gray-400">
+                                    {new Date(transaction.created_at).toLocaleDateString("en-US")}
+                                  </span>
+                                </div>
+                                {transaction.reason && (
+                                  <p className="mt-2 text-sm text-gray-400">{transaction.reason}</p>
+                                )}
+                              </div>
+                              <div className="text-left sm:text-right">
+                                <p className={transaction.points >= 0 ? "font-semibold text-green-400" : "font-semibold text-gold"}>
+                                  {transaction.points >= 0 ? "+" : ""}
+                                  {transaction.points} pts
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Balance: {transaction.balance_after} pts
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-gray-700 p-6 text-center">
+                          <Coins className="mx-auto mb-3 h-10 w-10 text-gray-600" />
+                          <p className="text-gray-400">No loyalty activity yet.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-red-900/50 bg-red-950/20 p-4 text-red-300">
+                    Unable to load your loyalty points right now.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}

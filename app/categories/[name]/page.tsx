@@ -95,6 +95,8 @@ export default function CategoryPage() {
     })
 
   const handleAddToCart = (product: Product) => {
+    if (!isProductInStock(product)) return
+
     if (product.variants && product.variants.length > 0) {
       const firstVariant = product.variants[0]
       if (firstVariant.sizes && firstVariant.sizes.length > 0) {

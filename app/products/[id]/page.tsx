@@ -136,7 +136,7 @@ export default function ProductDetailPage() {
   }, [product, selectedColor])
 
   const handleAddToCart = () => {
-    if (product && currentVariant && selectedSize) {
+    if (product && isProductInStock(product) && currentVariant && selectedSize) {
       addToCart(product, currentVariant, selectedSize, quantity)
     }
   }
@@ -291,7 +291,7 @@ export default function ProductDetailPage() {
               ) : (
                 <Badge className="bg-red-600 text-white">Out of stock</Badge>
               )}
-              {selectedSize && currentStock > 0 && (
+              {productInStock && selectedSize && currentStock > 0 && (
                 <span className="ml-2 text-sm text-gray-400">
                   ({currentStock} available)
                 </span>
