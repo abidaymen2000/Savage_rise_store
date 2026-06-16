@@ -7,10 +7,18 @@ import { Loader2, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
-import type { Pack } from "@/types/api"
+import type { Pack, Product } from "@/types/api"
 
-function getPackImage(pack: Pack) {
-  return pack.image_url || pack.products?.[0]?.image_url || "/placeholder.svg"
+function getColorSwatch(color: string) {
+  const normalized = color.toLowerCase()
+  if (normalized.includes("noir") || normalized.includes("black")) return "#050505"
+  if (normalized.includes("blanc") || normalized.includes("white")) return "#f5f1e8"
+  if (normalized.includes("gris") || normalized.includes("gray") || normalized.includes("grey")) return "#777"
+  if (normalized.includes("beige") || normalized.includes("cream")) return "#d8c7a1"
+  if (normalized.includes("bleu") || normalized.includes("blue")) return "#1f3f74"
+  if (normalized.includes("rouge") || normalized.includes("red")) return "#8f1d1d"
+  if (normalized.includes("vert") || normalized.includes("green")) return "#245c3b"
+  return "#d6b536"
 }
 
 function getDiscountLabel(pack: Pack) {
@@ -19,8 +27,43 @@ function getDiscountLabel(pack: Pack) {
     : `${formatPrice(pack.discount_value)} off`
 }
 
+function getVariantImage(product: Product | undefined, color?: string | null) {
+  if (!product) return null
+  const normalizedColor = color?.toLowerCase().trim()
+  const variant = normalizedColor
+    ? product.variants?.find((item) => item.color.toLowerCase().trim() === normalizedColor)
+    : product.variants?.[0]
+
+  return variant?.images?.[0]?.url ?? null
+}
+
+function getPackPreviewItems(pack: Pack, productLookup: Record<string, Product>) {
+  if (pack.components?.length) {
+    return pack.components.map((component) => ({
+      id: component.id,
+      name: component.product?.name ?? "Pack item",
+      image: getVariantImage(productLookup[component.product_id], component.color) ?? component.product?.image_url,
+      qty: component.qty ?? 1,
+      color: component.color,
+      size: component.size,
+    }))
+  }
+
+  return (
+    pack.products?.map((product) => ({
+      id: product.id,
+      name: product.name,
+      image: product.image_url,
+      qty: 1,
+      color: null,
+      size: null,
+    })) ?? []
+  )
+}
+
 export default function PacksPage() {
   const [packs, setPacks] = useState<Pack[]>([])
+  const [productLookup, setProductLookup] = useState<Record<string, Product>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,9 +75,20 @@ export default function PacksPage() {
         setLoading(true)
         setError(null)
         const data = await api.getPacks()
-        if (isMounted) setPacks(data)
+        const packProductIds = Array.from(
+          new Set(data.flatMap((pack) => pack.components?.map((component) => component.product_id) ?? [])),
+        )
+        const products = await Promise.all(packProductIds.map((productId) => api.getProduct(productId).catch(() => null)))
+        const productMap = products.reduce<Record<string, Product>>((map, product) => {
+          if (product) map[product.id] = product
+          return map
+        }, {})
+
+        if (isMounted) {
+          setPacks(data)
+          setProductLookup(productMap)
+        }
       } catch (err) {
-        console.error("Error loading packs:", err)
         if (isMounted) setError("Unable to load packs right now.")
       } finally {
         if (isMounted) setLoading(false)
@@ -75,36 +129,73 @@ export default function PacksPage() {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {sortedPacks.map((pack) => (
-              <Link
-                key={pack.id}
-                href={`/packs/${pack.id}`}
-                className="group overflow-hidden rounded-lg border border-white/10 bg-gray-900 transition-colors hover:border-gold/50"
-              >
-                <div className="relative aspect-[4/3] bg-black">
-                  <Image
-                    src={getPackImage(pack)}
-                    alt={pack.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
-                    {getDiscountLabel(pack)}
-                  </div>
-                </div>
-                <div className="space-y-3 p-5">
-                  <h2 className="text-xl font-semibold transition-colors group-hover:text-gold">{pack.title}</h2>
-                  {pack.description && <p className="line-clamp-2 text-sm leading-6 text-gray-400">{pack.description}</p>}
-                  <div className="flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
-                      <p className="text-2xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
+            {sortedPacks.map((pack) => {
+              const previewItems = getPackPreviewItems(pack, productLookup)
+              const mediaItems =
+                previewItems.length > 0
+                  ? previewItems
+                  : [{ id: pack.id, name: pack.title, image: pack.image_url, qty: 1, color: null, size: null }]
+
+              return (
+                <Link
+                  key={pack.id}
+                  href={`/packs/${pack.id}`}
+                  className="group overflow-hidden rounded-lg border border-gold/20 bg-black transition-colors hover:border-gold/70"
+                >
+                  <div
+                    className={`relative grid aspect-[4/3] min-h-[220px] overflow-hidden bg-gray-900 ${
+                      mediaItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                    }`}
+                  >
+                    {mediaItems.slice(0, 4).map((item, index) => (
+                      <div key={`${item.id}-${index}`} className="relative min-h-[220px] overflow-hidden">
+                        <Image
+                          src={item.image || "/placeholder.svg"}
+                          alt={item.name}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/10" />
+                        {(item.color || item.qty > 1) && (
+                          <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                            {item.color && (
+                              <span
+                                className="h-3 w-3 rounded-full border border-white/40"
+                                style={{ backgroundColor: getColorSwatch(item.color) }}
+                              />
+                            )}
+                            <span>{item.color || item.name}</span>
+                            {item.qty > 1 && <span className="text-gold">x{item.qty}</span>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+                      {getDiscountLabel(pack)}
                     </div>
-                    <Button className="bg-gold text-black hover:bg-gold/90">Configure</Button>
+                    {mediaItems.length > 4 && (
+                      <div className="absolute bottom-4 right-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                        +{mediaItems.length - 4}
+                      </div>
+                    )}
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="space-y-4 p-5">
+                    <div>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">Pack</p>
+                      <h2 className="text-xl font-semibold transition-colors group-hover:text-gold">{pack.title}</h2>
+                      {pack.description && <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-400">{pack.description}</p>}
+                    </div>
+                    <div className="flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
+                        <p className="text-2xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
+                      </div>
+                      <Button className="bg-gold text-black hover:bg-gold/90">Configure</Button>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>

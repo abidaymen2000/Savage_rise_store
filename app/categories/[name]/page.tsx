@@ -37,12 +37,9 @@ export default function CategoryPage() {
     try {
       setLoading(true)
       setError(null)
-      console.log("Fetching products for category:", categoryName)
       const data = await api.getProductsByCategory(categoryName, 0, 50)
-      console.log("Category products loaded:", data.length)
       setProducts(data)
     } catch (err) {
-      console.error("Error fetching category products:", err)
       setError(err instanceof Error ? err.message : "Error loading products")
     } finally {
       setLoading(false)
@@ -60,7 +57,6 @@ export default function CategoryPage() {
       const wishlistData = await api.getWishlist()
       setUserWishlist(wishlistData)
     } catch (err) {
-      console.error("Error fetching wishlist:", err)
       setUserWishlist([])
     } finally {
       setIsWishlistLoading(false)
@@ -123,7 +119,6 @@ export default function CategoryPage() {
       }
       await fetchUserWishlist(); // Refresh wishlist
     } catch (err) {
-      console.error("Error toggling wishlist:", err);
       // Optionally show a toast or error message
     }
   };

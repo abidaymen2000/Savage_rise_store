@@ -34,7 +34,6 @@ export default function Header() {
       const data = await api.getCategories()
       setCategories(data)
     } catch (error) {
-      console.error("Error fetching categories:", error)
     }
   }, [])
 
@@ -47,7 +46,6 @@ export default function Header() {
       const wishlistData = await api.getWishlist()
       setWishlistCount(wishlistData.length)
     } catch (error) {
-      console.error("Error fetching wishlist count:", error)
       setWishlistCount(0)
     }
   }, [isAuthenticated])

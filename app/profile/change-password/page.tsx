@@ -56,7 +56,6 @@ export default function ChangePasswordPage() {
       setConfirmNewPassword('')
       router.push('/profile')
     } catch (err: any) {
-      console.error('Failed to change password:', err)
       setError(err.message || 'Password change failed.')
       toast({
         title: 'Error',

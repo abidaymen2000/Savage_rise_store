@@ -29,7 +29,6 @@ export default function VerifySuccess() {
           window.history.replaceState({}, "", clean);
         }
       } catch (e) {
-        console.error("Verification error:", e);
       } finally {
         router.replace("/");
       }

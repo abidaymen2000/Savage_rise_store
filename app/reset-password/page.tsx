@@ -52,7 +52,6 @@ function ResetPasswordForm() {
       setConfirmPassword("")
       setTimeout(() => router.push("/"), 2500)
     } catch (err) {
-      console.error("Password reset failed:", err)
       setError("Unable to reset your password. The link may be expired or already used.")
     } finally {
       setIsSubmitting(false)

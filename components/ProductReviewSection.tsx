@@ -48,7 +48,6 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       setReviews(fetchedReviews)
       setReviewStats(fetchedStats)
     } catch (err) {
-      console.error("Error fetching reviews:", err)
       setReviewError("Unable to load reviews.")
     } finally {
       setLoadingReviews(false)
@@ -85,7 +84,6 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       setUserReviewTitle("")
       setHasSubmittedReview(true) // Trigger re-fetch of reviews
     } catch (err) {
-      console.error("Error submitting review:", err)
       setReviewError("Unable to submit your review. Please try again.")
     } finally {
       setIsSubmittingReview(false)

@@ -91,7 +91,6 @@ export default function PackDetailPage() {
         setProducts(productMap)
         setSelections(initialSelections)
       } catch (err) {
-        console.error("Error loading pack:", err)
         if (isMounted) setError("Unable to load this pack.")
       } finally {
         if (isMounted) setLoading(false)

@@ -90,7 +90,6 @@ export default function OrderDetailPage() {
       await api.cancelOrder(id)
       router.push("/profile?tab=orders")
     } catch (error) {
-      console.error("Error cancelling order:", error)
     }
   }
 

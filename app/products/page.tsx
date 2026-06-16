@@ -1,19 +1,134 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Heart, ShoppingBag, Search, Filter, Loader2 } from 'lucide-react'
+import { ShoppingBag, Search, Filter } from "lucide-react"
 import { api } from "@/lib/api"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
-import type { Product, WishlistItem } from "@/types/api"
+import type { Product } from "@/types/api"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
+
+function getColorSwatch(color: string) {
+  const normalized = color.toLowerCase()
+  if (normalized.includes("noir") || normalized.includes("black")) return "#050505"
+  if (normalized.includes("blanc") || normalized.includes("white")) return "#f5f1e8"
+  if (normalized.includes("gris") || normalized.includes("gray") || normalized.includes("grey")) return "#777"
+  if (normalized.includes("beige") || normalized.includes("cream")) return "#d8c7a1"
+  if (normalized.includes("bleu") || normalized.includes("blue")) return "#1f3f74"
+  if (normalized.includes("rouge") || normalized.includes("red")) return "#8f1d1d"
+  if (normalized.includes("vert") || normalized.includes("green")) return "#245c3b"
+  return "#d6b536"
+}
+
+function ProductVariantMedia({
+  product,
+  alt,
+  isInStock,
+}: {
+  product: Product
+  alt: string
+  isInStock: boolean
+}) {
+  const slides = useMemo(() => {
+    const variantSlides =
+      product.variants
+        ?.map((variant) => {
+          const image = variant.images?.[0]
+          if (!image?.url) return null
+          return {
+            color: variant.color,
+            url: image.url,
+            alt: image.alt_text || `${product.name} - ${variant.color}`,
+          }
+        })
+        .filter((item): item is { color: string; url: string; alt: string } => Boolean(item)) ?? []
+
+    const uniqueSlides = variantSlides.filter(
+      (slide, index, list) => list.findIndex((item) => item.url === slide.url) === index,
+    )
+
+    return uniqueSlides.length > 0
+      ? uniqueSlides
+      : [{ color: "Default", url: getFirstProductImage(product), alt }]
+  }, [alt, product])
+
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [product.id, slides.length])
+
+  useEffect(() => {
+    if (slides.length <= 1) return
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % slides.length)
+    }, 2200)
+
+    return () => window.clearInterval(timer)
+  }, [slides.length])
+
+  const activeSlide = slides[activeIndex] ?? slides[0]
+
+  return (
+    <div className="relative aspect-[3/4] overflow-hidden bg-gray-900">
+      {slides.map((slide, index) => (
+        <Image
+          key={`${slide.url}-${slide.color}`}
+          src={slide.url || "/placeholder.svg"}
+          alt={slide.alt}
+          fill
+          sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          className={`object-cover transition-all duration-700 group-hover:scale-105 ${
+            index === activeIndex ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+
+      <div className="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+      {slides.length > 1 && (
+        <>
+          <div className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+            {activeSlide.color}
+          </div>
+          <div className="absolute bottom-3 right-3 flex gap-1.5 rounded-full bg-black/55 p-1.5 backdrop-blur">
+            {slides.map((slide, index) => (
+              <button
+                key={`${slide.color}-${index}`}
+                type="button"
+                aria-label={`Show ${slide.color}`}
+                onClick={(event) => {
+                  event.preventDefault()
+                  setActiveIndex(index)
+                }}
+                className={`h-4 w-4 rounded-full border transition-transform ${
+                  index === activeIndex ? "scale-110 border-gold" : "border-white/40"
+                }`}
+                style={{ backgroundColor: getColorSwatch(slide.color) }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {!isInStock && (
+        <div className="absolute left-4 top-4">
+          <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
+            Out of stock
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function ProductsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
@@ -28,23 +143,16 @@ export default function ProductsPage() {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const { addToCart } = useCart()
 
-  // Wishlist state
-  const [userWishlist, setUserWishlist] = useState<WishlistItem[]>([])
-  const [isWishlistLoading, setIsWishlistLoading] = useState(true)
-
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      console.log("Fetching all products...")
       const data =
         genderFilter === "all"
           ? await api.getProducts(0, 50)
           : await api.searchProducts({ gender: genderFilter }, 0, 50)
-      console.log("Products loaded:", data.length)
       setProducts(data)
     } catch (err) {
-      console.error("Error fetching products:", err)
       const errorMessage = err instanceof Error ? err.message : "Error loading products"
       setError(errorMessage)
       // Don't show error if we have fallback data
@@ -56,24 +164,6 @@ export default function ProductsPage() {
     }
   }, [genderFilter])
 
-  const fetchUserWishlist = useCallback(async () => {
-    if (!isAuthenticated) {
-      setUserWishlist([])
-      setIsWishlistLoading(false)
-      return
-    }
-    try {
-      setIsWishlistLoading(true)
-      const wishlistData = await api.getWishlist()
-      setUserWishlist(wishlistData)
-    } catch (err) {
-      console.error("Error fetching wishlist:", err)
-      setUserWishlist([])
-    } finally {
-      setIsWishlistLoading(false)
-    }
-  }, [isAuthenticated])
-
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
@@ -82,10 +172,6 @@ export default function ProductsPage() {
     const params = new URLSearchParams(window.location.search)
     setGenderFilter(params.get("gender") || "all")
   }, [])
-
-  useEffect(() => {
-    fetchUserWishlist()
-  }, [isAuthenticated, fetchUserWishlist])
 
   const filteredAndSortedProducts = products
     .filter(
@@ -206,35 +292,25 @@ export default function ProductsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredAndSortedProducts.map((product) => {
               const productInStock = isProductInStock(product)
-              const imageUrl = getFirstProductImage(product)
               const imageAlt = getProductImageAlt(product)
+              const colors = product.variants?.map((variant) => variant.color) ?? []
+              const sizes = Array.from(
+                new Set(
+                  product.variants?.flatMap((variant) =>
+                    variant.sizes.filter((size) => size.stock > 0).map((size) => size.size),
+                  ) ?? [],
+                ),
+              )
 
               return (
                 <div
                   key={product.id}
-                  className="group relative overflow-hidden bg-gray-900 rounded-lg"
+                  className="group relative overflow-hidden rounded-lg border border-white/10 bg-black transition-colors hover:border-gold/40"
                   onMouseEnter={() => setHoveredProduct(product.id)}
                   onMouseLeave={() => setHoveredProduct(null)}
                 >
                   <Link href={`/products/${product.id}`}>
-                    <div className="aspect-[3/4] relative overflow-hidden">
-                      <Image
-                        src={imageUrl || "/placeholder.svg"}
-                        alt={imageAlt}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                      {/* Stock Status */}
-                      {!productInStock && (
-                        <div className="absolute top-4 left-4">
-                          <span className="bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded-full">
-                            Out of stock
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    <ProductVariantMedia product={product} alt={imageAlt} isInStock={productInStock} />
                   </Link>
 
                   {/* Quick Actions */}
@@ -255,7 +331,7 @@ export default function ProductsPage() {
                     </Button>
                   </div>
 
-                  <div className="p-6">
+                  <div className="space-y-4 p-5">
                     <Link href={`/products/${product.id}`}>
                       <h3 className="text-xl font-semibold mb-2 group-hover:text-gold transition-colors line-clamp-2">
                         {product.name}
@@ -265,6 +341,42 @@ export default function ProductsPage() {
                       )}
                       <p className="text-gold text-lg font-bold">{formatPrice(product.price)}</p>
                     </Link>
+
+                    <div className="space-y-3 border-t border-white/10 pt-4">
+                      {colors.length > 0 && (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Colors</span>
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {colors.slice(0, 5).map((color) => (
+                              <span
+                                key={color}
+                                title={color}
+                                className="h-5 w-5 rounded-full border border-white/30"
+                                style={{ backgroundColor: getColorSwatch(color) }}
+                              />
+                            ))}
+                            {colors.length > 5 && <span className="text-xs text-gray-400">+{colors.length - 5}</span>}
+                          </div>
+                        </div>
+                      )}
+
+                      {sizes.length > 0 && (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Sizes</span>
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {sizes.slice(0, 6).map((size) => (
+                              <span key={size} className="min-w-7 rounded border border-white/15 px-2 py-1 text-center text-xs text-gray-200">
+                                {size}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <Button asChild className="w-full bg-white text-black hover:bg-gold">
+                        <Link href={`/products/${product.id}`}>Choose size</Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )

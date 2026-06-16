@@ -40,7 +40,6 @@ export default function ContactPage() {
         message: "Your message has been sent. We will get back to you shortly."
       })
     } catch (err) {
-      console.error(err)
       setNotification({
         type: "error",
         message: "Message delivery failed. Please try again later."

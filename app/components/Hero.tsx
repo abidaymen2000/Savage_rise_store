@@ -55,7 +55,6 @@ export default function Hero() {
           fallbackSlides[1],
         ])
       } catch (error) {
-        console.error("Error fetching header video:", error)
       }
     }
 
@@ -89,8 +88,6 @@ export default function Hero() {
               loop
               playsInline
               className="w-full h-full object-cover"
-              onLoadStart={() => console.log("Video loading started")}
-              onError={(e) => console.error("Video error:", e)}
             />
           ) : (
             <img src={slide.src || "/placeholder.svg"} alt={slide.title} className="w-full h-full object-cover" />

@@ -158,7 +158,6 @@ export default function CheckoutPage() {
           setLoyaltyPointsToUse(balance.points_balance)
         }
       } catch (err) {
-        console.error("Unable to load loyalty balance:", err)
         if (isMounted) setLoyaltyError("Unable to load your loyalty points right now.")
       } finally {
         if (isMounted) setLoyaltyLoading(false)
@@ -235,7 +234,6 @@ export default function CheckoutPage() {
         }, 2000)
       }
     } catch (err) {
-      console.error("Order creation failed:", err)
       setError(err instanceof Error ? err.message : "Error creating the order")
     } finally {
       setIsProcessing(false)
@@ -271,7 +269,6 @@ export default function CheckoutPage() {
         })
         setLoyaltyQuote(quote)
       } catch (err) {
-        console.error("Loyalty quote failed:", err)
         setLoyaltyQuote(null)
         setLoyaltyError("Unable to calculate your loyalty discount right now.")
       } finally {
@@ -310,7 +307,6 @@ export default function CheckoutPage() {
         })
         setShippingQuote(quote)
       } catch (err) {
-        console.error("Shipping quote failed:", err)
         setShippingQuote(null)
         setShippingError("Unable to calculate shipping for this address.")
       } finally {

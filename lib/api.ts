@@ -66,7 +66,6 @@ async function fetchApi<T>(
   const url = `${API_BASE_URL}${endpoint}`
 
   try {
-    console.log(`🔄 Fetching: ${url}`)
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15000)
@@ -94,7 +93,6 @@ async function fetchApi<T>(
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`❌ API Error ${response.status}:`, errorText)
       throw new ApiError(
         response.status,
         `HTTP error! status: ${response.status} - ${errorText}`
@@ -106,10 +104,8 @@ async function fetchApi<T>(
     }
 
     const data = await response.json()
-    console.log(`✅ API Success: ${url}`)
     return data
   } catch (error: unknown) {
-    console.error(`❌ API Error for ${url}:`, error)
 
     if (error instanceof ApiError) {
       throw error

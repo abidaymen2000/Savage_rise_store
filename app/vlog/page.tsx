@@ -90,7 +90,6 @@ function EpisodeCard({
       const data = await api.trackVlogEpisodeView(episode.id)
       onEpisodeUpdate(episode.id, { view_count: data.view_count })
     } catch (error) {
-      console.error("Error tracking vlog view:", error)
     }
   }
 
@@ -115,7 +114,6 @@ function EpisodeCard({
         like_count: data.like_count,
       })
     } catch (error) {
-      console.error("Error toggling vlog like:", error)
       onEpisodeUpdate(episode.id, {
         liked_by_current_user: wasLiked,
         like_count: episode.like_count,
@@ -136,7 +134,6 @@ function EpisodeCard({
       const data = await api.getVlogEpisodeComments(episode.id)
       setComments(data)
     } catch (error) {
-      console.error("Error loading vlog comments:", error)
       toast({
         title: "Comments unavailable",
         description: "Unable to load comments for this episode.",
@@ -171,7 +168,6 @@ function EpisodeCard({
       onEpisodeUpdate(episode.id, { comment_count: (episode.comment_count ?? 0) + 1 })
       toast({ title: "Comment posted" })
     } catch (error) {
-      console.error("Error posting vlog comment:", error)
       toast({
         title: "Comment not posted",
         description: "Please try again in a moment.",
@@ -188,7 +184,6 @@ function EpisodeCard({
       setComments((current) => current.filter((comment) => comment.id !== commentId))
       onEpisodeUpdate(episode.id, { comment_count: Math.max(0, (episode.comment_count ?? 0) - 1) })
     } catch (error) {
-      console.error("Error deleting vlog comment:", error)
       toast({
         title: "Comment not deleted",
         description: "Please try again in a moment.",
@@ -484,7 +479,6 @@ export default function VlogPage() {
         const data = await api.getVlogPage()
         if (isMounted) setVlog({ settings: data.settings, chapters: data.chapters ?? [] })
       } catch (err) {
-        console.error("Error fetching vlog:", err)
         if (isMounted) setError("Unable to load the latest vlog content.")
       } finally {
         if (isMounted) setLoading(false)

@@ -55,9 +55,7 @@ export default function ProductDetailPage() {
     try {
       setLoading(true)
       setError(null)
-      console.log("Fetching product:", productId)
       const data = await api.getProduct(productId)
-      console.log("Product loaded:", data.name)
       setProduct(data)
 
       // Set default color and variant if available
@@ -84,7 +82,6 @@ export default function ProductDetailPage() {
       setProductReviews(reviews)
       setReviewStats(stats)
     } catch (err) {
-      console.error("Error fetching product or reviews:", err)
       setError(err instanceof Error ? err.message : "Error loading product or reviews")
     } finally {
       setLoading(false)
@@ -103,7 +100,6 @@ export default function ProductDetailPage() {
       const wishlistData = await api.getWishlist()
       setUserWishlist(wishlistData)
     } catch (err) {
-      console.error("Error fetching wishlist:", err)
       setUserWishlist([])
     } finally {
       setIsWishlistLoading(false)
@@ -174,7 +170,6 @@ export default function ProductDetailPage() {
       setShowReviewForm(false);
       await fetchProductAndReviews(); // Refresh reviews
     } catch (err) {
-      console.error("Error submitting review:", err);
       setReviewError(err instanceof Error ? err.message : "Error submitting your review.");
     } finally {
       setIsSubmittingReview(false);

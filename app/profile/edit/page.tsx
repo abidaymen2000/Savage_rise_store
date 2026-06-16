@@ -55,7 +55,6 @@ export default function EditProfilePage() {
       })
       router.push('/profile')
     } catch (err: any) {
-      console.error('Failed to update profile:', err)
       setError(err.message || 'Profile update failed.')
       toast({
         title: 'Error',

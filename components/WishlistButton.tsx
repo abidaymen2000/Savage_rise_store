@@ -27,7 +27,6 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
           const wishlist = await api.getWishlist()
           setIsInWishlist(wishlist.some(item => item.product_id === productId))
         } catch (error) {
-          console.error("Failed to fetch wishlist status:", error)
         }
       }
       checkWishlist()
@@ -62,7 +61,6 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
         })
       }
     } catch (error) {
-      console.error("Failed to update wishlist:", error)
       toast({
         title: "Error",
         description: "Unable to update the wishlist. Please try again.",

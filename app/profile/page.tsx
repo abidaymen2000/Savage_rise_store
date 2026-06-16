@@ -114,7 +114,6 @@ function ProfileContent() {
       const data = await api.getMyReviews()
       setReviews(data)
     } catch (error) {
-      console.error("Error fetching reviews:", error)
     } finally {
       setLoadingReviews(false)
     }
@@ -126,7 +125,6 @@ function ProfileContent() {
       setOrders(data)
       await enrichProductNames(data) // <- ajoute les noms produits
     } catch (error) {
-      console.error("Error fetching orders:", error)
     } finally {
       setLoadingOrders(false)
     }
@@ -169,7 +167,6 @@ function ProfileContent() {
       )
       setWishlist(enriched)
     } catch (error) {
-      console.error("Error fetching wishlist:", error)
       setWishlist([])
     } finally {
       setLoadingWishlist(false)
@@ -182,7 +179,6 @@ function ProfileContent() {
       const data = await api.getMyLoyaltyBalance(20)
       setLoyalty(data)
     } catch (error) {
-      console.error("Error fetching loyalty balance:", error)
       setLoyalty(null)
     } finally {
       setLoadingLoyalty(false)
@@ -233,7 +229,6 @@ function ProfileContent() {
       await api.cancelOrder(orderId)
       fetchOrders()
     } catch (error) {
-      console.error("Error cancelling order:", error)
     }
   }
 

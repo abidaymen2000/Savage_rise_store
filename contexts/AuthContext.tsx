@@ -47,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       })
     } catch (error) {
-      console.error("Failed to refresh user:", error)
       localStorage.removeItem("savage_rise_token")
       setState({
         user: null,
@@ -63,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("savage_rise_token", tokens.access_token)
       await refreshUser()
     } catch (error) {
-      console.error("Login failed:", error)
       throw error
     }
   }
@@ -73,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await api.signup(email, password, fullName)
       // L'utilisateur doit vérifier son email avant de pouvoir se connecter
     } catch (error) {
-      console.error("Signup failed:", error)
       throw error
     }
   }
@@ -92,7 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await api.resendVerification(email)
     } catch (error) {
-      console.error("Resend verification failed:", error)
       throw error
     }
   }
@@ -101,7 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await api.forgotPassword(email)
     } catch (error) {
-      console.error("Forgot password failed:", error)
       throw error
     }
   }

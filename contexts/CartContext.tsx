@@ -212,7 +212,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Error loading cart from localStorage:", error)
         // Clear invalid cart data
         localStorage.removeItem("savage-rise-cart")
       }
@@ -224,14 +223,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("savage-rise-cart", JSON.stringify(state))
     } catch (error) {
-      console.error("Error saving cart to localStorage:", error)
     }
   }, [state])
 
   const addToCart = (product: Product, variant: Variant, size: string, quantity = 1) => {
     // Validate inputs
     if (!product || !variant || !size) {
-      console.error("Invalid cart item data:", { product, variant, size })
       return
     }
 
@@ -240,7 +237,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addPackToCart = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
     if (!pack || selections.length < 2) {
-      console.error("Invalid pack cart item data:", { pack, selections })
       return
     }
 
