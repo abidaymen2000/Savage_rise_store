@@ -30,6 +30,9 @@ export const metadata: Metadata = {
     shortcut: [{ url: "/icon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "512x512" }],
   },
+  other: {
+    "facebook-domain-verification": "8qzo89ra17cfbe1q4jcq6dfi908oye",
+  },
   generator: 'v0.dev'
 }
 
