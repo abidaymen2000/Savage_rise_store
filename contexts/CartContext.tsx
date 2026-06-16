@@ -2,10 +2,11 @@
 
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect } from "react"
-import type { CartItem, Product, Variant } from "@/types/api"
+import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
 
 interface CartState {
   items: CartItem[]
+  packItems: CartPackItem[]
   total: number
   itemCount: number
 }
@@ -15,8 +16,14 @@ type CartAction =
       type: "ADD_ITEM"
       payload: { product: Product; variant: Variant; size: string; quantity?: number }
     }
+  | {
+      type: "ADD_PACK"
+      payload: { pack: Pack; selections: PackOrderComponent[]; quantity?: number }
+    }
   | { type: "REMOVE_ITEM"; payload: { productId: string; color: string; size: string } }
+  | { type: "REMOVE_PACK"; payload: { packId: string; selectionKey: string } }
   | { type: "UPDATE_QUANTITY"; payload: { productId: string; color: string; size: string; quantity: number } }
+  | { type: "UPDATE_PACK_QUANTITY"; payload: { packId: string; selectionKey: string; quantity: number } }
   | { type: "CLEAR_CART" }
   | { type: "LOAD_CART"; payload: CartState }
 
@@ -24,11 +31,40 @@ const CartContext = createContext<{
   state: CartState
   dispatch: React.Dispatch<CartAction>
   addToCart: (product: Product, variant: Variant, size: string, quantity?: number) => void
+  addPackToCart: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
   removeFromCart: (productId: string, color: string, size: string) => void
+  removePackFromCart: (packId: string, selectionKey: string) => void
   updateQuantity: (productId: string, color: string, size: string, quantity: number) => void
+  updatePackQuantity: (packId: string, selectionKey: string, quantity: number) => void
   clearCart: () => void
   getCartKey: (productId: string, color: string, size: string) => string
+  getPackCartKey: (packId: string, selections: PackOrderComponent[]) => string
 } | null>(null)
+
+function getPackSelectionKey(selections: PackOrderComponent[]) {
+  return selections
+    .map((item) => `${item.component_id ?? item.product_id}:${item.color}:${item.size}:${item.qty ?? 1}`)
+    .sort()
+    .join("|")
+}
+
+function getPackLineTotal(item: CartPackItem) {
+  return (item.pack.pack_price ?? item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) * item.quantity
+}
+
+function calculateCart(items: CartItem[], packItems: CartPackItem[]) {
+  const productTotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const packTotal = packItems.reduce((sum, item) => sum + getPackLineTotal(item), 0)
+  const productCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  const packCount = packItems.reduce((sum, item) => sum + item.quantity, 0)
+
+  return {
+    items,
+    packItems,
+    total: productTotal + packTotal,
+    itemCount: productCount + packCount,
+  }
+}
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -57,10 +93,25 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         ]
       }
 
-      const total = newItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0)
+      return calculateCart(newItems, state.packItems)
+    }
 
-      return { items: newItems, total, itemCount }
+    case "ADD_PACK": {
+      const { pack, selections, quantity = 1 } = action.payload
+      const selectionKey = getPackSelectionKey(selections)
+
+      const existingItemIndex = state.packItems.findIndex(
+        (item) => item.pack.id === pack.id && getPackSelectionKey(item.selections) === selectionKey,
+      )
+
+      const newPackItems =
+        existingItemIndex > -1
+          ? state.packItems.map((item, index) =>
+              index === existingItemIndex ? { ...item, quantity: item.quantity + quantity } : item,
+            )
+          : [...state.packItems, { pack, selections, quantity }]
+
+      return calculateCart(state.items, newPackItems)
     }
 
     case "REMOVE_ITEM": {
@@ -71,10 +122,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         (item) => `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}` !== cartKey,
       )
 
-      const total = newItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0)
+      return calculateCart(newItems, state.packItems)
+    }
 
-      return { items: newItems, total, itemCount }
+    case "REMOVE_PACK": {
+      const { packId, selectionKey } = action.payload
+      const newPackItems = state.packItems.filter(
+        (item) => item.pack.id !== packId || getPackSelectionKey(item.selections) !== selectionKey,
+      )
+
+      return calculateCart(state.items, newPackItems)
     }
 
     case "UPDATE_QUANTITY": {
@@ -91,14 +148,24 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           : item,
       )
 
-      const total = newItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0)
+      return calculateCart(newItems, state.packItems)
+    }
 
-      return { items: newItems, total, itemCount }
+    case "UPDATE_PACK_QUANTITY": {
+      const { packId, selectionKey, quantity } = action.payload
+      if (quantity <= 0) {
+        return cartReducer(state, { type: "REMOVE_PACK", payload: { packId, selectionKey } })
+      }
+
+      const newPackItems = state.packItems.map((item) =>
+        item.pack.id === packId && getPackSelectionKey(item.selections) === selectionKey ? { ...item, quantity } : item,
+      )
+
+      return calculateCart(state.items, newPackItems)
     }
 
     case "CLEAR_CART":
-      return { items: [], total: 0, itemCount: 0 }
+      return { items: [], packItems: [], total: 0, itemCount: 0 }
 
     case "LOAD_CART":
       return action.payload
@@ -111,6 +178,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
+    packItems: [],
     total: 0,
     itemCount: 0,
   })
@@ -129,20 +197,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               item.product && item.selectedVariant && item.selectedSize && typeof item.quantity === "number",
           )
 
-          if (validItems.length > 0) {
-            const total = validItems.reduce(
-              (sum: number, item: CartItem) => sum + item.product.price * item.quantity,
-              0,
-            )
-            const itemCount = validItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0)
+          const validPackItems = Array.isArray(cartData.packItems)
+            ? cartData.packItems.filter(
+                (item: any) =>
+                  item.pack && Array.isArray(item.selections) && typeof item.quantity === "number",
+              )
+            : []
 
+          if (validItems.length > 0 || validPackItems.length > 0) {
             dispatch({
               type: "LOAD_CART",
-              payload: {
-                items: validItems,
-                total,
-                itemCount,
-              },
+              payload: calculateCart(validItems, validPackItems),
             })
           }
         }
@@ -173,12 +238,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
   }
 
+  const addPackToCart = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
+    if (!pack || selections.length < 2) {
+      console.error("Invalid pack cart item data:", { pack, selections })
+      return
+    }
+
+    dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
+  }
+
   const removeFromCart = (productId: string, color: string, size: string) => {
     dispatch({ type: "REMOVE_ITEM", payload: { productId, color, size } })
   }
 
+  const removePackFromCart = (packId: string, selectionKey: string) => {
+    dispatch({ type: "REMOVE_PACK", payload: { packId, selectionKey } })
+  }
+
   const updateQuantity = (productId: string, color: string, size: string, quantity: number) => {
     dispatch({ type: "UPDATE_QUANTITY", payload: { productId, color, size, quantity } })
+  }
+
+  const updatePackQuantity = (packId: string, selectionKey: string, quantity: number) => {
+    dispatch({ type: "UPDATE_PACK_QUANTITY", payload: { packId, selectionKey, quantity } })
   }
 
   const clearCart = () => {
@@ -189,16 +271,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return `${productId}-${color}-${size}`
   }
 
+  const getPackCartKey = (packId: string, selections: PackOrderComponent[]) => {
+    return `${packId}-${getPackSelectionKey(selections)}`
+  }
+
   return (
     <CartContext.Provider
       value={{
         state,
         dispatch,
         addToCart,
+        addPackToCart,
         removeFromCart,
+        removePackFromCart,
         updateQuantity,
+        updatePackQuantity,
         clearCart,
         getCartKey,
+        getPackCartKey,
       }}
     >
       {children}

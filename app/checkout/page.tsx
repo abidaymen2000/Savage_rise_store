@@ -17,7 +17,7 @@ import AuthModal from "@/app/components/AuthModal"
 import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
-import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote } from "@/types/api"
+import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote, PackOrderSelection } from "@/types/api"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
@@ -61,10 +61,10 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (cartState.items.length === 0 && !authLoading) {
+    if (cartState.itemCount === 0 && !authLoading) {
       router.push("/products")
     }
-  }, [cartState.items.length, authLoading, router])
+  }, [cartState.itemCount, authLoading, router])
 
   // Pre-fill shipping info if user is logged in
   useEffect(() => {
@@ -88,6 +88,16 @@ export default function CheckoutPage() {
         unit_price: item.product.price,
       })),
     [cartState.items]
+  )
+
+  const packItems: PackOrderSelection[] = useMemo(
+    () =>
+      cartState.packItems.map((item) => ({
+        pack_id: item.pack.id,
+        qty: item.quantity,
+        items: item.selections,
+      })),
+    [cartState.packItems],
   )
 
   // (Re)valider un code promo sauvegardé
@@ -208,7 +218,8 @@ export default function CheckoutPage() {
         shippingInfo,
         isAuthenticated ? promoCode : null,
         isAuthenticated ? user?.id ?? null : null,
-        isAuthenticated ? loyaltyPointsUsed : 0
+        isAuthenticated ? loyaltyPointsUsed : 0,
+        packItems,
       )
 
       setCreatedOrder(order)
@@ -232,10 +243,7 @@ export default function CheckoutPage() {
   }
 
   // Totaux
-  const subtotal = useMemo(
-    () => orderItems.reduce((s, it) => s + it.qty * it.unit_price, 0),
-    [orderItems]
-  )
+  const subtotal = cartState.total
 
   const promoDiscount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
   const afterPromoDiscount = Math.max(0, subtotal - promoDiscount)
@@ -247,7 +255,7 @@ export default function CheckoutPage() {
   const total = afterDiscount + shipping
 
   useEffect(() => {
-    if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || orderItems.length === 0) {
+    if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {
       setLoyaltyQuote(null)
       return
     }
@@ -278,14 +286,14 @@ export default function CheckoutPage() {
     afterPromoDiscount,
     useLoyaltyPoints,
     loyaltyPointsToUse,
-    orderItems.length,
+    cartState.itemCount,
   ])
 
   useEffect(() => {
     const country = shippingInfo.country.trim()
     const city = shippingInfo.city.trim()
 
-    if (!country || !city || orderItems.length === 0) {
+    if (!country || !city || cartState.itemCount === 0) {
       setShippingQuote(null)
       setShippingError(null)
       return
@@ -311,7 +319,7 @@ export default function CheckoutPage() {
     }, 400)
 
     return () => clearTimeout(timeout)
-  }, [shippingInfo.country, shippingInfo.city, afterDiscount, orderItems.length])
+  }, [shippingInfo.country, shippingInfo.city, afterDiscount, cartState.itemCount])
 
   if (authLoading) {
     return (
@@ -324,7 +332,7 @@ export default function CheckoutPage() {
     )
   }
 
-  if (cartState.items.length === 0) return null // redirect déjà programmé
+  if (cartState.itemCount === 0) return null // redirect déjà programmé
 
   if (success) {
     return (
@@ -427,6 +435,36 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 ))}
+
+                {cartState.packItems.map((item) => {
+                  const imageUrl = item.pack.image_url || item.pack.products?.[0]?.image_url || "/placeholder.svg"
+                  const packPrice = (item.pack.pack_price ?? item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) * item.quantity
+
+                  return (
+                    <div key={`${item.pack.id}-${item.selections.map((selection) => `${selection.product_id}-${selection.color}-${selection.size}`).join("|")}`} className="flex gap-4 rounded-lg border border-gold/20 bg-gold/5 p-3">
+                      <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">
+                        <Image
+                          src={imageUrl}
+                          alt={item.pack.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pack</p>
+                        <h3 className="font-semibold text-white">{item.pack.title}</h3>
+                        <div className="mt-1 space-y-0.5">
+                          {item.selections.map((selection) => (
+                            <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
+                              {selection.color} • {selection.size} • Qty: {(selection.qty ?? 1) * item.quantity}
+                            </p>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-gold font-semibold">{packPrice.toFixed(2)} TND</p>
+                      </div>
+                    </div>
+                  )
+                })}
               </CardContent>
             </Card>
 

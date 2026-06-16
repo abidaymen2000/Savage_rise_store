@@ -98,8 +98,10 @@ export interface Order {
   created_at: string
   updated_at: string
   promo_code?: string | null;     // <-- optionnel si le back le renvoie
+  pack_items?: any[];
   subtotal?: number | null;
   discount_value?: number | null;
+  pack_discount_value?: number;
   loyalty_points_to_use?: number;
   loyalty_points_used?: number;
   loyalty_discount_value?: number;
@@ -179,6 +181,61 @@ export interface ProductSummary {
   price: number
   image_url?: string | null
   in_stock?: boolean
+}
+
+export interface PackProductSummary {
+  id: string
+  name: string
+  full_name?: string | null
+  price: number
+  image_url?: string | null
+  in_stock?: boolean
+}
+
+export interface PackComponent {
+  id: string
+  product_id: string
+  color?: string | null
+  size?: string | null
+  qty?: number
+  product: PackProductSummary
+  locked_variant?: boolean
+}
+
+export interface Pack {
+  id: string
+  title: string
+  description?: string | null
+  product_ids?: string[] | null
+  components?: PackComponent[]
+  products?: PackProductSummary[]
+  discount_type: "percent" | "fixed_amount"
+  discount_value: number
+  status: "draft" | "active" | "archived"
+  image_url?: string | null
+  order?: number
+  starts_at?: string | null
+  ends_at?: string | null
+  original_price?: number
+  pack_price?: number
+  savings_value?: number
+  created_at: string
+  updated_at: string
+}
+
+export interface PackOrderComponent {
+  component_id?: string | null
+  product_id: string
+  color: string
+  size: string
+  qty?: number
+  unit_price: number
+}
+
+export interface PackOrderSelection {
+  pack_id: string
+  qty?: number
+  items: PackOrderComponent[]
 }
 
 export interface ShortFilm {
@@ -266,6 +323,12 @@ export interface CartItem {
   quantity: number // This remains 'quantity' for the frontend cart state
 }
 
+export interface CartPackItem {
+  pack: Pack
+  selections: PackOrderComponent[]
+  quantity: number
+}
+
 // Search filters
 export interface SearchFilters {
   text?: string
@@ -329,6 +392,7 @@ export interface OrderCreate {
   user_id?: string | null
   promo_code?: string | null;
   loyalty_points_to_use?: number;
+  pack_items?: PackOrderSelection[];
 }
 
 // apres WishlistCreate

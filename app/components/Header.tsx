@@ -113,8 +113,11 @@ export default function Header() {
               <Link href="/about" className="text-white hover:text-gold transition-colors">
                 About
               </Link>
+              <Link href="/packs" className="text-white hover:text-gold transition-colors">
+                Packs
+              </Link>
               <Link href="/vlog" className="text-white hover:text-gold transition-colors">
-                Vlog
+                Chapters
               </Link>
               <Link href="/contact" className="text-white hover:text-gold transition-colors">
                 Contact
@@ -241,6 +244,14 @@ export default function Header() {
                   onClick={closeMobileMenu}
                 >
                   <span>About</span>
+                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  href="/packs"
+                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
+                  onClick={closeMobileMenu}
+                >
+                  <span>Packs</span>
                   <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link

@@ -4,6 +4,8 @@ import type {
   AuthTokens,
   Order,
   OrderItem,
+  Pack,
+  PackOrderSelection,
   ShippingInfo,
   Review,
   ReviewStats,
@@ -253,7 +255,8 @@ export const api = {
     shipping: ShippingInfo,
     promoCode?: string | null,
     userId?: string | null,
-    loyaltyPointsToUse = 0
+    loyaltyPointsToUse = 0,
+    packItems: PackOrderSelection[] = [],
   ): Promise<Order> {
     const orderData: OrderCreate = {
       items,
@@ -262,6 +265,7 @@ export const api = {
       ...(userId ? { user_id: userId } : {}),
       ...(promoCode ? { promo_code: promoCode } : {}),
       ...(loyaltyPointsToUse > 0 ? { loyalty_points_to_use: loyaltyPointsToUse } : {}),
+      ...(packItems.length > 0 ? { pack_items: packItems } : {}),
     }
     return fetchApi<Order>("/orders/", {
       method: "POST",
@@ -380,6 +384,14 @@ export const api = {
 
   async getHeaderVideo(): Promise<HeaderVideo> {
     return fetchApi<HeaderVideo>("/storefront/header-video")
+  },
+
+  async getPacks(skip = 0, limit = 20): Promise<Pack[]> {
+    return fetchApi<Pack[]>(`/packs?skip=${skip}&limit=${limit}`)
+  },
+
+  async getPack(packId: string): Promise<Pack> {
+    return fetchApi<Pack>(`/packs/${encodeURIComponent(packId)}`)
   },
 
   async getVlogPage(): Promise<VlogPage> {

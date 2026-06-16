@@ -12,11 +12,11 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
-import type { OrderItem, ApplyResponse } from "@/types/api"
+import type { ApplyResponse, CartPackItem, OrderItem } from "@/types/api"
 
 export default function Cart() {
   const router = useRouter()
-  const { state, updateQuantity, removeFromCart } = useCart()
+  const { state, updateQuantity, removeFromCart, updatePackQuantity, removePackFromCart, getPackCartKey } = useCart()
   const { isAuthenticated } = useAuth()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -46,12 +46,15 @@ export default function Cart() {
 
   // Signature du panier pour revalidation
   const cartSignature = useMemo(
-    () => orderItems.map((i) => `${i.product_id}-${i.color}-${i.size}-${i.qty}`).join("|"),
-    [orderItems]
+    () => [
+      ...orderItems.map((i) => `${i.product_id}-${i.color}-${i.size}-${i.qty}`),
+      ...state.packItems.map((item) => getPackCartKey(item.pack.id, item.selections) + `-${item.quantity}`),
+    ].join("|"),
+    [getPackCartKey, orderItems, state.packItems],
   )
 
   // Totaux
-  const subtotal = useMemo(() => orderItems.reduce((s, it) => s + it.qty * it.unit_price, 0), [orderItems])
+  const subtotal = state.total
   const discount = promo?.valid ? promo.discount_value ?? 0 : 0
   const totalAfterDiscount = Math.max(0, subtotal - discount)
 
@@ -62,6 +65,15 @@ export default function Cart() {
       removeFromCart(productId, color, size)
     } else {
       updateQuantity(productId, color, size, newQuantity)
+    }
+  }
+
+  const handlePackQuantityChange = (item: CartPackItem, newQuantity: number) => {
+    const selectionKey = getPackCartKey(item.pack.id, item.selections).replace(`${item.pack.id}-`, "")
+    if (newQuantity <= 0) {
+      removePackFromCart(item.pack.id, selectionKey)
+    } else {
+      updatePackQuantity(item.pack.id, selectionKey, newQuantity)
     }
   }
 
@@ -118,7 +130,7 @@ export default function Cart() {
   // Réappliquer un code sauvegardé quand le panier change
   useEffect(() => {
     const saved = localStorage.getItem("savage_rise_promo_code")
-    if (saved && state.items.length > 0) {
+    if (saved && orderItems.length > 0) {
       applyPromo(saved)
     } else if (!saved) {
       clearPromo()
@@ -168,7 +180,7 @@ export default function Cart() {
           </SheetHeader>
 
           <div className="flex flex-col h-full">
-            {state.items.length === 0 ? (
+            {state.itemCount === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <ShoppingBag className="h-16 w-16 text-gray-600 mx-auto mb-4" />
@@ -243,6 +255,68 @@ export default function Cart() {
                               </Button>
                             </div>
                             <p className="font-semibold text-gold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {state.packItems.map((item) => {
+                    const selectionKey = getPackCartKey(item.pack.id, item.selections).replace(`${item.pack.id}-`, "")
+                    const cartKey = getPackCartKey(item.pack.id, item.selections)
+                    const imageUrl = item.pack.image_url || item.pack.products?.[0]?.image_url || "/placeholder.svg?height=80&width=80"
+                    const linePrice = (item.pack.pack_price ?? item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) * item.quantity
+
+                    return (
+                      <div key={cartKey} className="flex gap-4 rounded-lg border border-gold/20 bg-gold/5 p-3">
+                        <div className="w-20 h-20 relative overflow-hidden rounded-lg bg-gray-900">
+                          <Image src={imageUrl} alt={item.pack.title} fill className="object-cover" />
+                        </div>
+
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pack</p>
+                              <h3 className="font-semibold text-sm line-clamp-2">{item.pack.title}</h3>
+                              <div className="mt-1 space-y-0.5">
+                                {item.selections.map((selection) => (
+                                  <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
+                                    {selection.color} / {selection.size} x{selection.qty ?? 1}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-gray-400 hover:text-white"
+                              onClick={() => removePackFromCart(item.pack.id, selectionKey)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                                onClick={() => handlePackQuantityChange(item, item.quantity - 1)}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                                onClick={() => handlePackQuantityChange(item, item.quantity + 1)}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <p className="font-semibold text-gold">{linePrice.toFixed(2)} TND</p>
                           </div>
                         </div>
                       </div>

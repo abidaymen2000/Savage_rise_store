@@ -129,6 +129,7 @@ export default function OrderDetailPage() {
 
   const hasPromo = (order.promo_code && discountValue > 0) || discountValue > 0.0001
   const promoLabel = order.promo_code ? `Promo code ${order.promo_code}` : "Discount"
+  const packItems = Array.isArray(order.pack_items) ? order.pack_items : []
 
   // ---- Helpers d'affichage produit ----
   const productName = (product_id: string) =>
@@ -185,6 +186,45 @@ export default function OrderDetailPage() {
                         </p>
                         <p className="text-gold font-semibold">{formatPrice(item.unit_price * item.qty)}</p>
                       </div>
+                    </div>
+                  )
+                })}
+
+                {packItems.map((packItem: any, index: number) => {
+                  const components = Array.isArray(packItem.items) ? packItem.items : []
+                  const packQty = packItem.qty ?? 1
+                  const packTotal =
+                    typeof packItem.total_price === "number"
+                      ? packItem.total_price
+                      : components.reduce(
+                          (sum: number, component: any) =>
+                            sum + (component.unit_price ?? 0) * (component.qty ?? 1),
+                          0,
+                        ) * packQty
+
+                  return (
+                    <div key={`${packItem.pack_id ?? "pack"}-${index}`} className="rounded-lg border border-gold/20 bg-black/30 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <Badge className="mb-2 bg-gold text-black">Pack</Badge>
+                          <h3 className="font-semibold text-white">
+                            {packItem.pack_title ?? packItem.title ?? `Pack ${packItem.pack_id?.slice?.(-8) ?? index + 1}`}
+                          </h3>
+                          <p className="text-sm text-gray-400">Qty: {packQty}</p>
+                        </div>
+                        <p className="text-gold font-semibold">{formatPrice(packTotal)}</p>
+                      </div>
+
+                      {components.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {components.map((component: any, componentIndex: number) => (
+                            <p key={`${component.product_id ?? "component"}-${componentIndex}`} className="text-sm text-gray-400">
+                              {component.product_name ?? `Product ${component.product_id ?? componentIndex + 1}`} - Color:{" "}
+                              {component.color} - Size: {component.size} - Qty: {component.qty ?? 1}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
