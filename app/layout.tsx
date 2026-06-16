@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   other: {
     "facebook-domain-verification": "uqzxo4h3m2cfnpejx5u3cu5h5nw2xy",
-  },
+  }, 
   generator: 'v0.dev'
 }
 
