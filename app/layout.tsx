@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "512x512" }],
   },
   other: {
-    "facebook-domain-verification": "8qzo89ra17cfbe1q4jcq6dfi908oye",
+    "facebook-domain-verification": "uqzxo4h3m2cfnpejx5u3cu5h5nw2xy",
   },
   generator: 'v0.dev'
 }
