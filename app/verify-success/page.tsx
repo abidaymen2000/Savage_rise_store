@@ -18,13 +18,16 @@ export default function VerifySuccess() {
     (async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const token = params.get("token");
+        const token = params.get("access_token") || params.get("token");
 
         if (token) {
           localStorage.setItem("savage_rise_token", token);
           await refreshUser();
 
+          params.delete("access_token");
           params.delete("token");
+          params.delete("token_type");
+          params.delete("verified");
           const clean = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
           window.history.replaceState({}, "", clean);
         }
