@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { api } from "@/lib/api"
+import { trackMetaPixelCustomEvent } from "@/lib/meta-pixel"
 import type { User } from "@/types/api"
 
 interface AuthState {
@@ -61,6 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const tokens = await api.login(email, password)
       localStorage.setItem("savage_rise_token", tokens.access_token)
       await refreshUser()
+      trackMetaPixelCustomEvent("LoginSuccess", {
+        method: "email",
+      })
     } catch (error) {
       throw error
     }

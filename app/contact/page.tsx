@@ -35,7 +35,7 @@ export default function ContactPage() {
         subject:   data.subject,
         message:   data.message,
       })
-      trackMetaPixelEvent("Lead", {
+      trackMetaPixelEvent("Contact", {
         content_name: "Contact form",
       })
  form.reset()
