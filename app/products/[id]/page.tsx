@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import WishlistButton from "@/components/WishlistButton"
 import ProductReviewSection from "@/components/ProductReviewSection"
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -115,6 +116,17 @@ export default function ProductDetailPage() {
   useEffect(() => {
     fetchUserWishlist()
   }, [isAuthenticated, fetchUserWishlist])
+
+  useEffect(() => {
+    if (!product) return
+    trackMetaPixelEvent("ViewContent", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      currency: "TND",
+      value: product.price,
+    })
+  }, [product])
 
   // Update current variant when color changes
   useEffect(() => {

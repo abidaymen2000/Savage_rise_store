@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 interface CartState {
   items: CartItem[]
@@ -232,6 +233,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    trackMetaPixelEvent("AddToCart", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      contents: [
+        {
+          id: product.id,
+          quantity,
+          item_price: product.price,
+        },
+      ],
+      currency: "TND",
+      value: product.price * quantity,
+    })
     dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
   }
 
@@ -240,6 +255,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    const value =
+      (pack.pack_price ?? selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) *
+      quantity
+
+    trackMetaPixelEvent("AddToCart", {
+      content_ids: [pack.id],
+      content_name: pack.title,
+      content_type: "product_group",
+      contents: selections.map((selection) => ({
+        id: selection.product_id,
+        quantity: (selection.qty ?? 1) * quantity,
+        item_price: selection.unit_price,
+      })),
+      currency: "TND",
+      value,
+    })
     dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
   }
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import { useToast } from "@/components/ui/use-toast" // Assuming you have useToast from shadcn/ui
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 interface WishlistButtonProps {
   productId: string
@@ -55,6 +56,10 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
       } else {
         await api.addToWishlist(productId)
         setIsInWishlist(true)
+        trackMetaPixelEvent("AddToWishlist", {
+          content_ids: [productId],
+          content_type: "product",
+        })
         toast({
           title: "Product added",
           description: "The product has been added to your wishlist.",

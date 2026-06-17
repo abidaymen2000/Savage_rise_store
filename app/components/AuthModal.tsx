@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 interface AuthModalProps {
   isOpen: boolean
@@ -83,6 +84,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
 
     try {
       await signup(signupForm.email, signupForm.password, signupForm.fullName)
+      trackMetaPixelEvent("CompleteRegistration", {
+        content_name: "Store account",
+        status: true,
+      })
       setSuccess("Account created successfully. Check your email to activate your account.")
       // 🔒 On garde l'email (et même le nom si tu veux), on vide juste les mdp
       setSignupForm(prev => ({

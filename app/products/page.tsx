@@ -14,6 +14,7 @@ import AuthModal from "@/app/components/AuthModal"
 import type { Product } from "@/types/api"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 function getColorSwatch(color: string) {
   const normalized = color.toLowerCase()
@@ -172,6 +173,20 @@ export default function ProductsPage() {
     const params = new URLSearchParams(window.location.search)
     setGenderFilter(params.get("gender") || "all")
   }, [])
+
+  useEffect(() => {
+    const query = searchTerm.trim()
+    if (query.length < 2) return
+
+    const timeout = window.setTimeout(() => {
+      trackMetaPixelEvent("Search", {
+        search_string: query,
+        content_type: "product",
+      })
+    }, 700)
+
+    return () => window.clearTimeout(timeout)
+  }, [searchTerm])
 
   const filteredAndSortedProducts = products
     .filter(

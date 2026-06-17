@@ -18,6 +18,7 @@ import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
 import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote, PackOrderSelection } from "@/types/api"
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
@@ -221,6 +222,14 @@ export default function CheckoutPage() {
         packItems,
       )
 
+      trackMetaPixelEvent("Purchase", {
+        content_ids: pixelContentIds,
+        contents: pixelContents,
+        currency: "TND",
+        num_items: cartState.itemCount,
+        order_id: order.id,
+        value: order.total_amount ?? total,
+      })
       setCreatedOrder(order)
       setSuccess(true)
       clearCart()
@@ -251,6 +260,39 @@ export default function CheckoutPage() {
   const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
   const shipping = shippingQuote?.shipping_amount ?? 0
   const total = afterDiscount + shipping
+
+  const pixelContents = useMemo(
+    () => [
+      ...cartState.items.map((item) => ({
+        id: item.product.id,
+        quantity: item.quantity,
+        item_price: item.product.price,
+      })),
+      ...cartState.packItems.flatMap((item) =>
+        item.selections.map((selection) => ({
+          id: selection.product_id,
+          quantity: (selection.qty ?? 1) * item.quantity,
+          item_price: selection.unit_price,
+        })),
+      ),
+    ],
+    [cartState.items, cartState.packItems],
+  )
+
+  const pixelContentIds = useMemo(() => pixelContents.map((item) => String(item.id)), [pixelContents])
+
+  useEffect(() => {
+    if (cartState.itemCount === 0) return
+    trackMetaPixelEvent("InitiateCheckout", {
+      content_ids: pixelContentIds,
+      contents: pixelContents,
+      currency: "TND",
+      num_items: cartState.itemCount,
+      value: subtotal,
+    })
+    // Track once when entering checkout with the current cart.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {

@@ -12,6 +12,7 @@ import { api } from "@/lib/api"
 import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
+import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 
 type Selection = {
   color: string
@@ -103,6 +104,17 @@ export default function PackDetailPage() {
       isMounted = false
     }
   }, [packId])
+
+  useEffect(() => {
+    if (!pack) return
+    trackMetaPixelEvent("ViewContent", {
+      content_ids: [pack.id],
+      content_name: pack.title,
+      content_type: "product_group",
+      currency: "TND",
+      value: pack.pack_price ?? 0,
+    })
+  }, [pack])
 
   const components = pack?.components ?? []
 

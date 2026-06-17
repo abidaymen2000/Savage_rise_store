@@ -8,6 +8,7 @@ import { Mail, Phone, MapPin, XCircle } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { api } from '@/lib/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { trackMetaPixelEvent } from '@/lib/meta-pixel'
 
 type Notification = {
   type: "success" | "error"
@@ -33,6 +34,9 @@ export default function ContactPage() {
         email:     data.email,
         subject:   data.subject,
         message:   data.message,
+      })
+      trackMetaPixelEvent("Lead", {
+        content_name: "Contact form",
       })
  form.reset()
       setNotification({
