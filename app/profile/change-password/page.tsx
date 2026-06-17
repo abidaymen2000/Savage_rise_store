@@ -6,7 +6,7 @@ import { api } from '@/lib/api'
 import { PasswordChange } from '@/types/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
@@ -95,9 +95,9 @@ export default function ChangePasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Label htmlFor="currentPassword" className="text-white">Current password</Label>
-                <Input
+                <PasswordInput
                   id="currentPassword"
-                  type="password"
+                  placeholder="Enter current password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
@@ -106,9 +106,9 @@ export default function ChangePasswordPage() {
               </div>
               <div>
                 <Label htmlFor="newPassword" className="text-white">New password</Label>
-                <Input
+                <PasswordInput
                   id="newPassword"
-                  type="password"
+                  placeholder="Enter new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
@@ -117,9 +117,9 @@ export default function ChangePasswordPage() {
               </div>
               <div>
                 <Label htmlFor="confirmNewPassword" className="text-white">Confirm new password</Label>
-                <Input
+                <PasswordInput
                   id="confirmNewPassword"
-                  type="password"
+                  placeholder="Confirm new password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
                   className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"

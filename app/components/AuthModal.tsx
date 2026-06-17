@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -27,10 +28,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" })
   const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "", confirmPassword: "" })
-
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [showLoginPassword, setShowLoginPassword] = useState(false)
 
   // 👇 Assure-toi que resendVerification est bien exposé par le context
   const { login, signup, forgotPassword, resendVerification } = useAuth()
@@ -202,7 +199,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                     placeholder="your@email.com"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white"
+                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
                     required
                   />
                 </div>
@@ -222,22 +219,14 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
+                  <PasswordInput
                     id="login-password"
-                    type={showLoginPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white"
+                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowLoginPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  >
-                    {showLoginPassword ? "👁️" : "👁️‍🗨️"}
-                  </button>
                 </div>
               </div>
 
@@ -271,7 +260,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                     placeholder="your@email.com"
                     value={signupForm.email}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white"
+                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
                     required
                   />
                 </div>
@@ -285,7 +274,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   placeholder="Your full name"
                   value={signupForm.fullName}
                   onChange={(e) => setSignupForm((prev) => ({ ...prev, fullName: e.target.value }))}
-                  className="bg-gray-900 border-gray-700 text-white"
+                  className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
                   required
                 />
               </div>
@@ -294,23 +283,15 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 <Label htmlFor="signup-password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
+                  <PasswordInput
                     id="signup-password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Create a password"
                     value={signupForm.password}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white"
+                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
                     required
                     minLength={6}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  >
-                    {showPassword ? "👁️" : "👁️‍🗨️"}
-                  </button>
                 </div>
               </div>
 
@@ -318,23 +299,15 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 <Label htmlFor="signup-confirm">Confirm password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
+                  <PasswordInput
                     id="signup-confirm"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Confirm your password"
                     value={signupForm.confirmPassword}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="pl-10 pr-10 bg-gray-900 border-gray-700 text-white"
+                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
                     required
                     minLength={6}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  >
-                    {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
-                  </button>
                 </div>
               </div>
 

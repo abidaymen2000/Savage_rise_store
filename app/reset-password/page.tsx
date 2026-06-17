@@ -7,8 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PasswordInput } from "@/components/ui/password-input"
 import { api } from "@/lib/api"
 import { CheckCircle2, Loader2, Lock } from "lucide-react"
 
@@ -89,9 +89,9 @@ function ResetPasswordForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="new-password">New password</Label>
-                <Input
+                <PasswordInput
                   id="new-password"
-                  type="password"
+                  placeholder="Enter new password"
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
                   className="border-gray-700 bg-gray-800 text-white placeholder:text-gray-500"
@@ -102,9 +102,9 @@ function ResetPasswordForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm password</Label>
-                <Input
+                <PasswordInput
                   id="confirm-password"
-                  type="password"
+                  placeholder="Confirm new password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   className="border-gray-700 bg-gray-800 text-white placeholder:text-gray-500"
