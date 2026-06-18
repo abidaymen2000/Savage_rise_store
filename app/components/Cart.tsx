@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
+import { trackStoreEvent } from "@/lib/store-analytics"
 import type { ApplyResponse, CartPackItem, OrderItem } from "@/types/api"
 
 export default function Cart() {
@@ -107,6 +108,13 @@ export default function Cart() {
       setPromoInput(normalized)
       if (res.valid) {
         localStorage.setItem("savage_rise_promo_code", normalized)
+        trackStoreEvent("coupon_applied", {
+          metadata: {
+            code: normalized,
+            discount_value: res.discount_value ?? 0,
+            cart_total: subtotal,
+          },
+        })
       } else {
         localStorage.removeItem("savage_rise_promo_code")
         if (res.reason === "login_required") {
@@ -156,13 +164,33 @@ export default function Cart() {
   }, [isAuthenticated, showAuthModal, router])
 
   const handleProceed = () => {
+    trackStoreEvent("button_clicked", {
+      metadata: {
+        button: "proceed_to_checkout",
+        cart_total: state.total,
+        item_count: state.itemCount,
+      },
+    })
     setIsOpen(false)
     router.push("/checkout")
   }
 
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          setIsOpen(open)
+          if (open) {
+            trackStoreEvent("cart_viewed", {
+              metadata: {
+                item_count: state.itemCount,
+                cart_total: state.total,
+              },
+            })
+          }
+        }}
+      >
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
             <ShoppingBag className="h-5 w-5" />

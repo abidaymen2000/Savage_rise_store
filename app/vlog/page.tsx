@@ -12,6 +12,7 @@ import { api } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import type { VlogChapter, VlogComment, VlogEpisode, VlogPage } from "@/types/api"
+import { trackEvent } from "@/lib/store-analytics"
 
 const fallbackVlog: VlogPage = {
   settings: {
@@ -88,6 +89,13 @@ function EpisodeCard({
 
     try {
       const data = await api.trackVlogEpisodeView(episode.id)
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "vlog_episode_viewed",
+          episode_id: episode.id,
+          episode_title: episode.title,
+        },
+      })
       onEpisodeUpdate(episode.id, { view_count: data.view_count })
     } catch (error) {
     }
@@ -109,6 +117,13 @@ function EpisodeCard({
 
     try {
       const data = wasLiked ? await api.unlikeVlogEpisode(episode.id) : await api.likeVlogEpisode(episode.id)
+      trackEvent("button_clicked", {
+        metadata: {
+          action: wasLiked ? "vlog_episode_unliked" : "vlog_episode_liked",
+          episode_id: episode.id,
+          episode_title: episode.title,
+        },
+      })
       onEpisodeUpdate(episode.id, {
         liked_by_current_user: data.liked,
         like_count: data.like_count,
@@ -147,6 +162,13 @@ function EpisodeCard({
   const handleToggleComments = () => {
     const nextOpen = !commentsOpen
     setCommentsOpen(nextOpen)
+    trackEvent("button_clicked", {
+      metadata: {
+        action: nextOpen ? "vlog_comments_opened" : "vlog_comments_closed",
+        episode_id: episode.id,
+        episode_title: episode.title,
+      },
+    })
     if (nextOpen && comments.length === 0) {
       void loadComments()
     }
@@ -166,6 +188,13 @@ function EpisodeCard({
       setComments((current) => [comment, ...current])
       setCommentText("")
       onEpisodeUpdate(episode.id, { comment_count: (episode.comment_count ?? 0) + 1 })
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "vlog_comment_added",
+          episode_id: episode.id,
+          episode_title: episode.title,
+        },
+      })
       toast({ title: "Comment posted" })
     } catch (error) {
       toast({
@@ -183,6 +212,14 @@ function EpisodeCard({
       await api.deleteVlogEpisodeComment(episode.id, commentId)
       setComments((current) => current.filter((comment) => comment.id !== commentId))
       onEpisodeUpdate(episode.id, { comment_count: Math.max(0, (episode.comment_count ?? 0) - 1) })
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "vlog_comment_deleted",
+          episode_id: episode.id,
+          episode_title: episode.title,
+          comment_id: commentId,
+        },
+      })
     } catch (error) {
       toast({
         title: "Comment not deleted",

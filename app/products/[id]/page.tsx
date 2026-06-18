@@ -20,6 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import WishlistButton from "@/components/WishlistButton"
 import ProductReviewSection from "@/components/ProductReviewSection"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -125,6 +126,16 @@ export default function ProductDetailPage() {
       content_type: "product",
       currency: "TND",
       value: product.price,
+    })
+    trackStoreEvent("product_viewed", {
+      product_id: product.id,
+      metadata: {
+        product_name: product.name,
+        full_name: product.full_name,
+        price: product.price,
+        in_stock: product.in_stock,
+        categories: product.categories,
+      },
     })
   }, [product])
 
@@ -317,7 +328,19 @@ export default function ProductDetailPage() {
             {availableColors.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold mb-3">Color</h3>
-                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                <Select
+                  value={selectedColor}
+                  onValueChange={(color) => {
+                    setSelectedColor(color)
+                    trackStoreEvent("color_selected", {
+                      product_id: product.id,
+                      metadata: {
+                        color,
+                        product_name: product.name,
+                      },
+                    })
+                  }}
+                >
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue placeholder="Choisir une couleur" />
                   </SelectTrigger>
@@ -336,7 +359,20 @@ export default function ProductDetailPage() {
             {availableSizes.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold mb-3">Size</h3>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                <Select
+                  value={selectedSize}
+                  onValueChange={(size) => {
+                    setSelectedSize(size)
+                    trackStoreEvent("size_selected", {
+                      product_id: product.id,
+                      metadata: {
+                        size,
+                        color: selectedColor,
+                        product_name: product.name,
+                      },
+                    })
+                  }}
+                >
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue placeholder="Choisir une taille" />
                   </SelectTrigger>

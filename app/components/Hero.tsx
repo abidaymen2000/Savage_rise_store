@@ -8,6 +8,7 @@ import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "./AuthModal"
 import type { DropCountdown, DropNotificationStatus } from "@/types/api"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 type HeroSlide = {
   type: "video" | "image"
@@ -176,6 +177,13 @@ export default function Hero() {
 
   const toggleDropNotification = useCallback(async () => {
     if (!drop?.email_enabled || isDropReleased) return
+    trackStoreEvent("notify_me_clicked", {
+      metadata: {
+        drop_name: drop.drop_name,
+        drop_title: drop.title,
+        already_subscribed: notificationStatus?.is_subscribed ?? false,
+      },
+    })
     if (!isAuthenticated) {
       setShowAuthModal(true)
       return
@@ -265,7 +273,18 @@ export default function Hero() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild size="lg" className="bg-gold text-black hover:bg-gold/90 font-semibold px-8 py-3 text-lg">
-                  <Link href={discoverUrl}>
+                  <Link
+                    href={discoverUrl}
+                    onClick={() =>
+                      trackStoreEvent("button_clicked", {
+                        metadata: {
+                          button: "hero_discover",
+                          href: discoverUrl,
+                          has_active_drop: hasActiveDrop,
+                        },
+                      })
+                    }
+                  >
                     DISCOVER
                     <ChevronRight className="ml-2 h-5 w-5" />
                   </Link>

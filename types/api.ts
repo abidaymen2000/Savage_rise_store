@@ -500,3 +500,40 @@ export interface LoyaltyQuote {
   estimated_points_earned: number
   settings: LoyaltySettings
 }
+
+export type StoreAnalyticsEventName =
+  | "page_viewed"
+  | "product_viewed"
+  | "collection_viewed"
+  | "search_submitted"
+  | "notify_me_clicked"
+  | "account_created"
+  | "login"
+  | "logout"
+  | "add_to_cart"
+  | "remove_from_cart"
+  | "cart_viewed"
+  | "checkout_started"
+  | "shipping_info_submitted"
+  | "payment_started"
+  | "payment_success"
+  | "payment_failed"
+  | "order_completed"
+  | "coupon_applied"
+  | "size_selected"
+  | "color_selected"
+  | "wishlist_added"
+  | "button_clicked"
+
+export interface StoreAnalyticsEventPayload {
+  event_name: StoreAnalyticsEventName | string
+  anonymous_id?: string | null
+  session_id?: string | null
+  product_id?: string | null
+  order_id?: string | null
+  metadata?: Record<string, unknown>
+  referrer?: string | null
+  source?: string | null
+  utm_campaign?: string | null
+  has_account?: boolean
+}

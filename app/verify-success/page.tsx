@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackMetaPixelEvent } from "@/lib/meta-pixel";
+import { trackStoreEvent } from "@/lib/store-analytics";
 
 export default function VerifySuccess() {
   const router = useRouter();
@@ -27,6 +28,11 @@ export default function VerifySuccess() {
           trackMetaPixelEvent("CompleteRegistration", {
             content_name: "Verified store account",
             status: true,
+          });
+          trackStoreEvent("login", {
+            metadata: {
+              method: "email_verification",
+            },
           });
 
           params.delete("access_token");

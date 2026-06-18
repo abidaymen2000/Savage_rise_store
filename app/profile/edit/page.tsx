@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { trackEvent } from '@/lib/store-analytics'
 
 export default function EditProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth()
@@ -53,8 +54,20 @@ export default function EditProfilePage() {
         title: 'Success',
         description: 'Your profile has been updated successfully.',
       })
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "profile_updated",
+          changed_full_name: fullName !== (user.full_name || ''),
+          changed_email: email !== (user.email || ''),
+        },
+      })
       router.push('/profile')
     } catch (err: any) {
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "profile_update_failed",
+        },
+      })
       setError(err.message || 'Profile update failed.')
       toast({
         title: 'Error',

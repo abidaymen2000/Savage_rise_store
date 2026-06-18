@@ -5,13 +5,18 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { trackEvent } from "@/lib/store-analytics"
 
 export default function Newsletter() {
   const [email, setEmail] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle newsletter signup
+    trackEvent("button_clicked", {
+      metadata: {
+        action: "newsletter_submitted",
+      },
+    })
     setEmail("")
   }
 

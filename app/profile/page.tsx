@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { trackEvent } from "@/lib/store-analytics"
 
 type Tab = "orders" | "wishlist" | "reviews" | "loyalty" | "settings"
 type WishlistWithProduct = WishlistItem & { product?: Product }
@@ -97,6 +98,14 @@ function ProfileContent() {
       title: form.title || null,
       comment: form.comment || null,
     })
+    trackEvent("button_clicked", {
+      product_id: editing.product_id,
+      metadata: {
+        action: "review_updated",
+        review_id: editing.id,
+        rating: form.rating,
+      },
+    })
     setReviews(reviews.map((r) => (r.id === updated.id ? updated : r)))
     setEditing(null)
   }
@@ -104,6 +113,13 @@ function ProfileContent() {
   async function confirmDelete() {
     if (!toDelete) return
     await api.deleteReview(toDelete.product_id, toDelete.id)
+    trackEvent("button_clicked", {
+      product_id: toDelete.product_id,
+      metadata: {
+        action: "review_deleted",
+        review_id: toDelete.id,
+      },
+    })
     setReviews(reviews.filter((r) => r.id !== toDelete.id))
     setToDelete(null)
   }
@@ -227,6 +243,13 @@ function ProfileContent() {
   const handleCancelOrder = async (orderId: string) => {
     try {
       await api.cancelOrder(orderId)
+      trackEvent("button_clicked", {
+        order_id: orderId,
+        metadata: {
+          action: "order_cancelled",
+          source: "profile",
+        },
+      })
       fetchOrders()
     } catch (error) {
     }
@@ -268,6 +291,12 @@ function ProfileContent() {
           onValueChange={(v) => {
             const t = v as Tab
             setActiveTab(t)
+            trackEvent("button_clicked", {
+              metadata: {
+                action: "profile_tab_selected",
+                tab: t,
+              },
+            })
             router.replace(`/profile?tab=${t}`, { scroll: false })
           }}
           className="space-y-6"
@@ -421,7 +450,16 @@ function ProfileContent() {
                           className="mt-2 border-red-600 text-red-400 hover:bg-red-900/20 bg-transparent"
                           onClick={(e) => {
                             e.stopPropagation()
-                            api.removeFromWishlist(item.product_id).then(fetchWishlist)
+                            api.removeFromWishlist(item.product_id).then(() => {
+                              trackEvent("button_clicked", {
+                                product_id: item.product_id,
+                                metadata: {
+                                  action: "wishlist_removed",
+                                  source: "profile",
+                                },
+                              })
+                              fetchWishlist()
+                            })
                           }}
                         >
                           Remove

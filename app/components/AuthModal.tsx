@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 interface AuthModalProps {
   isOpen: boolean
@@ -88,6 +89,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
         content_name: "Store account",
         status: true,
       })
+      trackStoreEvent("account_created", {
+        metadata: {
+          method: "email",
+        },
+      })
       setSuccess("Account created successfully. Check your email to activate your account.")
       // 🔒 On garde l'email (et même le nom si tu veux), on vide juste les mdp
       setSignupForm(prev => ({
@@ -118,6 +124,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     try {
       setIsSendingReset(true)
       await forgotPassword(email)
+      trackStoreEvent("button_clicked", {
+        metadata: {
+          action: "forgot_password_requested",
+        },
+      })
       setSuccess("Password reset email sent. Please check your inbox and spam folder.")
       setLoginForm((prev) => ({ ...prev, password: "" }))
     } catch {
@@ -140,6 +151,11 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     try {
       setIsResending(true)
       await resendVerification(email)
+      trackStoreEvent("button_clicked", {
+        metadata: {
+          action: "verification_email_resent",
+        },
+      })
       setSuccess("Verification email resent. Please check your inbox and spam folder.")
     } catch {
       setError("Unable to resend the email right now. Please try again later.")

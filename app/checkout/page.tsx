@@ -19,6 +19,7 @@ import Image from "next/image"
 import Link from "next/link"
 import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote, PackOrderSelection } from "@/types/api"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
@@ -110,6 +111,15 @@ export default function CheckoutPage() {
       const res = await api.applyPromo(code, orderItems)
       setPromoResult(res)
       setPromoCode(res.valid ? code : null)
+      if (res.valid) {
+        trackStoreEvent("coupon_applied", {
+          metadata: {
+            code,
+            discount_value: res.discount_value ?? 0,
+            source: "checkout",
+          },
+        })
+      }
       if (!res.valid) {
         localStorage.removeItem(PROMO_STORAGE_KEY)
       }
@@ -211,6 +221,21 @@ export default function CheckoutPage() {
 
     setIsProcessing(true)
     setError(null)
+    trackStoreEvent("shipping_info_submitted", {
+      metadata: {
+        city: shippingInfo.city,
+        country: shippingInfo.country,
+        has_address_line2: Boolean(shippingInfo.address_line2),
+        is_authenticated: isAuthenticated,
+      },
+    })
+    trackStoreEvent("payment_started", {
+      metadata: {
+        payment_method: "cod",
+        value: total,
+        item_count: cartState.itemCount,
+      },
+    })
 
     try {
       const order = await api.createOrder(
@@ -230,6 +255,25 @@ export default function CheckoutPage() {
         order_id: order.id,
         value: order.total_amount ?? total,
       })
+      trackStoreEvent("payment_success", {
+        order_id: order.id,
+        metadata: {
+          payment_method: "cod",
+          value: order.total_amount ?? total,
+        },
+      })
+      trackStoreEvent("order_completed", {
+        order_id: order.id,
+        metadata: {
+          value: order.total_amount ?? total,
+          subtotal,
+          shipping,
+          promo_code: isAuthenticated ? promoCode : null,
+          loyalty_points_used: isAuthenticated ? loyaltyPointsUsed : 0,
+          item_count: cartState.itemCount,
+          contents: pixelContents,
+        },
+      })
       setCreatedOrder(order)
       setSuccess(true)
       clearCart()
@@ -243,6 +287,13 @@ export default function CheckoutPage() {
         }, 2000)
       }
     } catch (err) {
+      trackStoreEvent("payment_failed", {
+        metadata: {
+          payment_method: "cod",
+          value: total,
+          error: err instanceof Error ? err.message : "unknown",
+        },
+      })
       setError(err instanceof Error ? err.message : "Error creating the order")
     } finally {
       setIsProcessing(false)
@@ -289,6 +340,14 @@ export default function CheckoutPage() {
       currency: "TND",
       num_items: cartState.itemCount,
       value: subtotal,
+    })
+    trackStoreEvent("checkout_started", {
+      metadata: {
+        content_ids: pixelContentIds,
+        contents: pixelContents,
+        item_count: cartState.itemCount,
+        value: subtotal,
+      },
     })
     // Track once when entering checkout with the current cart.
     // eslint-disable-next-line react-hooks/exhaustive-deps

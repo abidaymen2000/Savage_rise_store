@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { api } from "@/lib/api"
 import { trackMetaPixelCustomEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 import type { User } from "@/types/api"
 
 interface AuthState {
@@ -65,6 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       trackMetaPixelCustomEvent("LoginSuccess", {
         method: "email",
       })
+      trackStoreEvent("login", {
+        metadata: {
+          method: "email",
+        },
+      })
     } catch (error) {
       throw error
     }
@@ -80,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
+    trackStoreEvent("logout")
     localStorage.removeItem("savage_rise_token")
     setState({
       user: null,

@@ -15,6 +15,7 @@ import type { Product } from "@/types/api"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 function getColorSwatch(color: string) {
   const normalized = color.toLowerCase()
@@ -170,6 +171,15 @@ export default function ProductsPage() {
   }, [fetchProducts])
 
   useEffect(() => {
+    trackStoreEvent("collection_viewed", {
+      metadata: {
+        collection: "products",
+        gender: genderFilter,
+      },
+    })
+  }, [genderFilter])
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setGenderFilter(params.get("gender") || "all")
   }, [])
@@ -182,6 +192,12 @@ export default function ProductsPage() {
       trackMetaPixelEvent("Search", {
         search_string: query,
         content_type: "product",
+      })
+      trackStoreEvent("search_submitted", {
+        metadata: {
+          query,
+          result_count: filteredAndSortedProducts.length,
+        },
       })
     }, 700)
 

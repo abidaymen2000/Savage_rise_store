@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useReducer, useEffect } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 interface CartState {
   items: CartItem[]
@@ -247,6 +248,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       currency: "TND",
       value: product.price * quantity,
     })
+    trackStoreEvent("add_to_cart", {
+      product_id: product.id,
+      metadata: {
+        product_name: product.name,
+        color: variant.color,
+        size,
+        quantity,
+        unit_price: product.price,
+        value: product.price * quantity,
+      },
+    })
     dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
   }
 
@@ -271,14 +283,53 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       currency: "TND",
       value,
     })
+    trackStoreEvent("add_to_cart", {
+      metadata: {
+        item_type: "pack",
+        pack_id: pack.id,
+        pack_title: pack.title,
+        quantity,
+        value,
+        items: selections,
+      },
+    })
     dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
   }
 
   const removeFromCart = (productId: string, color: string, size: string) => {
+    const item = state.items.find(
+      (cartItem) =>
+        cartItem.product.id === productId &&
+        cartItem.selectedVariant.color === color &&
+        cartItem.selectedSize === size,
+    )
+    trackStoreEvent("remove_from_cart", {
+      product_id: productId,
+      metadata: {
+        item_type: "product",
+        product_name: item?.product.name,
+        color,
+        size,
+        quantity: item?.quantity,
+        unit_price: item?.product.price,
+      },
+    })
     dispatch({ type: "REMOVE_ITEM", payload: { productId, color, size } })
   }
 
   const removePackFromCart = (packId: string, selectionKey: string) => {
+    const item = state.packItems.find(
+      (cartItem) => cartItem.pack.id === packId && getPackSelectionKey(cartItem.selections) === selectionKey,
+    )
+    trackStoreEvent("remove_from_cart", {
+      metadata: {
+        item_type: "pack",
+        pack_id: packId,
+        pack_title: item?.pack.title,
+        quantity: item?.quantity,
+        items: item?.selections,
+      },
+    })
     dispatch({ type: "REMOVE_PACK", payload: { packId, selectionKey } })
   }
 

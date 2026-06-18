@@ -8,6 +8,7 @@ import { CartProvider } from "@/contexts/CartContext"
 import { AuthProvider } from "@/contexts/AuthContext"
 import EntranceWrapper from "./components/EntranceWrapper"
 import MetaPixel from "./components/MetaPixel"
+import StoreAnalytics from "./components/StoreAnalytics"
 import { Toaster } from "@/components/ui/toaster" // Import Toaster
 
 const playfair = Playfair_Display({
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="font-inter bg-black text-white">
         <MetaPixel />
+        <StoreAnalytics />
         <AuthProvider>
           <CartProvider>
             <EntranceWrapper>

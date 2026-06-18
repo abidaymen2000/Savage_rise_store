@@ -9,6 +9,7 @@ import { useCallback, useState } from 'react'
 import { api } from '@/lib/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { trackMetaPixelEvent } from '@/lib/meta-pixel'
+import { trackEvent } from '@/lib/store-analytics'
 
 type Notification = {
   type: "success" | "error"
@@ -38,12 +39,24 @@ export default function ContactPage() {
       trackMetaPixelEvent("Contact", {
         content_name: "Contact form",
       })
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "contact_form_submitted",
+          subject: data.subject,
+        },
+      })
  form.reset()
       setNotification({
         type: "success",
         message: "Your message has been sent. We will get back to you shortly."
       })
     } catch (err) {
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "contact_form_failed",
+          subject: data.subject,
+        },
+      })
       setNotification({
         type: "error",
         message: "Message delivery failed. Please try again later."

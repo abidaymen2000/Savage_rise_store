@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import type { Review, ReviewStats } from "@/types/api"
 import { useToast } from "@/components/ui/use-toast"
+import { trackEvent } from "@/lib/store-analytics"
 
 interface ProductReviewSectionProps {
   productId: string
@@ -64,6 +65,13 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       return
     }
     setUserRating(rating)
+    trackEvent("button_clicked", {
+      product_id: productId,
+      metadata: {
+        action: "review_rating_selected",
+        rating,
+      },
+    })
   }
 
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -83,7 +91,23 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
       setUserComment("")
       setUserReviewTitle("")
       setHasSubmittedReview(true) // Trigger re-fetch of reviews
+      trackEvent("button_clicked", {
+        product_id: productId,
+        metadata: {
+          action: "review_submitted",
+          rating: userRating,
+          has_title: Boolean(userReviewTitle.trim()),
+          has_comment: Boolean(userComment.trim()),
+        },
+      })
     } catch (err) {
+      trackEvent("button_clicked", {
+        product_id: productId,
+        metadata: {
+          action: "review_submit_failed",
+          rating: userRating,
+        },
+      })
       setReviewError("Unable to submit your review. Please try again.")
     } finally {
       setIsSubmittingReview(false)

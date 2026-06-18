@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { PasswordInput } from "@/components/ui/password-input"
 import { api } from "@/lib/api"
 import { CheckCircle2, Loader2, Lock } from "lucide-react"
+import { trackEvent } from "@/lib/store-analytics"
 
 export const dynamic = "force-dynamic"
 
@@ -47,11 +48,21 @@ function ResetPasswordForm() {
     setIsSubmitting(true)
     try {
       await api.resetPassword(token, newPassword)
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "password_reset_completed",
+        },
+      })
       setSuccess(true)
       setNewPassword("")
       setConfirmPassword("")
       setTimeout(() => router.push("/"), 2500)
     } catch (err) {
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "password_reset_failed",
+        },
+      })
       setError("Unable to reset your password. The link may be expired or already used.")
     } finally {
       setIsSubmitting(false)

@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Product, WishlistItem } from "@/types/api"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 export default function CategoryPage() {
   const params = useParams()
@@ -68,6 +69,15 @@ export default function CategoryPage() {
   }, [fetchCategoryProducts])
 
   useEffect(() => {
+    trackStoreEvent("collection_viewed", {
+      metadata: {
+        collection: categoryName,
+        type: "category",
+      },
+    })
+  }, [categoryName])
+
+  useEffect(() => {
     fetchUserWishlist()
   }, [isAuthenticated, fetchUserWishlist])
 
@@ -116,6 +126,14 @@ export default function CategoryPage() {
         await api.removeFromWishlist(product.id);
       } else {
         await api.addToWishlist(product.id);
+        trackStoreEvent("wishlist_added", {
+          product_id: product.id,
+          metadata: {
+            product_name: product.name,
+            source: "category",
+            category: categoryName,
+          },
+        })
       }
       await fetchUserWishlist(); // Refresh wishlist
     } catch (err) {

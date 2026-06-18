@@ -7,6 +7,7 @@ import { Loader2, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
+import { trackStoreEvent } from "@/lib/store-analytics"
 import type { Pack, Product } from "@/types/api"
 
 function getColorSwatch(color: string) {
@@ -100,6 +101,15 @@ export default function PacksPage() {
     return () => {
       isMounted = false
     }
+  }, [])
+
+  useEffect(() => {
+    trackStoreEvent("collection_viewed", {
+      metadata: {
+        collection: "packs",
+        type: "packs",
+      },
+    })
   }, [])
 
   const sortedPacks = useMemo(() => [...packs].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)), [packs])

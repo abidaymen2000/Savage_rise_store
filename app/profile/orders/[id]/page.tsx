@@ -13,6 +13,7 @@ import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import type { Order, Product } from "@/types/api"
 import { formatPrice } from "@/lib/utils"
+import { trackEvent } from "@/lib/store-analytics"
 
 export default function OrderDetailPage() {
   const params = useParams()
@@ -88,6 +89,13 @@ export default function OrderDetailPage() {
   const handleCancelOrder = async (id: string) => {
     try {
       await api.cancelOrder(id)
+      trackEvent("button_clicked", {
+        order_id: id,
+        metadata: {
+          action: "order_cancelled",
+          source: "order_detail",
+        },
+      })
       router.push("/profile?tab=orders")
     } catch (error) {
     }

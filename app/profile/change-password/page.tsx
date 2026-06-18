@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { trackEvent } from '@/lib/store-analytics'
 
 export default function ChangePasswordPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
@@ -54,8 +55,18 @@ export default function ChangePasswordPage() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmNewPassword('')
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "password_changed",
+        },
+      })
       router.push('/profile')
     } catch (err: any) {
+      trackEvent("button_clicked", {
+        metadata: {
+          action: "password_change_failed",
+        },
+      })
       setError(err.message || 'Password change failed.')
       toast({
         title: 'Error',

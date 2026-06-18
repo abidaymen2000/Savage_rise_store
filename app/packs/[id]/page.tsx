@@ -13,6 +13,7 @@ import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
+import { trackStoreEvent } from "@/lib/store-analytics"
 
 type Selection = {
   color: string
@@ -113,6 +114,15 @@ export default function PackDetailPage() {
       content_type: "product_group",
       currency: "TND",
       value: pack.pack_price ?? 0,
+    })
+    trackStoreEvent("product_viewed", {
+      metadata: {
+        item_type: "pack",
+        pack_id: pack.id,
+        pack_title: pack.title,
+        value: pack.pack_price ?? 0,
+        components: pack.components,
+      },
     })
   }, [pack])
 
@@ -276,7 +286,15 @@ export default function PackDetailPage() {
                 <div className="grid grid-cols-2 rounded-md border border-white/10 bg-black p-1 text-sm">
                   <button
                     type="button"
-                    onClick={() => setSameSizeMode(true)}
+                    onClick={() => {
+                      setSameSizeMode(true)
+                      trackStoreEvent("button_clicked", {
+                        metadata: {
+                          action: "pack_same_size_mode_selected",
+                          pack_id: pack.id,
+                        },
+                      })
+                    }}
                     disabled={commonSizes.length === 0}
                     className={`rounded px-3 py-2 ${sameSizeMode ? "bg-gold text-black" : "text-gray-300"} disabled:opacity-40`}
                   >
@@ -284,7 +302,15 @@ export default function PackDetailPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSameSizeMode(false)}
+                    onClick={() => {
+                      setSameSizeMode(false)
+                      trackStoreEvent("button_clicked", {
+                        metadata: {
+                          action: "pack_each_item_mode_selected",
+                          pack_id: pack.id,
+                        },
+                      })
+                    }}
                     className={`rounded px-3 py-2 ${!sameSizeMode ? "bg-gold text-black" : "text-gray-300"}`}
                   >
                     Each item
@@ -298,6 +324,14 @@ export default function PackDetailPage() {
                     value={sameSize}
                     onValueChange={(value) => {
                       setSameSize(value)
+                      trackStoreEvent("size_selected", {
+                        metadata: {
+                          item_type: "pack",
+                          pack_id: pack.id,
+                          size: value,
+                          mode: "same_size",
+                        },
+                      })
                       setSelections((current) => {
                         const next = { ...current }
                         components.forEach((component) => {
@@ -343,7 +377,18 @@ export default function PackDetailPage() {
                       <div className="grid gap-3 sm:grid-cols-2">
                         <Select
                           value={selection.color}
-                          onValueChange={(value) => updateSelection(component.id, { color: value })}
+                          onValueChange={(value) => {
+                            updateSelection(component.id, { color: value })
+                            trackStoreEvent("color_selected", {
+                              product_id: component.product_id,
+                              metadata: {
+                                item_type: "pack_component",
+                                pack_id: pack.id,
+                                component_id: component.id,
+                                color: value,
+                              },
+                            })
+                          }}
                           disabled={Boolean(component.color) || isUnavailable}
                         >
                           <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
@@ -360,7 +405,19 @@ export default function PackDetailPage() {
 
                         <Select
                           value={selection.size}
-                          onValueChange={(value) => updateSelection(component.id, { size: value })}
+                          onValueChange={(value) => {
+                            updateSelection(component.id, { size: value })
+                            trackStoreEvent("size_selected", {
+                              product_id: component.product_id,
+                              metadata: {
+                                item_type: "pack_component",
+                                pack_id: pack.id,
+                                component_id: component.id,
+                                size: value,
+                                color: selection.color,
+                              },
+                            })
+                          }}
                           disabled={sameSizeMode || Boolean(component.size) || isUnavailable}
                         >
                           <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
