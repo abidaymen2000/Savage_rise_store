@@ -159,6 +159,7 @@ export interface HeaderVideo {
   subtitle?: string | null
   description?: string | null
   video: HeaderVideoAsset
+  image?: HeaderVideoAsset | null
 }
 
 export interface DropCountdown {
