@@ -30,6 +30,8 @@ import type {
   LoyaltyQuote,
   LoyaltyQuoteRequest,
   HeaderVideo,
+  DropCountdown,
+  DropNotificationStatus,
   VlogChapter,
   VlogComment,
   VlogCommentCreate,
@@ -380,6 +382,30 @@ export const api = {
 
   async getHeaderVideo(): Promise<HeaderVideo> {
     return fetchApi<HeaderVideo>("/storefront/header-video")
+  },
+
+  async getDropCountdown(): Promise<DropCountdown> {
+    return fetchApi<DropCountdown>("/storefront/drop-countdown")
+  },
+
+  async getDropNotificationStatus(): Promise<DropNotificationStatus> {
+    return fetchApi<DropNotificationStatus>("/storefront/drop-countdown/notification-status", {
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async subscribeDropNotification(): Promise<DropNotificationStatus> {
+    return fetchApi<DropNotificationStatus>("/storefront/drop-countdown/notify-me", {
+      method: "POST",
+      headers: getAuthHeaders(),
+    })
+  },
+
+  async unsubscribeDropNotification(): Promise<DropNotificationStatus> {
+    return fetchApi<DropNotificationStatus>("/storefront/drop-countdown/notify-me", {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    })
   },
 
   async getPacks(skip = 0, limit = 20): Promise<Pack[]> {

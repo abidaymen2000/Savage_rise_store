@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackMetaPixelEvent } from "@/lib/meta-pixel";
 
 export default function VerifySuccess() {
   const router = useRouter();
@@ -23,6 +24,10 @@ export default function VerifySuccess() {
         if (token) {
           localStorage.setItem("savage_rise_token", token);
           await refreshUser();
+          trackMetaPixelEvent("CompleteRegistration", {
+            content_name: "Verified store account",
+            status: true,
+          });
 
           params.delete("access_token");
           params.delete("token");
