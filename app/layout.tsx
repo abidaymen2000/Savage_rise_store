@@ -1,4 +1,5 @@
 import type React from "react"
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { Playfair_Display, Inter } from 'next/font/google'
 import "./globals.css"
@@ -47,7 +48,9 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="font-inter bg-black text-white">
         <MetaPixel />
-        <StoreAnalytics />
+        <Suspense fallback={null}>
+          <StoreAnalytics />
+        </Suspense>
         <AuthProvider>
           <CartProvider>
             <EntranceWrapper>

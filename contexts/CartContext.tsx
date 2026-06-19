@@ -334,14 +334,59 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   const updateQuantity = (productId: string, color: string, size: string, quantity: number) => {
+    const item = state.items.find(
+      (cartItem) =>
+        cartItem.product.id === productId &&
+        cartItem.selectedVariant.color === color &&
+        cartItem.selectedSize === size,
+    )
+    trackStoreEvent("cart_quantity_changed", {
+      product_id: productId,
+      event_category: "cart",
+      action_target: "product_quantity",
+      metadata: {
+        item_type: "product",
+        product_name: item?.product.name,
+        color,
+        size,
+        previous_quantity: item?.quantity,
+        next_quantity: quantity,
+        unit_price: item?.product.price,
+      },
+    })
     dispatch({ type: "UPDATE_QUANTITY", payload: { productId, color, size, quantity } })
   }
 
   const updatePackQuantity = (packId: string, selectionKey: string, quantity: number) => {
+    const item = state.packItems.find(
+      (cartItem) => cartItem.pack.id === packId && getPackSelectionKey(cartItem.selections) === selectionKey,
+    )
+    trackStoreEvent("cart_quantity_changed", {
+      event_category: "cart",
+      action_target: "pack_quantity",
+      metadata: {
+        item_type: "pack",
+        pack_id: packId,
+        pack_title: item?.pack.title,
+        previous_quantity: item?.quantity,
+        next_quantity: quantity,
+        items: item?.selections,
+      },
+    })
     dispatch({ type: "UPDATE_PACK_QUANTITY", payload: { packId, selectionKey, quantity } })
   }
 
   const clearCart = () => {
+    trackStoreEvent("cart_cleared", {
+      event_category: "cart",
+      action_target: "cart",
+      metadata: {
+        product_item_count: state.items.length,
+        pack_item_count: state.packItems.length,
+        item_count: state.itemCount,
+        cart_total: state.total,
+      },
+    })
     dispatch({ type: "CLEAR_CART" })
   }
 

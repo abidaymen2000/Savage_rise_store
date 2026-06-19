@@ -524,6 +524,21 @@ export type StoreAnalyticsEventName =
   | "color_selected"
   | "wishlist_added"
   | "button_clicked"
+  | "form_submitted"
+  | "form_field_changed"
+  | "cart_quantity_changed"
+  | "cart_cleared"
+  | "session_started"
+  | "session_heartbeat"
+  | "session_ended"
+  | "page_hidden"
+  | "page_visible"
+  | "page_engagement"
+  | "page_exited"
+  | "user_activity"
+  | "user_idle"
+  | "form_field_focused"
+  | "scroll_depth_reached"
 
 export interface StoreAnalyticsEventPayload {
   event_name: StoreAnalyticsEventName | string
@@ -531,9 +546,16 @@ export interface StoreAnalyticsEventPayload {
   session_id?: string | null
   product_id?: string | null
   order_id?: string | null
+  event_category?: string | null
+  page_path?: string | null
+  page_title?: string | null
+  action_target?: string | null
+  device_type?: string | null
   metadata?: Record<string, unknown>
   referrer?: string | null
   source?: string | null
+  utm_source?: string | null
+  utm_medium?: string | null
   utm_campaign?: string | null
   has_account?: boolean
 }
