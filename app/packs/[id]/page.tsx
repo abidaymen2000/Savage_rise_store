@@ -90,10 +90,23 @@ export default function PackDetailPage() {
           if (product) productMap[product.id] = product
         })
 
+        const unlockedColorSets = components
+          .filter((component) => !component.color)
+          .map((component) => getColorOptions(productMap[component.product_id]))
+
+        const commonColors =
+          unlockedColorSets.length > 0
+            ? unlockedColorSets.reduce<string[]>(
+                (common, colors) => common.filter((color) => colors.includes(color)),
+                unlockedColorSets[0] ?? [],
+              )
+            : []
+        const defaultColor = commonColors[0]
+
         const initialSelections: Record<string, Selection> = {}
         components.forEach((component) => {
           const product = productMap[component.product_id]
-          const color = component.color || product?.variants?.[0]?.color || ""
+          const color = component.color || defaultColor || product?.variants?.[0]?.color || ""
           const sizes = component.size ? [component.size] : getSizeOptions(product, color)
           initialSelections[component.id] = {
             color,
@@ -163,13 +176,24 @@ export default function PackDetailPage() {
   const updateSelection = (componentId: string, updates: Partial<Selection>) => {
     setSelections((current) => {
       const previous = current[componentId] ?? { color: "", size: "" }
-      const next = { ...previous, ...updates }
+
       if (updates.color && updates.color !== previous.color) {
-        const component = components.find((item) => item.id === componentId)
-        const product = component ? products[component.product_id] : null
-        next.size = getSizeOptions(product, updates.color)[0] || ""
+        const next = { ...current }
+        components.forEach((component) => {
+          if (component.color) return
+          const product = products[component.product_id]
+          if (!getColorOptions(product).includes(updates.color!)) return
+          const existing = next[component.id] ?? { color: "", size: "" }
+          const sizeOptions = getSizeOptions(product, updates.color!)
+          next[component.id] = {
+            color: updates.color!,
+            size: sizeOptions.includes(existing.size) ? existing.size : sizeOptions[0] || "",
+          }
+        })
+        return next
       }
-      return { ...current, [componentId]: next }
+
+      return { ...current, [componentId]: { ...previous, ...updates } }
     })
   }
 
