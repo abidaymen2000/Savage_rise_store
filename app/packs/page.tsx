@@ -119,9 +119,9 @@ export default function PacksPage() {
       <div className="container mx-auto px-4 py-10">
         <div className="mb-10 max-w-3xl">
           <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-gold">Savage Rise Packs</p>
-          <h1 className="font-playfair text-4xl font-bold sm:text-5xl">Curated sets, better value.</h1>
+          <h1 className="font-playfair text-4xl font-bold sm:text-5xl">Build the full look, unlock the better price.</h1>
           <p className="mt-4 leading-7 text-gray-400">
-            Choose ready-made combinations from Savage Rise and configure the size of each item before checkout.
+            Same-color sets, separate size selection, and a clearer path from standout piece to full outfit.
           </p>
         </div>
 
@@ -138,7 +138,7 @@ export default function PacksPage() {
             <p className="text-gray-400">No active packs available yet.</p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-6">
             {sortedPacks.map((pack) => {
               const previewItems = getPackPreviewItems(pack, productLookup)
               const mediaItems =
@@ -150,57 +150,68 @@ export default function PacksPage() {
                 <Link
                   key={pack.id}
                   href={`/packs/${pack.id}`}
-                  className="group overflow-hidden rounded-lg border border-gold/20 bg-black transition-colors hover:border-gold/70"
+                  className="group overflow-hidden rounded-2xl border border-gold/20 bg-black transition-colors hover:border-gold/70"
                 >
-                  <div
-                    className={`relative grid aspect-[4/3] min-h-[220px] overflow-hidden bg-gray-900 ${
-                      mediaItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
-                    }`}
-                  >
-                    {mediaItems.slice(0, 4).map((item, index) => (
-                      <div key={`${item.id}-${index}`} className="relative min-h-[220px] overflow-hidden">
-                        <Image
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.name}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-black/10" />
-                        {(item.color || item.qty > 1) && (
-                          <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                            {item.color && (
-                              <span
-                                className="h-3 w-3 rounded-full border border-white/40"
-                                style={{ backgroundColor: getColorSwatch(item.color) }}
-                              />
-                            )}
-                            <span>{item.color || item.name}</span>
-                            {item.qty > 1 && <span className="text-gold">x{item.qty}</span>}
-                          </div>
-                        )}
+                  <div className="grid gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                    <div
+                      className={`relative grid min-h-[260px] overflow-hidden bg-gray-900 ${
+                        mediaItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                      }`}
+                    >
+                      {mediaItems.slice(0, 4).map((item, index) => (
+                        <div key={`${item.id}-${index}`} className="relative min-h-[260px] overflow-hidden">
+                          <Image
+                            src={item.image || "/placeholder.svg"}
+                            alt={item.name}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black/10" />
+                          {(item.color || item.qty > 1) && (
+                            <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                              {item.color && (
+                                <span
+                                  className="h-3 w-3 rounded-full border border-white/40"
+                                  style={{ backgroundColor: getColorSwatch(item.color) }}
+                                />
+                              )}
+                              <span>{item.color || item.name}</span>
+                              {item.qty > 1 && <span className="text-gold">x{item.qty}</span>}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+                        {getDiscountLabel(pack)}
                       </div>
-                    ))}
-                    <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
-                      {getDiscountLabel(pack)}
+                      {mediaItems.length > 4 && (
+                        <div className="absolute bottom-4 right-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                          +{mediaItems.length - 4}
+                        </div>
+                      )}
                     </div>
-                    {mediaItems.length > 4 && (
-                      <div className="absolute bottom-4 right-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                        +{mediaItems.length - 4}
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-4 p-5">
-                    <div>
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">Pack</p>
-                      <h2 className="text-xl font-semibold transition-colors group-hover:text-gold">{pack.title}</h2>
-                      {pack.description && <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-400">{pack.description}</p>}
-                    </div>
-                    <div className="flex items-end justify-between gap-3">
+
+                    <div className="flex flex-col justify-between gap-5 p-6">
                       <div>
-                        <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
-                        <p className="text-2xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-gold">The set offer</p>
+                        <h2 className="text-2xl font-semibold transition-colors group-hover:text-gold">{pack.title}</h2>
+                        {pack.description && <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">{pack.description}</p>}
+                        <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-300">
+                          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Choose each item&apos;s size separately</span>
+                          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Same-color set</span>
+                        </div>
                       </div>
-                      <Button className="bg-gold text-black hover:bg-gold/90">Configure</Button>
+
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
+                          <p className="text-3xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
+                          {(pack.savings_value ?? 0) > 0 && (
+                            <p className="mt-1 text-sm font-medium text-green-300">Save {formatPrice(pack.savings_value ?? 0)}</p>
+                          )}
+                        </div>
+                        <Button className="bg-gold text-black hover:bg-gold/90">Build your set</Button>
+                      </div>
                     </div>
                   </div>
                 </Link>

@@ -13,8 +13,18 @@ import { api } from "@/lib/api"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
-import type { Product, Variant, Review, WishlistItem } from "@/types/api"
+import type { Pack, Product, Variant, Review, WishlistItem } from "@/types/api"
 import { getMetaContentId, getVariantSizeByName } from "@/lib/meta-content"
+import {
+  buildPackSelections,
+  findCompanionComponents,
+  findRelatedPack,
+  getAvailableSizesForColor,
+  getPackPrice,
+  getPackSavingsLabel,
+  getProductColorOptions,
+  getProductImageForColor,
+} from "@/lib/pack-offers"
 import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -37,7 +47,10 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState<string>("")
   const [quantity, setQuantity] = useState(1)
   const [currentVariant, setCurrentVariant] = useState<Variant | null>(null)
-  const { addToCart } = useCart()
+  const [relatedPack, setRelatedPack] = useState<Pack | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Record<string, Product>>({})
+  const [relatedPackSizes, setRelatedPackSizes] = useState<Record<string, string>>({})
+  const { addToCart, addPackToCart } = useCart()
 
   // Wishlist state
   const [userWishlist, setUserWishlist] = useState<WishlistItem[]>([])
@@ -58,7 +71,12 @@ export default function ProductDetailPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await api.getProduct(productId)
+      const [data, reviews, stats, packsData] = await Promise.all([
+        api.getProduct(productId),
+        api.getProductReviews(productId),
+        api.getReviewStats(productId),
+        api.getPacks(0, 50).catch(() => [] as Pack[]),
+      ])
       setProduct(data)
 
       // Set default color and variant if available
@@ -76,14 +94,27 @@ export default function ProductDetailPage() {
         }
       }
 
-      // Fetch reviews and stats
-      setLoadingReviews(true)
-      const [reviews, stats] = await Promise.all([
-        api.getProductReviews(productId),
-        api.getReviewStats(productId),
-      ])
       setProductReviews(reviews)
       setReviewStats(stats)
+
+      const nextRelatedPack = findRelatedPack(productId, packsData)
+      setRelatedPack(nextRelatedPack)
+
+      if (nextRelatedPack) {
+        const companionIds = findCompanionComponents(nextRelatedPack, productId).map((component) => component.product_id)
+        const companionProducts = await Promise.all(
+          companionIds.map((companionId) => api.getProduct(companionId).catch(() => null)),
+        )
+
+        const companionMap = companionProducts.reduce<Record<string, Product>>((map, companionProduct) => {
+          if (companionProduct) map[companionProduct.id] = companionProduct
+          return map
+        }, {})
+
+        setRelatedProducts(companionMap)
+      } else {
+        setRelatedProducts({})
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading product or reviews")
     } finally {
@@ -173,10 +204,78 @@ export default function ProductDetailPage() {
     }
   }, [product, selectedColor])
 
+  useEffect(() => {
+    if (!product || !relatedPack) return
+    setRelatedPackSizes((current) => {
+      const nextSizes: Record<string, string> = {}
+
+      for (const component of findCompanionComponents(relatedPack, product.id)) {
+        const companionProduct = relatedProducts[component.product_id]
+        const sameColorAvailable = getProductColorOptions(companionProduct).includes(selectedColor)
+        const color = component.color || (sameColorAvailable ? selectedColor : companionProduct?.variants?.[0]?.color || "")
+        const sizeOptions = getAvailableSizesForColor(companionProduct, color)
+        if (sizeOptions.length > 0) {
+          nextSizes[component.product_id] = sizeOptions.includes(current[component.product_id])
+            ? current[component.product_id]
+            : sizeOptions[0]
+        }
+      }
+
+      return nextSizes
+    })
+  }, [product, relatedPack, relatedProducts, selectedColor])
+
   const handleAddToCart = () => {
     if (product && isProductInStock(product) && currentVariant && selectedSize) {
       addToCart(product, currentVariant, selectedSize, quantity)
     }
+  }
+
+  const handleAddRelatedPack = () => {
+    if (!product || !relatedPack || !currentVariant || !selectedSize) return
+
+    const companionOverrides = findCompanionComponents(relatedPack, product.id).reduce<Record<string, { color: string; size: string }>>(
+      (acc, component) => {
+        const companionProduct = relatedProducts[component.product_id]
+        const sameColorAvailable = getProductColorOptions(companionProduct).includes(selectedColor)
+        const color = component.color || (sameColorAvailable ? selectedColor : companionProduct?.variants?.[0]?.color || "")
+        const size = relatedPackSizes[component.product_id] || getAvailableSizesForColor(companionProduct, color)[0] || ""
+        if (color && size) {
+          acc[component.product_id] = { color, size }
+        }
+        return acc
+      },
+      {
+        [product.id]: {
+          color: selectedColor,
+          size: selectedSize,
+        },
+      },
+    )
+
+    const selections = buildPackSelections(
+      relatedPack,
+      {
+        [product.id]: product,
+        ...relatedProducts,
+      },
+      {
+        preferredColor: selectedColor,
+        overrides: companionOverrides,
+      },
+    )
+
+    if (!selections) return
+
+    addPackToCart(relatedPack, selections, quantity)
+    trackStoreEvent("button_clicked", {
+      product_id: product.id,
+      metadata: {
+        action: "complete_the_look_added",
+        pack_id: relatedPack.id,
+        quantity,
+      },
+    })
   }
 
   const handleStarClick = (rating: number) => {
@@ -223,6 +322,16 @@ export default function ProductDetailPage() {
   const availableSizes = product && productInStock ? getAvailableSizes(product, selectedColor) : []
   const currentStock =
     productInStock && product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
+  const companionComponents = product ? findCompanionComponents(relatedPack, product.id) : []
+  const completeLookReady =
+    companionComponents.length > 0 &&
+    companionComponents.every((component) => {
+      const companionProduct = relatedProducts[component.product_id]
+      const sameColorAvailable = getProductColorOptions(companionProduct).includes(selectedColor)
+      const color = component.color || (sameColorAvailable ? selectedColor : companionProduct?.variants?.[0]?.color || "")
+      const selectedCompanionSize = relatedPackSizes[component.product_id]
+      return Boolean(color && selectedCompanionSize)
+    })
 
   // Get current images to display
   const currentImages = currentVariant?.images || []
@@ -429,6 +538,97 @@ export default function ProductDetailPage() {
             </div>
             )}
 
+            {relatedPack && companionComponents.length > 0 && (
+              <div className="rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Complete the look</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-900">
+                    <Image
+                      src={displayImages[0]?.url || "/placeholder.svg"}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="text-center text-2xl font-semibold text-gold">+</div>
+                  {companionComponents.map((component) => {
+                    const companionProduct = relatedProducts[component.product_id]
+                    if (!companionProduct) return null
+
+                    const sameColorAvailable = getProductColorOptions(companionProduct).includes(selectedColor)
+                    const companionColor = component.color || (sameColorAvailable ? selectedColor : companionProduct.variants?.[0]?.color || "")
+                    const companionSizes = getAvailableSizesForColor(companionProduct, companionColor)
+
+                    return (
+                      <div key={component.id} className="space-y-3">
+                        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-900">
+                          <Image
+                            src={getProductImageForColor(companionProduct, companionColor)}
+                            alt={companionProduct.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-white">{companionProduct.name}</p>
+                          <p className="text-sm text-gray-400">
+                            {sameColorAvailable ? `Matching color: ${selectedColor}` : `Set color: ${companionColor}`}
+                          </p>
+                        </div>
+                        {companionSizes.length > 0 && !component.size && (
+                          <Select
+                            value={relatedPackSizes[component.product_id] || companionSizes[0]}
+                            onValueChange={(value) =>
+                              setRelatedPackSizes((current) => ({
+                                ...current,
+                                [component.product_id]: value,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="bg-gray-950 border-gray-700 text-white">
+                              <SelectValue placeholder="Choose matching size" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-900 border-gray-700">
+                              {companionSizes.map((size) => (
+                                <SelectItem key={size} value={size} className="text-white">
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-5 rounded-xl border border-white/10 bg-black/50 p-4">
+                  <p className="text-sm uppercase tracking-[0.18em] text-gray-500">{relatedPack.title}</p>
+                  <p className="mt-2 text-sm text-gray-300">Buy it separately or complete the set and save instantly.</p>
+                  <div className="mt-4 flex flex-wrap items-end gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 line-through">
+                        {formatPrice((relatedPack.original_price ?? product.price) * quantity)}
+                      </p>
+                      <p className="text-3xl font-bold text-gold">{formatPrice(getPackPrice(relatedPack) * quantity)}</p>
+                    </div>
+                    <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-300">
+                      Save {formatPrice(getPackSavingsLabel(relatedPack) * quantity)}
+                    </p>
+                  </div>
+                  <p className="mt-3 text-sm text-gray-400">Same-color set. Choose each item&apos;s size separately.</p>
+                </div>
+
+                <Button
+                  onClick={handleAddRelatedPack}
+                  disabled={!productInStock || !selectedSize || currentStock === 0 || !completeLookReady}
+                  className="mt-5 w-full bg-white text-black hover:bg-gold"
+                >
+                  Get the complete set - {formatPrice(getPackPrice(relatedPack) * quantity)}
+                </Button>
+              </div>
+            )}
+
             {/* Actions */}
             <div className="flex gap-4">
               <Button
@@ -437,7 +637,7 @@ export default function ProductDetailPage() {
                 className="flex-1 bg-gold text-black hover:bg-gold/90 font-semibold py-3"
               >
                 <ShoppingBag className="h-5 w-5 mr-2" />
-                Add to cart
+                Buy this item only - {formatPrice(product.price * quantity)}
               </Button>
               <WishlistButton productId={product.id} className="h-12 w-12" />
             </div>

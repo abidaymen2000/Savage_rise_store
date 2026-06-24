@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShoppingBag, Search, Filter } from "lucide-react"
 import { api } from "@/lib/api"
+import ProductSetBadge from "@/components/ProductSetBadge"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
-import type { Product } from "@/types/api"
+import type { Pack, Product } from "@/types/api"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
+import { findRelatedPack } from "@/lib/pack-offers"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -138,6 +140,7 @@ export default function ProductsPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   const [products, setProducts] = useState<Product[]>([])
+  const [packs, setPacks] = useState<Pack[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -150,11 +153,14 @@ export default function ProductsPage() {
     try {
       setLoading(true)
       setError(null)
-      const data =
+      const [productsData, packsData] = await Promise.all([
         genderFilter === "all"
-          ? await api.getProducts(0, 50)
-          : await api.searchProducts({ gender: genderFilter }, 0, 50)
-      setProducts(data)
+          ? api.getProducts(0, 50)
+          : api.searchProducts({ gender: genderFilter }, 0, 50),
+        api.getPacks(0, 50).catch(() => [] as Pack[]),
+      ])
+      setProducts(productsData)
+      setPacks(packsData)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error loading products"
       setError(errorMessage)
@@ -319,6 +325,7 @@ export default function ProductsPage() {
             {filteredAndSortedProducts.map((product) => {
               const productInStock = isProductInStock(product)
               const imageAlt = getProductImageAlt(product)
+              const relatedPack = findRelatedPack(product.id, packs)
               const colors = product.variants?.map((variant) => variant.color) ?? []
               const sizes = Array.from(
                 new Set(
@@ -367,6 +374,12 @@ export default function ProductsPage() {
                       )}
                       <p className="text-gold text-lg font-bold">{formatPrice(product.price)}</p>
                     </Link>
+
+                    {relatedPack && (
+                      <div onClick={(event) => event.preventDefault()}>
+                        <ProductSetBadge pack={relatedPack} />
+                      </div>
+                    )}
 
                     <div className="space-y-3 border-t border-white/10 pt-4">
                       {colors.length > 0 && (

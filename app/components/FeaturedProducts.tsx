@@ -5,12 +5,14 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Package, ShoppingBag } from "lucide-react"
 import { api } from "@/lib/api"
+import ProductSetBadge from "@/components/ProductSetBadge"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Pack, Product, WishlistItem } from "@/types/api" // Added WishlistItem import
 import Link from "next/link"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
+import { findRelatedPack } from "@/lib/pack-offers"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 
@@ -383,6 +385,7 @@ export default function FeaturedProducts() {
             const productInStock = isProductInStock(product)
             const imageAlt = getProductImageAlt(product)
             const colors = product.variants?.map((variant) => variant.color) ?? []
+            const relatedPack = findRelatedPack(product.id, packs)
             const sizes = Array.from(
               new Set(
                 product.variants?.flatMap((variant) =>
@@ -420,18 +423,24 @@ export default function FeaturedProducts() {
                   </Button>
                 </div>
 
-                <div className="space-y-4 p-5">
-                  <Link href={`/products/${product.id}`}>
-                    <h3 className="text-xl font-semibold mb-2 group-hover:text-gold transition-colors line-clamp-2">
-                      {product.name}
-                    </h3>
-                    {product.description && (
-                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                    )}
-                    <p className="text-gold text-lg font-bold">{formatPrice(product.price)}</p>
-                  </Link>
+                  <div className="space-y-4 p-5">
+                    <Link href={`/products/${product.id}`}>
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-gold transition-colors line-clamp-2">
+                        {product.name}
+                      </h3>
+                      {product.description && (
+                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
+                      )}
+                      <p className="text-gold text-lg font-bold">{formatPrice(product.price)}</p>
+                    </Link>
 
-                  <div className="space-y-3 border-t border-white/10 pt-4">
+                    {relatedPack && (
+                      <div onClick={(event) => event.preventDefault()}>
+                        <ProductSetBadge pack={relatedPack} />
+                      </div>
+                    )}
+
+                    <div className="space-y-3 border-t border-white/10 pt-4">
                     {colors.length > 0 && (
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Colors</span>

@@ -7,17 +7,28 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShoppingBag, Plus, Minus, X, Truck, Ticket, Loader2, ChevronDown } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
+import {
+  buildPackSelections,
+  findCartUpgradeCandidate,
+  getAvailableSizesForColor,
+  getPackPrice,
+  getPackSavingsLabel,
+  getProductColorOptions,
+  getProductImageForColor,
+} from "@/lib/pack-offers"
 import { trackStoreEvent } from "@/lib/store-analytics"
-import type { ApplyResponse, CartPackItem, OrderItem } from "@/types/api"
+import type { ApplyResponse, CartPackItem, OrderItem, Pack, Product } from "@/types/api"
+import { formatPrice } from "@/lib/utils"
 
 export default function Cart() {
   const router = useRouter()
-  const { state, updateQuantity, removeFromCart, updatePackQuantity, removePackFromCart, getPackCartKey } = useCart()
+  const { state, addPackToCart, updateQuantity, removeFromCart, updatePackQuantity, removePackFromCart, getPackCartKey } = useCart()
   const { isAuthenticated } = useAuth()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -31,6 +42,10 @@ export default function Cart() {
   const [promoLoading, setPromoLoading] = useState(false)
   const [promoError, setPromoError] = useState<string | null>(null)
   const [showPromo, setShowPromo] = useState(false)
+  const [packs, setPacks] = useState<Pack[]>([])
+  const [upgradeCompanionProduct, setUpgradeCompanionProduct] = useState<Product | null>(null)
+  const [upgradeSelection, setUpgradeSelection] = useState<{ color: string; size: string } | null>(null)
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
 
   // Items -> OrderItem[]
   const orderItems: OrderItem[] = useMemo(
@@ -60,6 +75,7 @@ export default function Cart() {
   const totalAfterDiscount = Math.max(0, subtotal - discount)
 
   const grandTotal = totalAfterDiscount
+  const upgradeCandidate = useMemo(() => findCartUpgradeCandidate(state.items, state.packItems, packs), [state.items, state.packItems, packs])
 
   const handleQuantityChange = (productId: string, color: string, size: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -173,6 +189,90 @@ export default function Cart() {
     })
     setIsOpen(false)
     router.push("/checkout")
+  }
+
+  useEffect(() => {
+    if (!isOpen || state.items.length === 0) return
+
+    let isMounted = true
+
+    async function loadUpgradePack() {
+      setUpgradeLoading(true)
+      try {
+        const packsData = await api.getPacks(0, 50).catch(() => [] as Pack[])
+        if (!isMounted) return
+
+        setPacks(packsData)
+
+        const nextCandidate = findCartUpgradeCandidate(state.items, state.packItems, packsData)
+        if (!nextCandidate) {
+          setUpgradeCompanionProduct(null)
+          setUpgradeSelection(null)
+          return
+        }
+
+        const companionProduct = await api.getProduct(nextCandidate.companion.product_id).catch(() => null)
+        if (!isMounted) return
+
+        setUpgradeCompanionProduct(companionProduct)
+
+        if (companionProduct) {
+          const sameColorAvailable = getProductColorOptions(companionProduct).includes(nextCandidate.item.selectedVariant.color)
+          const color = nextCandidate.companion.color || (sameColorAvailable ? nextCandidate.item.selectedVariant.color : companionProduct.variants?.[0]?.color || "")
+          const size = nextCandidate.companion.size || getAvailableSizesForColor(companionProduct, color)[0] || ""
+          setUpgradeSelection({ color, size })
+        } else {
+          setUpgradeSelection(null)
+        }
+      } finally {
+        if (isMounted) setUpgradeLoading(false)
+      }
+    }
+
+    loadUpgradePack()
+
+    return () => {
+      isMounted = false
+    }
+  }, [isOpen, state.items, state.packItems])
+
+  const handleUpgradeToSet = () => {
+    if (!upgradeCandidate || !upgradeCompanionProduct || !upgradeSelection) return
+
+    const selections = buildPackSelections(
+      upgradeCandidate.pack,
+      {
+        [upgradeCandidate.item.product.id]: upgradeCandidate.item.product,
+        [upgradeCompanionProduct.id]: upgradeCompanionProduct,
+      },
+      {
+        preferredColor: upgradeCandidate.item.selectedVariant.color,
+        overrides: {
+          [upgradeCandidate.item.product.id]: {
+            color: upgradeCandidate.item.selectedVariant.color,
+            size: upgradeCandidate.item.selectedSize,
+          },
+          [upgradeCompanionProduct.id]: upgradeSelection,
+        },
+      },
+    )
+
+    if (!selections) return
+
+    addPackToCart(upgradeCandidate.pack, selections, upgradeCandidate.item.quantity)
+    removeFromCart(
+      upgradeCandidate.item.product.id,
+      upgradeCandidate.item.selectedVariant.color,
+      upgradeCandidate.item.selectedSize,
+    )
+    trackStoreEvent("button_clicked", {
+      product_id: upgradeCandidate.item.product.id,
+      metadata: {
+        action: "cart_upgrade_to_set",
+        pack_id: upgradeCandidate.pack.id,
+        quantity: upgradeCandidate.item.quantity,
+      },
+    })
   }
 
   return (
@@ -350,6 +450,74 @@ export default function Cart() {
                       </div>
                     )
                   })}
+
+                  {upgradeLoading && (
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-gray-400">
+                      Looking for a matching set...
+                    </div>
+                  )}
+
+                  {upgradeCandidate && upgradeCompanionProduct && upgradeSelection && (
+                    <div className="rounded-xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Complete your set</p>
+                      <div className="mt-3 flex gap-3">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-900">
+                          <Image
+                            src={getProductImageForColor(upgradeCompanionProduct, upgradeSelection.color)}
+                            alt={upgradeCompanionProduct.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-white">{upgradeCandidate.pack.title}</p>
+                          <p className="mt-1 text-sm text-gray-300">
+                            Add the matching {upgradeCompanionProduct.name.toLowerCase()} and save{" "}
+                            {formatPrice(getPackSavingsLabel(upgradeCandidate.pack) * upgradeCandidate.item.quantity)}.
+                          </p>
+                          <p className="mt-2 text-xs text-gray-400">
+                            Same-color set. Your current {upgradeCandidate.item.selectedSize} stays selected.
+                          </p>
+                        </div>
+                      </div>
+
+                      {!upgradeCandidate.companion.size && (
+                        <div className="mt-4">
+                          <Select
+                            value={upgradeSelection.size}
+                            onValueChange={(value) =>
+                              setUpgradeSelection((current) => (current ? { ...current, size: value } : current))
+                            }
+                          >
+                            <SelectTrigger className="border-gray-700 bg-gray-950 text-white">
+                              <SelectValue placeholder="Choose matching size" />
+                            </SelectTrigger>
+                            <SelectContent className="border-gray-700 bg-gray-900">
+                              {getAvailableSizesForColor(upgradeCompanionProduct, upgradeSelection.color).map((size) => (
+                                <SelectItem key={size} value={size} className="text-white">
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      <div className="mt-4 flex items-end justify-between gap-3">
+                        <div>
+                          <p className="text-sm text-gray-500 line-through">
+                            {formatPrice((upgradeCandidate.pack.original_price ?? 0) * upgradeCandidate.item.quantity)}
+                          </p>
+                          <p className="text-xl font-bold text-gold">
+                            {formatPrice(getPackPrice(upgradeCandidate.pack) * upgradeCandidate.item.quantity)}
+                          </p>
+                        </div>
+                        <Button className="bg-gold text-black hover:bg-gold/90" onClick={handleUpgradeToSet}>
+                          Upgrade to the set
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <Separator className="bg-gray-800" />
