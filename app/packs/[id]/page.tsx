@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, Check, Loader2, Package, ShoppingBag } from "lucide-react"
+import { ArrowLeft, Check, Loader2, ShoppingBag, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -57,6 +57,7 @@ export default function PackDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [added, setAdded] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -243,15 +244,39 @@ export default function PackDetailPage() {
               {components.map((component) => {
                 const product = products[component.product_id]
                 return (
-                  <div key={component.id} className="flex gap-3 rounded-md border border-white/10 bg-gray-900 p-3">
+                  <button
+                    key={component.id}
+                    type="button"
+                    onClick={() => {
+                      if (!product) return
+
+                      setSelectedProduct(product)
+                      trackStoreEvent("button_clicked", {
+                        product_id: product.id,
+                        metadata: {
+                          action: "pack_component_details_opened",
+                          pack_id: pack.id,
+                          component_id: component.id,
+                        },
+                      })
+                    }}
+                    disabled={!product}
+                    className="group flex w-full gap-3 rounded-md border border-white/10 bg-gray-900 p-3 text-left transition hover:border-gold/60 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-black">
-                      <Image src={getProductImage(product, component.product.image_url)} alt={component.product.name} fill className="object-cover" />
+                      <Image
+                        src={getProductImage(product, component.product.image_url)}
+                        alt={component.product.name}
+                        fill
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-white">{component.product.name}</p>
                       <p className="text-sm text-gray-400">Qty {getComponentQty(component)}</p>
+                      <p className="mt-1 text-xs font-medium text-gold">View details</p>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -449,6 +474,105 @@ export default function PackDetailPage() {
           </div>
         </div>
       </div>
+
+      {selectedProduct && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedProduct(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pack-product-title"
+            onClick={(event) => event.stopPropagation()}
+            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-gray-950 shadow-2xl"
+          >
+            <button
+              type="button"
+              aria-label="Close product details"
+              onClick={() => setSelectedProduct(null)}
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-gold hover:text-black"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="grid md:grid-cols-2">
+              <div className="relative min-h-[400px] bg-black md:min-h-[600px]">
+                <Image
+                  src={getProductImage(selectedProduct)}
+                  alt={selectedProduct.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="flex flex-col p-6 sm:p-8">
+                <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-gold">
+                  Included in this pack
+                </p>
+
+                <h2 id="pack-product-title" className="font-playfair text-3xl font-bold text-white">
+                  {selectedProduct.name}
+                </h2>
+
+                <p className="mt-4 text-2xl font-bold text-gold">{formatPrice(selectedProduct.price)}</p>
+
+                {selectedProduct.description && (
+                  <p className="mt-5 whitespace-pre-line leading-7 text-gray-300">
+                    {selectedProduct.description}
+                  </p>
+                )}
+
+                <div className="mt-6">
+                  <p className="mb-3 font-semibold text-white">Available colors</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProduct.variants?.map((variant) => (
+                      <span
+                        key={variant.color}
+                        className="rounded-full border border-white/15 bg-gray-900 px-3 py-1.5 text-sm text-gray-200"
+                      >
+                        {variant.color}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <p className="mb-3 font-semibold text-white">Available sizes</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from(
+                      new Set(
+                        selectedProduct.variants?.flatMap((variant) =>
+                          variant.sizes
+                            .filter((size) => size.stock > 0)
+                            .map((size) => size.size),
+                        ) ?? [],
+                      ),
+                    ).map((size) => (
+                      <span
+                        key={size}
+                        className="flex h-10 min-w-10 items-center justify-center rounded border border-white/15 bg-gray-900 px-3 text-sm text-white"
+                      >
+                        {size}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-auto pt-8">
+                  <Button
+                    type="button"
+                    onClick={() => setSelectedProduct(null)}
+                    className="w-full bg-gold text-black hover:bg-gold/90"
+                  >
+                    Continue configuring pack
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
