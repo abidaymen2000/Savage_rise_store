@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Heart, ShoppingBag, Search, Filter, ArrowLeft, Loader2 } from 'lucide-react'
 import { api } from "@/lib/api"
+import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
@@ -103,14 +104,9 @@ export default function CategoryPage() {
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return
 
-    if (product.variants && product.variants.length > 0) {
-      const firstVariant = product.variants[0]
-      if (firstVariant.sizes && firstVariant.sizes.length > 0) {
-        const firstAvailableSize = firstVariant.sizes.find((size) => size.stock > 0)
-        if (firstAvailableSize) {
-          addToCart(product, firstVariant, firstAvailableSize.size, 1)
-        }
-      }
+    const selection = getFirstAvailableVariantSelection(product)
+    if (selection) {
+      addToCart(product, selection.variant, selection.size.size, 1)
     }
   }
 

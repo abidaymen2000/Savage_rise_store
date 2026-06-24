@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
+import { getMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
@@ -234,13 +235,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    const metaContentId = getMetaContentId({
+      product,
+      variant,
+      selectedSize: size,
+    })
+
     trackMetaPixelEvent("AddToCart", {
-      content_ids: [product.id],
+      content_ids: metaContentId ? [metaContentId] : [product.id],
       content_name: product.name,
       content_type: "product",
       contents: [
         {
-          id: product.id,
+          id: metaContentId ?? product.id,
           quantity,
           item_price: product.price,
         },

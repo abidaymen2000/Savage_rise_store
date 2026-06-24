@@ -9,16 +9,19 @@ export interface ProductImage {
 export interface SizeStock {
   size: string
   stock: number
+  meta_content_id?: string | null
 }
 
 export interface Variant {
   color: string
   sizes: SizeStock[]
   images: ProductImage[]
+  meta_content_id?: string | null
 }
 
 export interface Product {
   id: string
+  meta_item_group_id?: string | null
   style_id: string
   name: string
   full_name: string

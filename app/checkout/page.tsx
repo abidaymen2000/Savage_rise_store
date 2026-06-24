@@ -18,6 +18,7 @@ import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
 import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote, PackOrderSelection } from "@/types/api"
+import { getCartItemMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
@@ -315,7 +316,7 @@ export default function CheckoutPage() {
   const pixelContents = useMemo(
     () => [
       ...cartState.items.map((item) => ({
-        id: item.product.id,
+        id: getCartItemMetaContentId(item) ?? item.product.id,
         quantity: item.quantity,
         item_price: item.product.price,
       })),

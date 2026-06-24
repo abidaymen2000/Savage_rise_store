@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Product } from "@/types/api"
+import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -226,15 +227,9 @@ export default function ProductsPage() {
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return
 
-    // Get the first available variant and size
-    if (product.variants && product.variants.length > 0) {
-      const firstVariant = product.variants[0]
-      if (firstVariant.sizes && firstVariant.sizes.length > 0) {
-        const firstAvailableSize = firstVariant.sizes.find((size) => size.stock > 0)
-        if (firstAvailableSize) {
-          addToCart(product, firstVariant, firstAvailableSize.size, 1)
-        }
-      }
+    const selection = getFirstAvailableVariantSelection(product)
+    if (selection) {
+      addToCart(product, selection.variant, selection.size.size, 1)
     }
   }
 

@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Product, Variant, Review, WishlistItem } from "@/types/api"
+import { getMetaContentId, getVariantSizeByName } from "@/lib/meta-content"
 import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -120,10 +121,28 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!product) return
+    if (product.variants.length > 0) {
+      if (!currentVariant) return
+      if (currentVariant.sizes.length > 0 && !selectedSize) return
+    }
+    const selectedVariantSize = getVariantSizeByName(currentVariant, selectedSize)
+    const metaContentId = getMetaContentId({
+      product,
+      variant: currentVariant,
+      size: selectedVariantSize,
+      selectedSize,
+    })
     trackMetaPixelEvent("ViewContent", {
-      content_ids: [product.id],
+      content_ids: metaContentId ? [metaContentId] : [product.id],
       content_name: product.name,
       content_type: "product",
+      contents: [
+        {
+          id: metaContentId ?? product.id,
+          quantity: 1,
+          item_price: product.price,
+        },
+      ],
       currency: "TND",
       value: product.price,
     })
@@ -137,7 +156,7 @@ export default function ProductDetailPage() {
         categories: product.categories,
       },
     })
-  }, [product])
+  }, [product, currentVariant, selectedSize])
 
   // Update current variant when color changes
   useEffect(() => {
