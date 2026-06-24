@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ShoppingBag, Search, Filter } from "lucide-react"
 import { api } from "@/lib/api"
 import ProductSetBadge from "@/components/ProductSetBadge"
+import { getColorSwatch } from "@/lib/color-swatches"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
@@ -19,18 +20,6 @@ import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
-
-function getColorSwatch(color: string) {
-  const normalized = color.toLowerCase()
-  if (normalized.includes("noir") || normalized.includes("black")) return "#050505"
-  if (normalized.includes("blanc") || normalized.includes("white")) return "#f5f1e8"
-  if (normalized.includes("gris") || normalized.includes("gray") || normalized.includes("grey")) return "#777"
-  if (normalized.includes("beige") || normalized.includes("cream")) return "#d8c7a1"
-  if (normalized.includes("bleu") || normalized.includes("blue")) return "#1f3f74"
-  if (normalized.includes("rouge") || normalized.includes("red")) return "#8f1d1d"
-  if (normalized.includes("vert") || normalized.includes("green")) return "#245c3b"
-  return "#d6b536"
-}
 
 function ProductVariantMedia({
   product,

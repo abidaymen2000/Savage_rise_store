@@ -6,21 +6,10 @@ import Link from "next/link"
 import { Loader2, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
+import { getColorSwatch } from "@/lib/color-swatches"
 import { formatPrice } from "@/lib/utils"
 import { trackStoreEvent } from "@/lib/store-analytics"
 import type { Pack, Product } from "@/types/api"
-
-function getColorSwatch(color: string) {
-  const normalized = color.toLowerCase()
-  if (normalized.includes("noir") || normalized.includes("black")) return "#050505"
-  if (normalized.includes("blanc") || normalized.includes("white")) return "#f5f1e8"
-  if (normalized.includes("gris") || normalized.includes("gray") || normalized.includes("grey")) return "#777"
-  if (normalized.includes("beige") || normalized.includes("cream")) return "#d8c7a1"
-  if (normalized.includes("bleu") || normalized.includes("blue")) return "#1f3f74"
-  if (normalized.includes("rouge") || normalized.includes("red")) return "#8f1d1d"
-  if (normalized.includes("vert") || normalized.includes("green")) return "#245c3b"
-  return "#d6b536"
-}
 
 function getDiscountLabel(pack: Pack) {
   return pack.discount_type === "percent"
