@@ -44,6 +44,18 @@ function getComponentQty(component: PackComponent) {
   return component.qty ?? 1
 }
 
+function getEffectiveSize(
+  component: PackComponent,
+  selection: Selection | undefined,
+  sameSizeMode: boolean,
+  effectiveSameSize: string,
+  commonSizes: string[],
+) {
+  if (component.size) return component.size
+  if (sameSizeMode && commonSizes.length > 0) return effectiveSameSize
+  return selection?.size ?? ""
+}
+
 export default function PackDetailPage() {
   const params = useParams()
   const packId = params.id as string
@@ -79,10 +91,23 @@ export default function PackDetailPage() {
           if (product) productMap[product.id] = product
         })
 
+        const unlockedColorSets = components
+          .filter((component) => !component.color)
+          .map((component) => getColorOptions(productMap[component.product_id]))
+
+        const commonColors =
+          unlockedColorSets.length > 0
+            ? unlockedColorSets.reduce<string[]>(
+                (common, colors) => common.filter((color) => colors.includes(color)),
+                unlockedColorSets[0] ?? [],
+              )
+            : []
+        const defaultColor = commonColors[0]
+
         const initialSelections: Record<string, Selection> = {}
         components.forEach((component) => {
           const product = productMap[component.product_id]
-          const color = component.color || product?.variants?.[0]?.color || ""
+          const color = component.color || defaultColor || product?.variants?.[0]?.color || ""
           const sizes = component.size ? [component.size] : getSizeOptions(product, color)
           initialSelections[component.id] = {
             color,
@@ -144,32 +169,32 @@ export default function PackDetailPage() {
   useEffect(() => {
     if (sameSizeMode && commonSizes.length === 0) {
       setSameSizeMode(false)
-      return
     }
-    if (!sameSizeMode || commonSizes.length === 0) return
-    const nextSize = sameSize && commonSizes.includes(sameSize) ? sameSize : commonSizes[0]
-    setSameSize(nextSize)
-    setSelections((current) => {
-      const next = { ...current }
-      components.forEach((component) => {
-        if (!component.size && next[component.id]) {
-          next[component.id] = { ...next[component.id], size: nextSize }
-        }
-      })
-      return next
-    })
-  }, [commonSizes, components, sameSize, sameSizeMode])
+  }, [sameSizeMode, commonSizes.length])
+
+  const effectiveSameSize = sameSize && commonSizes.includes(sameSize) ? sameSize : commonSizes[0] ?? ""
 
   const updateSelection = (componentId: string, updates: Partial<Selection>) => {
     setSelections((current) => {
       const previous = current[componentId] ?? { color: "", size: "" }
-      const next = { ...previous, ...updates }
+
       if (updates.color && updates.color !== previous.color) {
-        const component = components.find((item) => item.id === componentId)
-        const product = component ? products[component.product_id] : null
-        next.size = sameSizeMode && sameSize ? sameSize : getSizeOptions(product, updates.color)[0] || ""
+        const next = { ...current }
+        components.forEach((component) => {
+          if (component.color) return
+          const product = products[component.product_id]
+          if (!getColorOptions(product).includes(updates.color!)) return
+          const existing = next[component.id] ?? { color: "", size: "" }
+          const sizeOptions = getSizeOptions(product, updates.color!)
+          next[component.id] = {
+            color: updates.color!,
+            size: sizeOptions.includes(existing.size) ? existing.size : sizeOptions[0] || "",
+          }
+        })
+        return next
       }
-      return { ...current, [componentId]: next }
+
+      return { ...current, [componentId]: { ...previous, ...updates } }
     })
   }
 
@@ -178,18 +203,20 @@ export default function PackDetailPage() {
     components.every((component) => {
       const product = products[component.product_id]
       const selection = selections[component.id]
-      if (!product || !selection?.color || !selection?.size || !isProductInStock(product)) return false
-      return getStockForSize(product, selection.color, selection.size) >= getComponentQty(component)
+      const size = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
+      if (!product || !selection?.color || !size || !isProductInStock(product)) return false
+      return getStockForSize(product, selection.color, size) >= getComponentQty(component)
     })
 
   const packOrderItems: PackOrderComponent[] = components.map((component) => {
     const product = products[component.product_id]
     const selection = selections[component.id] ?? { color: component.color ?? "", size: component.size ?? "" }
+    const size = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
     return {
       component_id: component.id,
       product_id: component.product_id,
       color: selection.color,
-      size: selection.size,
+      size,
       qty: getComponentQty(component),
       unit_price: product?.price ?? component.product.price,
     }
@@ -346,7 +373,7 @@ export default function PackDetailPage() {
               {sameSizeMode && commonSizes.length > 0 && (
                 <div className="mb-5">
                   <Select
-                    value={sameSize}
+                    value={effectiveSameSize}
                     onValueChange={(value) => {
                       setSameSize(value)
                       trackStoreEvent("size_selected", {
@@ -356,15 +383,6 @@ export default function PackDetailPage() {
                           size: value,
                           mode: "same_size",
                         },
-                      })
-                      setSelections((current) => {
-                        const next = { ...current }
-                        components.forEach((component) => {
-                          if (!component.size && next[component.id]) {
-                            next[component.id] = { ...next[component.id], size: value }
-                          }
-                        })
-                        return next
                       })
                     }}
                   >
@@ -389,6 +407,8 @@ export default function PackDetailPage() {
                   const colorOptions = getColorOptions(product)
                   const sizeOptions = component.size ? [component.size] : getSizeOptions(product, selection.color)
                   const isUnavailable = !product || !isProductInStock(product)
+                  const sizeLockedToSameSize = sameSizeMode && commonSizes.length > 0
+                  const effectiveSize = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
 
                   return (
                     <div key={component.id} className="rounded-md border border-white/10 bg-black/35 p-4">
@@ -397,7 +417,7 @@ export default function PackDetailPage() {
                           <p className="font-semibold text-white">{component.product.name}</p>
                           {isUnavailable && <p className="mt-1 text-sm text-red-300">Out of stock</p>}
                         </div>
-                        {selection.size && selection.color && !isUnavailable && <Check className="h-5 w-5 text-green-400" />}
+                        {effectiveSize && selection.color && !isUnavailable && <Check className="h-5 w-5 text-green-400" />}
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <Select
@@ -429,7 +449,7 @@ export default function PackDetailPage() {
                         </Select>
 
                         <Select
-                          value={selection.size}
+                          value={effectiveSize}
                           onValueChange={(value) => {
                             updateSelection(component.id, { size: value })
                             trackStoreEvent("size_selected", {
@@ -443,7 +463,7 @@ export default function PackDetailPage() {
                               },
                             })
                           }}
-                          disabled={sameSizeMode || Boolean(component.size) || isUnavailable}
+                          disabled={sizeLockedToSameSize || Boolean(component.size) || isUnavailable}
                         >
                           <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                             <SelectValue placeholder="Size" />
