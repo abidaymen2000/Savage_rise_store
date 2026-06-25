@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
+import { getAvailableStock, getVariantSize } from "@/lib/inventory"
 import { getMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
@@ -40,6 +41,7 @@ const CartContext = createContext<{
   updateQuantity: (productId: string, color: string, size: string, quantity: number) => void
   updatePackQuantity: (packId: string, selectionKey: string, quantity: number) => void
   clearCart: () => void
+  refreshCartProducts: (products: Product[]) => void
   getCartKey: (productId: string, color: string, size: string) => string
   getPackCartKey: (packId: string, selections: PackOrderComponent[]) => string
 } | null>(null)
@@ -69,10 +71,16 @@ function calculateCart(items: CartItem[], packItems: CartPackItem[]) {
   }
 }
 
+function getMaxCartQuantity(variant: Variant, size: string) {
+  return getAvailableStock(getVariantSize(variant, size))
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
       const { product, variant, size, quantity = 1 } = action.payload
+      const maxQuantity = getMaxCartQuantity(variant, size)
+      if (maxQuantity <= 0) return state
       const cartKey = `${product.id}-${variant.color}-${size}`
 
       const existingItemIndex = state.items.findIndex(
@@ -82,7 +90,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       let newItems: CartItem[]
       if (existingItemIndex > -1) {
         newItems = state.items.map((item, index) =>
-          index === existingItemIndex ? { ...item, quantity: item.quantity + quantity } : item,
+          index === existingItemIndex
+            ? { ...item, quantity: Math.min(item.quantity + quantity, maxQuantity) }
+            : item,
         )
       } else {
         newItems = [
@@ -91,7 +101,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
             product,
             selectedVariant: variant,
             selectedSize: size,
-            quantity,
+            quantity: Math.min(quantity, maxQuantity),
           },
         ]
       }
@@ -147,7 +157,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
       const newItems = state.items.map((item) =>
         `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}` === cartKey
-          ? { ...item, quantity }
+          ? { ...item, quantity: Math.min(quantity, getMaxCartQuantity(item.selectedVariant, item.selectedSize)) }
           : item,
       )
 
@@ -397,6 +407,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "CLEAR_CART" })
   }
 
+  const refreshCartProducts = (products: Product[]) => {
+    if (products.length === 0) return
+
+    const productMap = new Map(products.map((product) => [product.id, product]))
+    const nextItems = state.items.map((item) => {
+      const freshProduct = productMap.get(item.product.id)
+      if (!freshProduct) return item
+
+      const freshVariant = freshProduct.variants.find((variant) => variant.color === item.selectedVariant.color)
+      return {
+        ...item,
+        product: freshProduct,
+        selectedVariant: freshVariant ?? item.selectedVariant,
+      }
+    })
+
+    dispatch({
+      type: "LOAD_CART",
+      payload: calculateCart(nextItems, state.packItems),
+    })
+  }
+
   const getCartKey = (productId: string, color: string, size: string) => {
     return `${productId}-${color}-${size}`
   }
@@ -417,6 +449,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         updatePackQuantity,
         clearCart,
+        refreshCartProducts,
         getCartKey,
         getPackCartKey,
       }}

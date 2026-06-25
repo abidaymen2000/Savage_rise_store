@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
+import { isSizePurchasable } from "@/lib/inventory"
 import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
@@ -37,7 +38,7 @@ function getColorOptions(product?: Product | null) {
 function getSizeOptions(product: Product | null | undefined, color: string) {
   if (!product || !isProductInStock(product)) return []
   const variant = product.variants?.find((item) => item.color === color)
-  return variant?.sizes.filter((size) => size.stock > 0).map((size) => size.size) ?? []
+  return variant?.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size) ?? []
 }
 
 function getComponentQty(component: PackComponent) {
@@ -564,7 +565,7 @@ export default function PackDetailPage() {
                       new Set(
                         selectedProduct.variants?.flatMap((variant) =>
                           variant.sizes
-                            .filter((size) => size.stock > 0)
+                            .filter((size) => isSizePurchasable(size))
                             .map((size) => size.size),
                         ) ?? [],
                       ),

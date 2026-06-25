@@ -20,7 +20,7 @@ interface ProductReviewSectionProps {
 }
 
 export default function ProductReviewSection({ productId }: ProductReviewSectionProps) {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { toast } = useToast()
 
   const [reviews, setReviews] = useState<Review[]>([])

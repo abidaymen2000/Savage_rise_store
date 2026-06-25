@@ -3,10 +3,7 @@ import type {
   User,
   AuthTokens,
   Order,
-  OrderItem,
   Pack,
-  PackOrderSelection,
-  ShippingInfo,
   Review,
   ReviewStats,
   WishlistItem,
@@ -20,15 +17,17 @@ import type {
   ReviewCreate,
   ReviewUpdate,
   WishlistCreate,
-  OrderCreate,
+  OrderCreatePayload,
   HealthStatus,
   ContactMessage,
   ApplyResponse,
+  OrderItemCreate,
   ShippingQuoteRequest,
   ShippingQuoteResponse,
   LoyaltyBalance,
   LoyaltyQuote,
   LoyaltyQuoteRequest,
+  OrderQuoteOut,
   HeaderVideo,
   DropCountdown,
   DropNotificationStatus,
@@ -38,6 +37,7 @@ import type {
   VlogEpisodeLike,
   VlogEpisodeView,
   VlogPage,
+  OrderActionReasonIn,
 } from "@/types/api"
 
 export const API_BASE_URL =
@@ -46,9 +46,10 @@ export const API_BASE_URL =
     ? "http://localhost:8000"
     : "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com");
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     public status: number,
+    public body: unknown,
     message: string,
   ) {
     super(message)
@@ -59,6 +60,31 @@ class ApiError extends Error {
 // Étendons RequestInit pour autoriser body:any
 type FetchOptions = Omit<RequestInit, "body"> & {
   body?: any
+}
+
+function parseApiErrorPayload(payload: unknown, fallbackStatus: number): string {
+  if (typeof payload === "string" && payload.trim()) {
+    return payload
+  }
+
+  if (payload && typeof payload === "object") {
+    const maybeDetail = (payload as Record<string, unknown>).detail
+    if (typeof maybeDetail === "string" && maybeDetail.trim()) return maybeDetail
+
+    if (Array.isArray(maybeDetail)) {
+      const firstMessage = maybeDetail.find(
+        (entry) => entry && typeof entry === "object" && typeof (entry as Record<string, unknown>).msg === "string",
+      ) as Record<string, unknown> | undefined
+      if (typeof firstMessage?.msg === "string" && firstMessage.msg.trim()) {
+        return firstMessage.msg
+      }
+    }
+
+    const maybeMessage = (payload as Record<string, unknown>).message
+    if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage
+  }
+
+  return `HTTP error! status: ${fallbackStatus}`
 }
 
 async function fetchApi<T>(
@@ -95,9 +121,15 @@ async function fetchApi<T>(
 
     if (!response.ok) {
       const errorText = await response.text()
+      let errorBody: unknown = errorText
+      try {
+        errorBody = errorText ? JSON.parse(errorText) : null
+      } catch {
+      }
       throw new ApiError(
         response.status,
-        `HTTP error! status: ${response.status} - ${errorText}`
+        errorBody,
+        parseApiErrorPayload(errorBody, response.status),
       )
     }
 
@@ -183,7 +215,7 @@ export const api = {
         const j = JSON.parse(text)
         if (typeof j?.detail === "string") detail = j.detail
       } catch { }
-      throw new ApiError(response.status, detail)
+      throw new ApiError(response.status, text, detail)
     }
 
     return await response.json()
@@ -248,27 +280,22 @@ export const api = {
   },
 
   // Orders
-  async createOrder(
-    items: OrderItem[],
-    shipping: ShippingInfo,
-    promoCode?: string | null,
-    userId?: string | null,
-    loyaltyPointsToUse = 0,
-    packItems: PackOrderSelection[] = [],
-  ): Promise<Order> {
-    const orderData: OrderCreate = {
-      items,
-      shipping,
-      payment_method: "cod",
-      ...(userId ? { user_id: userId } : {}),
-      ...(promoCode ? { promo_code: promoCode } : {}),
-      ...(loyaltyPointsToUse > 0 ? { loyalty_points_to_use: loyaltyPointsToUse } : {}),
-      ...(packItems.length > 0 ? { pack_items: packItems } : {}),
-    }
-    return fetchApi<Order>("/orders/", {
+  async quoteOrder(payload: OrderCreatePayload): Promise<OrderQuoteOut> {
+    return fetchApi<OrderQuoteOut>("/orders/quote", {
       method: "POST",
       headers: getAuthHeaders(),
-      body: orderData,
+      body: payload,
+    })
+  },
+
+  async createOrder(payload: OrderCreatePayload, idempotencyKey: string): Promise<Order> {
+    return fetchApi<Order>("/orders/", {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Idempotency-Key": idempotencyKey,
+      },
+      body: payload,
     })
   },
 
@@ -288,10 +315,11 @@ export const api = {
     })
   },
 
-  async cancelOrder(orderId: string): Promise<Order> {
+  async cancelOrder(orderId: string, payload?: OrderActionReasonIn | null): Promise<Order> {
     return fetchApi<Order>(`/orders/${orderId}/cancel`, {
       method: "PATCH",
       headers: getAuthHeaders(),
+      body: payload ?? undefined,
     })
   },
 
@@ -514,8 +542,7 @@ export const api = {
   },
 
   // Promo codes
-  async applyPromo(code: string, items: OrderItem[]): Promise<ApplyResponse> {
-    const order_total = items.reduce((s, it) => s + it.qty * it.unit_price, 0)
+  async applyPromo(code: string, items: OrderItemCreate[], orderTotal: number): Promise<ApplyResponse> {
     const product_ids = items.map((it) => it.product_id)
 
     return fetchApi<ApplyResponse>("/promocodes/apply", {
@@ -523,7 +550,7 @@ export const api = {
       headers: getAuthHeaders(),                // ⬅️ IMPORTANT
       body: {
         code: code.trim().toUpperCase(),
-        order_total,
+        order_total: orderTotal,
         product_ids,
         category_ids: [],
         // user_id: inutile → le back utilise l'utilisateur authentifié

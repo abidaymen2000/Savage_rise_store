@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Heart, ShoppingBag, Search, Filter, ArrowLeft, Loader2 } from 'lucide-react'
+import { Heart, ShoppingBag, Search, Filter, ArrowLeft } from "lucide-react"
 import { api } from "@/lib/api"
 import ProductSetBadge from "@/components/ProductSetBadge"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
@@ -16,6 +16,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Pack, Product, WishlistItem } from "@/types/api"
+import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
@@ -107,6 +108,13 @@ export default function CategoryPage() {
           return a.name.localeCompare(b.name)
       }
     })
+
+  const getAvailableSizesLabel = (product: Product) =>
+    Array.from(
+      new Set(
+        product.variants?.flatMap((variant) => variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size)) ?? [],
+      ),
+    )
 
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return
@@ -232,6 +240,7 @@ export default function CategoryPage() {
               const imageAlt = getProductImageAlt(product)
               const inWishlist = isProductInWishlist(product.id);
               const relatedPack = findRelatedPack(product.id, packs)
+              const sizes = getAvailableSizesLabel(product)
 
               return (
                 <div
@@ -300,6 +309,19 @@ export default function CategoryPage() {
                     {relatedPack && (
                       <div className="mt-4" onClick={(event) => event.preventDefault()}>
                         <ProductSetBadge pack={relatedPack} />
+                      </div>
+                    )}
+
+                    {sizes.length > 0 && (
+                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+                        <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Sizes</span>
+                        <div className="flex flex-wrap justify-end gap-1.5">
+                          {sizes.slice(0, 6).map((size) => (
+                            <span key={size} className="min-w-7 rounded border border-white/15 px-2 py-1 text-center text-xs text-gray-200">
+                              {size}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

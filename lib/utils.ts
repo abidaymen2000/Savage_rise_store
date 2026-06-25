@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { Product } from "@/types/api"
+import { getAvailableStock, productHasPurchasableVariant } from "@/lib/inventory"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -80,15 +81,14 @@ export function getStockForSize(product: Product, color: string, size: string): 
   if (!variant) return 0
 
   const sizeStock = variant.sizes.find((s) => s.size === size)
-  return sizeStock ? sizeStock.stock : 0
+  return getAvailableStock(sizeStock)
 }
 
 export function isProductInStock(product: Product): boolean {
   if (product.in_stock !== true) return false
   if (!product.variants || product.variants.length === 0) return product.in_stock
 
-  // Check if any variant has stock
-  return product.variants.some((variant) => variant.sizes.some((size) => size.stock > 0))
+  return productHasPurchasableVariant(product)
 }
 
 export function formatPrice(price: number): string {

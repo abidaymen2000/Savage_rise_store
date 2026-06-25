@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,12 +12,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Coins, Truck, Shield, CreditCard, Loader2, Ticket, X } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
-import { api } from "@/lib/api"
+import { ApiError, api } from "@/lib/api"
+import { clearCheckoutIdempotencyKey, getOrCreateCheckoutIdempotencyKey, getStoredCheckoutIdempotencyKey } from "@/lib/checkout-idempotency"
+import { buildOrderPayload } from "@/lib/order-payload"
 import AuthModal from "@/app/components/AuthModal"
 import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
-import type { ShippingInfo, OrderItem, ApplyResponse, Order, ShippingQuoteResponse, LoyaltyBalance, LoyaltyQuote, PackOrderSelection } from "@/types/api"
+import type { ShippingInfo, ApplyResponse, Order, LoyaltyBalance, LoyaltyQuote, OrderQuoteOut } from "@/types/api"
 import { getCartItemMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
@@ -26,7 +28,7 @@ const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { state: cartState, clearCart } = useCart()
+  const { state: cartState, clearCart, refreshCartProducts } = useCart()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
 
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -52,15 +54,18 @@ export default function CheckoutPage() {
   const [promoResult, setPromoResult] = useState<ApplyResponse | null>(null)
   const [promoLoading, setPromoLoading] = useState(false)
   const [promoError, setPromoError] = useState<string | null>(null)
-  const [shippingQuote, setShippingQuote] = useState<ShippingQuoteResponse | null>(null)
-  const [shippingLoading, setShippingLoading] = useState(false)
-  const [shippingError, setShippingError] = useState<string | null>(null)
+  const [orderQuote, setOrderQuote] = useState<OrderQuoteOut | null>(null)
+  const [quoteLoading, setQuoteLoading] = useState(false)
+  const [quoteError, setQuoteError] = useState<string | null>(null)
   const [loyaltyBalance, setLoyaltyBalance] = useState<LoyaltyBalance | null>(null)
   const [loyaltyQuote, setLoyaltyQuote] = useState<LoyaltyQuote | null>(null)
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false)
   const [loyaltyPointsToUse, setLoyaltyPointsToUse] = useState(0)
   const [loyaltyLoading, setLoyaltyLoading] = useState(false)
   const [loyaltyError, setLoyaltyError] = useState<string | null>(null)
+  const lastAttemptFingerprintRef = useRef<string | null>(null)
+  const lastAttemptHadUnknownFailureRef = useRef(false)
+  const quoteRequestIdRef = useRef(0)
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -80,36 +85,35 @@ export default function CheckoutPage() {
     }
   }, [user])
 
-  // Convert cart items to OrderItem[] (pour API)
-  const orderItems: OrderItem[] = useMemo(
-    () =>
-      cartState.items.map((item) => ({
-        product_id: item.product.id,
-        color: item.selectedVariant.color,
-        size: item.selectedSize,
-        qty: item.quantity,
-        unit_price: item.product.price,
-      })),
-    [cartState.items]
-  )
+  const promoDiscount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
+  const subtotal = cartState.total
+  const afterPromoDiscount = Math.max(0, subtotal - promoDiscount)
+  const loyaltyDiscount = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.discount_value : 0
+  const loyaltyPointsUsed = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
+  const estimatedPointsEarned = isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
+  const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
 
-  const packItems: PackOrderSelection[] = useMemo(
+  const orderPayload = useMemo(
     () =>
-      cartState.packItems.map((item) => ({
-        pack_id: item.pack.id,
-        qty: item.quantity,
-        items: item.selections,
-      })),
-    [cartState.packItems],
+      buildOrderPayload({
+        items: cartState.items,
+        packItems: cartState.packItems,
+        shipping: shippingInfo,
+        payment_method: "cod",
+        promo_code: isAuthenticated ? promoCode : null,
+        loyalty_points_to_use: isAuthenticated ? loyaltyPointsUsed : 0,
+        user_id: isAuthenticated ? user?.id ?? null : null,
+      }),
+    [cartState.items, cartState.packItems, shippingInfo, isAuthenticated, promoCode, loyaltyPointsUsed, user?.id],
   )
 
   // (Re)valider un code promo sauvegardé
   const revalidatePromo = async (code: string) => {
-    if (!isAuthenticated || !code || orderItems.length === 0) return
+    if (!isAuthenticated || !code || orderPayload.items.length === 0) return
     setPromoLoading(true)
     setPromoError(null)
     try {
-      const res = await api.applyPromo(code, orderItems)
+      const res = await api.applyPromo(code, orderPayload.items, subtotal)
       setPromoResult(res)
       setPromoCode(res.valid ? code : null)
       if (res.valid) {
@@ -187,7 +191,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (isAuthenticated && promoCode) revalidatePromo(promoCode)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderItems.map((i) => `${i.product_id}-${i.size}-${i.qty}`).join("|")])
+  }, [orderPayload.items.map((i) => `${i.product_id}-${i.color}-${i.size}-${i.qty}`).join("|"), subtotal])
 
   const handleRemovePromo = () => {
     setPromoCode(null)
@@ -204,7 +208,59 @@ export default function CheckoutPage() {
     return required.every((field) => shippingInfo[field as keyof ShippingInfo]?.toString().trim())
   }
 
+  const refreshCheckoutProducts = async () => {
+    const uniqueProductIds = Array.from(new Set(cartState.items.map((item) => item.product.id)))
+    if (uniqueProductIds.length === 0) return
+
+    const freshProducts = (
+      await Promise.all(uniqueProductIds.map((productId) => api.getProduct(productId).catch(() => null)))
+    ).filter((product): product is NonNullable<typeof product> => Boolean(product))
+
+    refreshCartProducts(freshProducts)
+  }
+
+  const getFriendlyCheckoutError = (err: unknown) => {
+    if (err instanceof ApiError) {
+      const detail = err.message || "Unable to create your order."
+      const lowerDetail = detail.toLowerCase()
+
+      if (err.status === 400) {
+        return "Some checkout information is invalid. Please review your address and cart selections."
+      }
+
+      if (err.status === 404) {
+        return "One of the products, variants, or promotions in your checkout is no longer available. We refreshed the latest data."
+      }
+
+      if (err.status === 409) {
+        if (lowerDetail.includes("idempotency")) {
+          clearCheckoutIdempotencyKey()
+          return "This checkout attempt no longer matches the current cart. Please review the updated checkout and try again."
+        }
+
+        if (lowerDetail.includes("stock") || lowerDetail.includes("inventory") || lowerDetail.includes("available")) {
+          return "Stock changed while you were checking out. We refreshed your cart with the latest availability."
+        }
+
+        return "Your order could not be created because the checkout changed or another business rule blocked it. Please review and try again."
+      }
+
+      return detail
+    }
+
+    if (err instanceof Error) {
+      if (err.message.includes("timeout") || err.message.toLowerCase().includes("network error")) {
+        return "We could not confirm the order yet. Please retry with the same checkout; we will safely reuse this attempt."
+      }
+      return err.message
+    }
+
+    return "Unable to create your order right now."
+  }
+
   const handlePlaceOrder = async () => {
+    if (isProcessing) return
+
     if (isAuthenticated && !user?.is_active) {
       setShowEmailVerification(true)
       return
@@ -215,13 +271,16 @@ export default function CheckoutPage() {
       return
     }
 
-    if (!shippingQuote) {
-      setError("Please wait while shipping is calculated.")
+    if (!orderQuote || quoteLoading) {
+      setError("Please wait while your final total is confirmed.")
       return
     }
 
     setIsProcessing(true)
     setError(null)
+    const idempotencyKey = getOrCreateCheckoutIdempotencyKey(checkoutFingerprint)
+    lastAttemptFingerprintRef.current = checkoutFingerprint
+    lastAttemptHadUnknownFailureRef.current = false
     trackStoreEvent("shipping_info_submitted", {
       metadata: {
         city: shippingInfo.city,
@@ -233,20 +292,13 @@ export default function CheckoutPage() {
     trackStoreEvent("payment_started", {
       metadata: {
         payment_method: "cod",
-        value: total,
+        value: orderQuote.total,
         item_count: cartState.itemCount,
       },
     })
 
     try {
-      const order = await api.createOrder(
-        orderItems,
-        shippingInfo,
-        isAuthenticated ? promoCode : null,
-        isAuthenticated ? user?.id ?? null : null,
-        isAuthenticated ? loyaltyPointsUsed : 0,
-        packItems,
-      )
+      const order = await api.createOrder(orderPayload, idempotencyKey)
 
       trackMetaPixelEvent("Purchase", {
         content_ids: pixelContentIds,
@@ -254,13 +306,13 @@ export default function CheckoutPage() {
         currency: "TND",
         num_items: cartState.itemCount,
         order_id: order.id,
-        value: order.total_amount ?? total,
+        value: order.total_amount ?? orderQuote.total,
       })
       trackStoreEvent("payment_success", {
         order_id: order.id,
         metadata: {
           payment_method: "cod",
-          value: order.total_amount ?? total,
+          value: order.total_amount ?? orderQuote.total,
         },
       })
       trackStoreEvent("order_completed", {
@@ -268,7 +320,7 @@ export default function CheckoutPage() {
         metadata: {
           value: order.total_amount ?? total,
           subtotal,
-          shipping,
+          shipping: orderQuote.shipping_amount,
           promo_code: isAuthenticated ? promoCode : null,
           loyalty_points_used: isAuthenticated ? loyaltyPointsUsed : 0,
           item_count: cartState.itemCount,
@@ -277,6 +329,8 @@ export default function CheckoutPage() {
       })
       setCreatedOrder(order)
       setSuccess(true)
+      clearCheckoutIdempotencyKey()
+      lastAttemptFingerprintRef.current = null
       clearCart()
       localStorage.removeItem(PROMO_STORAGE_KEY)
       setUseLoyaltyPoints(false)
@@ -291,27 +345,51 @@ export default function CheckoutPage() {
       trackStoreEvent("payment_failed", {
         metadata: {
           payment_method: "cod",
-          value: total,
+          value: orderQuote.total,
           error: err instanceof Error ? err.message : "unknown",
         },
       })
-      setError(err instanceof Error ? err.message : "Error creating the order")
+      if (err instanceof ApiError && (err.status === 404 || err.status === 409)) {
+        await refreshCheckoutProducts()
+      }
+      if (!(err instanceof ApiError) || err.status >= 500) {
+        lastAttemptHadUnknownFailureRef.current = true
+      }
+      setError(getFriendlyCheckoutError(err))
     } finally {
       setIsProcessing(false)
     }
   }
 
-  // Totaux
-  const subtotal = cartState.total
+  const checkoutFingerprint = useMemo(
+    () =>
+      JSON.stringify({
+        items: orderPayload.items.map((item) => `${item.product_id}:${item.color}:${item.size}:${item.qty}`),
+        packs: orderPayload.pack_items?.map((item) => ({
+          pack_id: item.pack_id,
+          qty: item.qty,
+          items: item.items.map((selection) => `${selection.product_id}:${selection.color}:${selection.size}:${selection.qty}`),
+        })),
+        promoCode: isAuthenticated ? promoCode : null,
+        loyaltyPointsUsed: isAuthenticated ? loyaltyPointsUsed : 0,
+        shipping: orderPayload.shipping,
+      }),
+    [orderPayload, isAuthenticated, promoCode, loyaltyPointsUsed],
+  )
 
-  const promoDiscount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
-  const afterPromoDiscount = Math.max(0, subtotal - promoDiscount)
-  const loyaltyDiscount = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.discount_value : 0
-  const loyaltyPointsUsed = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
-  const estimatedPointsEarned = isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
-  const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
-  const shipping = shippingQuote?.shipping_amount ?? 0
-  const total = afterDiscount + shipping
+  useEffect(() => {
+    if (
+      !isProcessing &&
+      lastAttemptHadUnknownFailureRef.current &&
+      lastAttemptFingerprintRef.current &&
+      lastAttemptFingerprintRef.current !== checkoutFingerprint &&
+      getStoredCheckoutIdempotencyKey()
+    ) {
+      clearCheckoutIdempotencyKey()
+      lastAttemptHadUnknownFailureRef.current = false
+      lastAttemptFingerprintRef.current = null
+    }
+  }, [checkoutFingerprint, isProcessing])
 
   const pixelContents = useMemo(
     () => [
@@ -389,35 +467,43 @@ export default function CheckoutPage() {
   ])
 
   useEffect(() => {
-    const country = shippingInfo.country.trim()
-    const city = shippingInfo.city.trim()
-
-    if (!country || !city || cartState.itemCount === 0) {
-      setShippingQuote(null)
-      setShippingError(null)
+    if (!validateShippingInfo() || cartState.itemCount === 0) {
+      setOrderQuote(null)
+      setQuoteError(null)
       return
     }
 
+    const requestId = ++quoteRequestIdRef.current
     const timeout = setTimeout(async () => {
-      setShippingLoading(true)
-      setShippingError(null)
+      setQuoteLoading(true)
+      setQuoteError(null)
       try {
-        const quote = await api.getShippingQuote({
-          country,
-          city,
-          order_total: afterDiscount,
-        })
-        setShippingQuote(quote)
+        const quote = await api.quoteOrder(orderPayload)
+        if (requestId === quoteRequestIdRef.current) {
+          setOrderQuote(quote)
+        }
       } catch (err) {
-        setShippingQuote(null)
-        setShippingError("Unable to calculate shipping for this address.")
+        if (requestId === quoteRequestIdRef.current) {
+          setOrderQuote(null)
+          setQuoteError(err instanceof Error ? err.message : "Unable to validate your order total right now.")
+        }
       } finally {
-        setShippingLoading(false)
+        if (requestId === quoteRequestIdRef.current) {
+          setQuoteLoading(false)
+        }
       }
     }, 400)
 
     return () => clearTimeout(timeout)
-  }, [shippingInfo.country, shippingInfo.city, afterDiscount, cartState.itemCount])
+  }, [cartState.itemCount, orderPayload])
+
+  const shipping = orderQuote?.shipping_amount ?? 0
+  const total = orderQuote?.total ?? afterDiscount
+  const displaySubtotal = orderQuote?.subtotal ?? subtotal
+  const displayPackDiscount = orderQuote?.pack_discount ?? 0
+  const displayPromotionDiscount = orderQuote?.promotion_discount ?? promoDiscount
+  const displayLoyaltyDiscount = orderQuote?.loyalty_discount ?? loyaltyDiscount
+  const quoteWarnings = orderQuote?.warnings ?? []
 
   if (authLoading) {
     return (
@@ -675,8 +761,15 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Subtotal</span>
-                  <span className="text-white">{subtotal.toFixed(2)} TND</span>
+                  <span className="text-white">{displaySubtotal.toFixed(2)} TND</span>
                 </div>
+
+                {displayPackDiscount > 0 && (
+                  <div className="flex justify-between text-green-500">
+                    <span>Pack discount</span>
+                    <span>- {displayPackDiscount.toFixed(2)} TND</span>
+                  </div>
+                )}
 
                 {/* Ligne remise si code valide */}
                 {isAuthenticated && promoResult?.valid && (
@@ -686,7 +779,7 @@ export default function CheckoutPage() {
                       <span>Code {promoResult.code}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-green-500">- { (promoResult.discount_value ?? 0).toFixed(2) } TND</span>
+                      <span className="text-green-500">- {displayPromotionDiscount.toFixed(2)} TND</span>
                       <button
                         className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
                         onClick={handleRemovePromo}
@@ -797,36 +890,42 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {isAuthenticated && loyaltyDiscount > 0 && (
+                {isAuthenticated && displayLoyaltyDiscount > 0 && (
                   <div className="flex justify-between text-gold">
                     <div className="flex items-center gap-2">
                       <Coins className="h-4 w-4" />
                       <span>{loyaltyPointsUsed} loyalty points</span>
                     </div>
-                    <span>- {loyaltyDiscount.toFixed(2)} TND</span>
+                    <span>- {displayLoyaltyDiscount.toFixed(2)} TND</span>
                   </div>
                 )}
 
                 <div className="flex justify-between">
                   <span className="text-gray-400">Shipping</span>
                   <span className="text-white">
-                    {shippingLoading
-                      ? "Calculating..."
-                      : shippingQuote
+                    {quoteLoading
+                      ? "Validating..."
+                      : orderQuote
                         ? shipping === 0
                           ? "Free"
                           : `${shipping.toFixed(2)} TND`
-                        : "To calculate"}
+                        : "Pending validation"}
                   </span>
                 </div>
 
-                {shippingQuote?.shipping_rate_name && (
-                  <p className="text-xs text-gray-500 text-right">{shippingQuote.shipping_rate_name}</p>
+                {orderQuote?.shipping_rate_name && (
+                  <p className="text-xs text-gray-500 text-right">{orderQuote.shipping_rate_name}</p>
                 )}
 
-                {shippingError && (
+                {quoteError && (
                   <Alert className="border-red-600 bg-red-900/20">
-                    <AlertDescription className="text-red-400">{shippingError}</AlertDescription>
+                    <AlertDescription className="text-red-400">{quoteError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {quoteWarnings.length > 0 && (
+                  <Alert className="border-yellow-600 bg-yellow-900/20">
+                    <AlertDescription className="text-yellow-300">{quoteWarnings.join(" ")}</AlertDescription>
                   </Alert>
                 )}
 
@@ -846,11 +945,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Truck className="h-4 w-4" />
-                    <span>
-                      {shippingQuote?.free_shipping_threshold
-                        ? `Free shipping from ${shippingQuote.free_shipping_threshold.toFixed(2)} TND`
-                        : "Shipping is calculated based on your address"}
-                    </span>
+                    <span>{orderQuote ? "Total validated by the backend quote." : "Your final total is being validated by the backend."}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Shield className="h-4 w-4" />
@@ -864,7 +959,7 @@ export default function CheckoutPage() {
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || promoLoading || shippingLoading || (useLoyaltyPoints && loyaltyLoading) || !shippingQuote}
+                  disabled={isProcessing || promoLoading || quoteLoading || (useLoyaltyPoints && loyaltyLoading) || !orderQuote}
                   className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3"
                 >
                   {isProcessing ? (

@@ -11,9 +11,8 @@ import { api } from "@/lib/api"
 import ProductSetBadge from "@/components/ProductSetBadge"
 import { getColorSwatch } from "@/lib/color-swatches"
 import { useCart } from "@/contexts/CartContext"
-import { useAuth } from "@/contexts/AuthContext"
-import AuthModal from "@/app/components/AuthModal"
 import type { Pack, Product } from "@/types/api"
+import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
@@ -125,9 +124,6 @@ function ProductVariantMedia({
 }
 
 export default function ProductsPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const [showAuthModal, setShowAuthModal] = useState(false)
-
   const [products, setProducts] = useState<Product[]>([])
   const [packs, setPacks] = useState<Pack[]>([])
   const [loading, setLoading] = useState(true)
@@ -228,7 +224,7 @@ export default function ProductsPage() {
     }
   }
 
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="container mx-auto px-4 py-20">
@@ -319,7 +315,7 @@ export default function ProductsPage() {
               const sizes = Array.from(
                 new Set(
                   product.variants?.flatMap((variant) =>
-                    variant.sizes.filter((size) => size.stock > 0).map((size) => size.size),
+                    variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size),
                   ) ?? [],
                 ),
               )
@@ -412,7 +408,6 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab="login" />
     </div>
   )
 }

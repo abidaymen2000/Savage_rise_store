@@ -1,4 +1,5 @@
 import type { CartItem, Product, SizeStock, Variant } from "@/types/api"
+import { isSizePurchasable } from "@/lib/inventory"
 
 export function getVariantSizeByName(variant: Variant | null | undefined, size: string | null | undefined) {
   if (!variant || !size) return null
@@ -33,7 +34,7 @@ export function getCartItemMetaContentId(item: CartItem) {
 
 export function getFirstAvailableVariantSelection(product: Product) {
   for (const variant of product.variants ?? []) {
-    const size = variant.sizes.find((variantSize) => variantSize.stock > 0)
+    const size = variant.sizes.find((variantSize) => isSizePurchasable(variantSize))
     if (size) {
       return { variant, size }
     }

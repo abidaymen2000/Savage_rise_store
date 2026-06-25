@@ -1,4 +1,5 @@
 import type { CartItem, Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
+import { isSizePurchasable } from "@/lib/inventory"
 
 function getPackComponents(pack: Pack) {
   return pack.components ?? []
@@ -50,7 +51,7 @@ export function getProductImageForColor(product: Product | null | undefined, col
 
 export function getAvailableSizesForColor(product: Product | null | undefined, color: string | null | undefined) {
   const variant = getProductVariantByColor(product, color)
-  return variant?.sizes.filter((size) => size.stock > 0).map((size) => size.size) ?? []
+  return variant?.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size) ?? []
 }
 
 function resolveColor(product: Product | undefined, component: PackComponent, preferredColor?: string | null, overrideColor?: string | null) {

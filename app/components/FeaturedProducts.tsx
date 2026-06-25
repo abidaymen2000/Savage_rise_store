@@ -7,11 +7,10 @@ import { ArrowRight, Package, ShoppingBag } from "lucide-react"
 import { api } from "@/lib/api"
 import ProductSetBadge from "@/components/ProductSetBadge"
 import { useCart } from "@/contexts/CartContext"
-import { useAuth } from "@/contexts/AuthContext"
-import AuthModal from "@/app/components/AuthModal"
-import type { Pack, Product, WishlistItem } from "@/types/api" // Added WishlistItem import
+import type { Pack, Product } from "@/types/api"
 import Link from "next/link"
 import { getColorSwatch } from "@/lib/color-swatches"
+import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
 import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
@@ -161,19 +160,12 @@ function ProductVariantMedia({
 }
 
 export default function FeaturedProducts() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const [showAuthModal, setShowAuthModal] = useState(false)
-
   const [products, setProducts] = useState<Product[]>([])
   const [productLookup, setProductLookup] = useState<Record<string, Product>>({})
   const [packs, setPacks] = useState<Pack[]>([])
   const [loading, setLoading] = useState(true)
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const { addToCart } = useCart()
-
-  // Wishlist state
-  const [userWishlist, setUserWishlist] = useState<WishlistItem[]>([])
-  const [isWishlistLoading, setIsWishlistLoading] = useState(true)
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -209,30 +201,9 @@ export default function FeaturedProducts() {
     }
   }, [])
 
-  const fetchUserWishlist = useCallback(async () => {
-    if (!isAuthenticated) {
-      setUserWishlist([])
-      setIsWishlistLoading(false)
-      return
-    }
-    try {
-      setIsWishlistLoading(true)
-      const wishlistData = await api.getWishlist()
-      setUserWishlist(wishlistData)
-    } catch (err) {
-      setUserWishlist([])
-    } finally {
-      setIsWishlistLoading(false)
-    }
-  }, [isAuthenticated])
-
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
-
-  useEffect(() => {
-    fetchUserWishlist()
-  }, [isAuthenticated, fetchUserWishlist])
 
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return
@@ -243,7 +214,7 @@ export default function FeaturedProducts() {
     }
   }
 
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <section className="py-20 bg-gray-900">
         <div className="container mx-auto px-4">
@@ -378,7 +349,7 @@ export default function FeaturedProducts() {
             const sizes = Array.from(
               new Set(
                 product.variants?.flatMap((variant) =>
-                  variant.sizes.filter((size) => size.stock > 0).map((size) => size.size),
+                  variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size),
                 ) ?? [],
               ),
             )
@@ -485,7 +456,6 @@ export default function FeaturedProducts() {
           </div>
         </div>
       </div>
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab="login" />
     </section>
   )
 }

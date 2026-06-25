@@ -12,6 +12,14 @@ import { ArrowLeft, Package, MapPin, Phone, Mail, CalendarDays, DollarSign, Tick
 import { api } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import type { Order, Product } from "@/types/api"
+import {
+  canCancelOrder,
+  getCanonicalOrderStatus,
+  getFulfillmentStatusLabel,
+  getOrderStatusColor,
+  getOrderStatusLabel,
+  getPaymentStatusLabel,
+} from "@/lib/order-status"
 import { formatPrice } from "@/lib/utils"
 import { trackEvent } from "@/lib/store-analytics"
 
@@ -64,28 +72,6 @@ export default function OrderDetailPage() {
     loadProducts()
   }, [order])
 
-  const getStatusColor = (status: Order["status"]) => {
-    switch (status) {
-      case "pending": return "bg-yellow-600"
-      case "confirmed": return "bg-blue-600"
-      case "shipped": return "bg-purple-600"
-      case "delivered": return "bg-green-600"
-      case "cancelled": return "bg-red-600"
-      default: return "bg-gray-600"
-    }
-  }
-
-  const getStatusText = (status: Order["status"]) => {
-    switch (status) {
-      case "pending": return "Pending"
-      case "confirmed": return "Confirmed"
-      case "shipped": return "Shipped"
-      case "delivered": return "Delivered"
-      case "cancelled": return "Cancelled"
-      default: return status
-    }
-  }
-
   const handleCancelOrder = async (id: string) => {
     try {
       await api.cancelOrder(id)
@@ -125,7 +111,8 @@ export default function OrderDetailPage() {
   }
 
   // ---- Totaux & affichage fiables (alignés au backend) ----
-  const subtotal = order.subtotal ?? order.items.reduce((s, it) => s + it.unit_price * it.qty, 0)
+  const pricedItems = order.item_snapshots?.length ? order.item_snapshots : []
+  const subtotal = order.subtotal ?? pricedItems.reduce((sum, item) => sum + (item.line_total ?? 0), 0)
   const discountValue = order.discount_value ?? 0
   const afterDiscount = Math.max(0, subtotal - discountValue)
 
@@ -137,6 +124,7 @@ export default function OrderDetailPage() {
   const hasPromo = (order.promo_code && discountValue > 0) || discountValue > 0.0001
   const promoLabel = order.promo_code ? `Promo code ${order.promo_code}` : "Discount"
   const packItems = Array.isArray(order.pack_items) ? order.pack_items : []
+  const orderStatus = getCanonicalOrderStatus(order)
 
   // ---- Helpers d'affichage produit ----
   const productName = (product_id: string) =>
@@ -179,7 +167,7 @@ export default function OrderDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {order.items.map((item, index) => {
+                {(pricedItems.length > 0 ? pricedItems : order.items).map((item, index) => {
                   const { url, alt } = productImage(item.product_id, item.color)
                   return (
                     <div key={index} className="flex gap-4 items-center">
@@ -191,7 +179,13 @@ export default function OrderDetailPage() {
                         <p className="text-sm text-gray-400">
                           Color: {item.color} • Size: {item.size} • Qty: {item.qty}
                         </p>
-                        <p className="text-gold font-semibold">{formatPrice(item.unit_price * item.qty)}</p>
+                        <p className="text-gold font-semibold">
+                          {formatPrice(
+                            "line_total" in item && typeof item.line_total === "number"
+                              ? item.line_total
+                              : 0,
+                          )}
+                        </p>
                       </div>
                     </div>
                   )
@@ -305,8 +299,8 @@ export default function OrderDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Badge className={`${getStatusColor(order.status)} text-white text-base px-3 py-1`}>
-                    {getStatusText(order.status)}
+                  <Badge className={`${getOrderStatusColor(orderStatus)} text-white text-base px-3 py-1`}>
+                    {getOrderStatusLabel(orderStatus)}
                   </Badge>
                   {hasPromo && (
                     <Badge variant="outline" className="border-green-600 text-green-400 flex items-center gap-1">
@@ -326,13 +320,21 @@ export default function OrderDetailPage() {
                     Payment method: {order.payment_method === "cod" ? "Cash on delivery" : order.payment_method}
                   </span>
                 </div>
+                <div className="flex items-center gap-2 text-gray-300">
+                  <Badge variant="outline" className="border-white/20 text-gray-200">
+                    Payment: {getPaymentStatusLabel(order.payment_status)}
+                  </Badge>
+                  <Badge variant="outline" className="border-white/20 text-gray-200">
+                    Fulfillment: {getFulfillmentStatusLabel(order.fulfillment_status)}
+                  </Badge>
+                </div>
 
                 <Separator className="bg-gray-700" />
                 <p className="text-sm text-gray-400">
                   You will receive email updates about your order status.
                 </p>
 
-                {order.status === "pending" && (
+                {canCancelOrder(order) && (
                   <Button
                     variant="outline"
                     className="w-full border-red-600 text-red-400 hover:bg-red-900/20"

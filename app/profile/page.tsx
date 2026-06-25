@@ -26,6 +26,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  canCancelOrder,
+  getCanonicalOrderStatus,
+  getFulfillmentStatusLabel,
+  getOrderStatusColor,
+  getOrderStatusLabel,
+  getPaymentStatusLabel,
+} from "@/lib/order-status"
 import { trackEvent } from "@/lib/store-analytics"
 
 type Tab = "orders" | "wishlist" | "reviews" | "loyalty" | "settings"
@@ -201,40 +209,6 @@ function ProfileContent() {
     }
   }
 
-  const getStatusColor = (status: Order["status"]) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-600"
-      case "confirmed":
-        return "bg-blue-600"
-      case "shipped":
-        return "bg-purple-600"
-      case "delivered":
-        return "bg-green-600"
-      case "cancelled":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getStatusText = (status: Order["status"]) => {
-    switch (status) {
-      case "pending":
-        return "Pending"
-      case "confirmed":
-        return "Confirmed"
-      case "shipped":
-        return "Shipped"
-      case "delivered":
-        return "Delivered"
-      case "cancelled":
-        return "Cancelled"
-      default:
-        return status
-    }
-  }
-
   // Total incluant la livraison
   const computeGrandTotal = (order: Order) => {
     return order.total_amount
@@ -348,6 +322,9 @@ function ProfileContent() {
                   <div className="space-y-4">
                     {orders.map((order) => (
                       <div key={order.id} className="border border-gray-700 rounded-lg p-4">
+                        {(() => {
+                          const status = getCanonicalOrderStatus(order)
+                          return (
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <p className="font-semibold text-white">Order #{order.id.slice(-8)}</p>
@@ -359,8 +336,8 @@ function ProfileContent() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <Badge className={`${getStatusColor(order.status)} text-white`}>
-                              {getStatusText(order.status)}
+                            <Badge className={`${getOrderStatusColor(status)} text-white`}>
+                              {getOrderStatusLabel(status)}
                             </Badge>
                             {/* Total incluant la livraison */}
                             <p className="text-gold font-semibold mt-1">
@@ -370,8 +347,13 @@ function ProfileContent() {
                               Shipping: {order.shipping_amount === 0 ? "Free" : formatPrice(order.shipping_amount ?? 0)}
                               {order.shipping_rate_name ? ` - ${order.shipping_rate_name}` : ""}
                             </p>
+                            <p className="text-xs text-gray-500">
+                              Payment: {getPaymentStatusLabel(order.payment_status)} - Fulfillment: {getFulfillmentStatusLabel(order.fulfillment_status)}
+                            </p>
                           </div>
                         </div>
+                          )
+                        })()}
 
                         <div className="space-y-2 mb-4">
                           {order.items.map((item, index) => (
@@ -391,7 +373,7 @@ function ProfileContent() {
                               View details
                             </Button>
                           </Link>
-                          {order.status === "pending" && (
+                          {canCancelOrder(order) && (
                             <Button
                               variant="outline"
                               size="sm"

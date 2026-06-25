@@ -13,6 +13,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
+import { getAvailableStock, getVariantSize } from "@/lib/inventory"
 import {
   buildPackSelections,
   findCartUpgradeCandidate,
@@ -105,6 +106,9 @@ export default function Cart() {
     return item.product.name
   }
 
+  const getItemMaxQuantity = (item: (typeof state.items)[0]) =>
+    getAvailableStock(getVariantSize(item.selectedVariant, item.selectedSize))
+
   // Flags d’affichage
   const alreadyUsed = !!promo && !promo.valid && promo.reason === "per_user_limit_reached"
   const loginRequired = !!promo && !promo.valid && promo.reason === "login_required"
@@ -119,7 +123,7 @@ export default function Cart() {
     setPromoLoading(true)
     setPromoError(null)
     try {
-      const res = await api.applyPromo(normalized, orderItems) // nécessite Authorization dans lib/api
+      const res = await api.applyPromo(normalized, orderItems, subtotal) // nécessite Authorization dans lib/api
       setPromo(res)
       setPromoInput(normalized)
       if (res.valid) {
@@ -324,6 +328,7 @@ export default function Cart() {
                     const cartKey = `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`
                     const imageUrl = getItemImage(item)
                     const imageAlt = getItemImageAlt(item)
+                    const maxQuantity = getItemMaxQuantity(item)
 
                     return (
                       <div key={cartKey} className="flex gap-4">
@@ -354,6 +359,7 @@ export default function Cart() {
                                 variant="outline"
                                 size="icon"
                                 className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                                disabled={item.quantity >= maxQuantity}
                                 onClick={() =>
                                   handleQuantityChange(
                                     item.product.id,

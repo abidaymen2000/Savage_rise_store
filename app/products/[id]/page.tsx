@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RotateCcw, Star, Loader2 } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
 import { api } from "@/lib/api"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
-import type { Pack, Product, Variant, Review, WishlistItem } from "@/types/api"
+import type { Pack, Product, Variant } from "@/types/api"
+import { getAvailableStock, getVariantSize, isSizePurchasable } from "@/lib/inventory"
 import { getMetaContentId, getVariantSizeByName } from "@/lib/meta-content"
 import {
   buildPackSelections,
@@ -26,8 +27,6 @@ import {
   getProductImageForColor,
 } from "@/lib/pack-offers"
 import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
-import { Textarea } from "@/components/ui/textarea"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import WishlistButton from "@/components/WishlistButton"
 import ProductReviewSection from "@/components/ProductReviewSection"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -36,8 +35,7 @@ import { trackStoreEvent } from "@/lib/store-analytics"
 export default function ProductDetailPage() {
   const params = useParams()
   const productId = params.id as string
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { isAuthenticated } = useAuth()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
@@ -52,29 +50,12 @@ export default function ProductDetailPage() {
   const [relatedPackSizes, setRelatedPackSizes] = useState<Record<string, string>>({})
   const { addToCart, addPackToCart } = useCart()
 
-  // Wishlist state
-  const [userWishlist, setUserWishlist] = useState<WishlistItem[]>([])
-  const [isWishlistLoading, setIsWishlistLoading] = useState(true)
-
-  // Review state
-  const [productReviews, setProductReviews] = useState<Review[]>([])
-  const [reviewStats, setReviewStats] = useState<{ average_rating: number | null; count: number } | null>(null)
-  const [loadingReviews, setLoadingReviews] = useState(true)
-  const [userRating, setUserRating] = useState<number | null>(null)
-  const [userComment, setUserComment] = useState("")
-  const [showReviewForm, setShowReviewForm] = useState(false)
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
-  const [reviewError, setReviewError] = useState<string | null>(null)
-  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null)
-
   const fetchProductAndReviews = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const [data, reviews, stats, packsData] = await Promise.all([
+      const [data, packsData] = await Promise.all([
         api.getProduct(productId),
-        api.getProductReviews(productId),
-        api.getReviewStats(productId),
         api.getPacks(0, 50).catch(() => [] as Pack[]),
       ])
       setProduct(data)
@@ -87,15 +68,12 @@ export default function ProductDetailPage() {
 
         // Set default size if available
         if (firstVariant.sizes && firstVariant.sizes.length > 0) {
-          const firstAvailableSize = firstVariant.sizes.find((size) => size.stock > 0)
+          const firstAvailableSize = firstVariant.sizes.find((size) => isSizePurchasable(size))
           if (firstAvailableSize) {
             setSelectedSize(firstAvailableSize.size)
           }
         }
       }
-
-      setProductReviews(reviews)
-      setReviewStats(stats)
 
       const nextRelatedPack = findRelatedPack(productId, packsData)
       setRelatedPack(nextRelatedPack)
@@ -116,39 +94,17 @@ export default function ProductDetailPage() {
         setRelatedProducts({})
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading product or reviews")
+      setError(err instanceof Error ? err.message : "Error loading product")
     } finally {
       setLoading(false)
-      setLoadingReviews(false)
     }
   }, [productId])
-
-  const fetchUserWishlist = useCallback(async () => {
-    if (!isAuthenticated) {
-      setUserWishlist([])
-      setIsWishlistLoading(false)
-      return
-    }
-    try {
-      setIsWishlistLoading(true)
-      const wishlistData = await api.getWishlist()
-      setUserWishlist(wishlistData)
-    } catch (err) {
-      setUserWishlist([])
-    } finally {
-      setIsWishlistLoading(false)
-    }
-  }, [isAuthenticated])
 
   useEffect(() => {
     if (productId) {
       fetchProductAndReviews()
     }
   }, [productId, fetchProductAndReviews])
-
-  useEffect(() => {
-    fetchUserWishlist()
-  }, [isAuthenticated, fetchUserWishlist])
 
   useEffect(() => {
     if (!product) return
@@ -198,7 +154,7 @@ export default function ProductDetailPage() {
 
       // Reset size selection when changing color
       if (variant && variant.sizes.length > 0) {
-        const firstAvailableSize = variant.sizes.find((size) => size.stock > 0)
+        const firstAvailableSize = variant.sizes.find((size) => isSizePurchasable(size))
         setSelectedSize(firstAvailableSize ? firstAvailableSize.size : "")
       }
     }
@@ -226,7 +182,7 @@ export default function ProductDetailPage() {
   }, [product, relatedPack, relatedProducts, selectedColor])
 
   const handleAddToCart = () => {
-    if (product && isProductInStock(product) && currentVariant && selectedSize) {
+    if (product && currentVariant && selectedSize && canAddCurrentSelection) {
       addToCart(product, currentVariant, selectedSize, quantity)
     }
   }
@@ -278,50 +234,16 @@ export default function ProductDetailPage() {
     })
   }
 
-  const handleStarClick = (rating: number) => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
-    setUserRating(rating);
-    setShowReviewForm(true);
-    setReviewError(null);
-    setReviewSuccess(null);
-  };
-
-  const handleSubmitReview = async () => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
-    if (!product || userRating === null) {
-      setReviewError("Please select a rating.");
-      return;
-    }
-
-    setIsSubmittingReview(true);
-    setReviewError(null);
-    setReviewSuccess(null);
-
-    try {
-      await api.addReview(product.id, userRating, userComment);
-      setReviewSuccess("Your review has been submitted successfully!");
-      setUserRating(null);
-      setUserComment("");
-      setShowReviewForm(false);
-      await fetchProductAndReviews(); // Refresh reviews
-    } catch (err) {
-      setReviewError(err instanceof Error ? err.message : "Error submitting your review.");
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
   const productInStock = product ? isProductInStock(product) : false
   const availableColors = product ? getAvailableColors(product) : []
   const availableSizes = product && productInStock ? getAvailableSizes(product, selectedColor) : []
   const currentStock =
     productInStock && product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
+  const selectedVariantSize = getVariantSize(currentVariant, selectedSize)
+  const canAddCurrentSelection =
+    Boolean(productInStock && currentVariant && selectedSize) &&
+    getAvailableStock(selectedVariantSize) > 0 &&
+    quantity <= getAvailableStock(selectedVariantSize)
   const companionComponents = product ? findCompanionComponents(relatedPack, product.id) : []
   const completeLookReady =
     companionComponents.length > 0 &&
@@ -621,7 +543,7 @@ export default function ProductDetailPage() {
 
                 <Button
                   onClick={handleAddRelatedPack}
-                  disabled={!productInStock || !selectedSize || currentStock === 0 || !completeLookReady}
+                  disabled={!canAddCurrentSelection || !completeLookReady}
                   className="mt-5 w-full bg-white text-black hover:bg-gold"
                 >
                   Get the complete set - {formatPrice(getPackPrice(relatedPack) * quantity)}
@@ -633,7 +555,7 @@ export default function ProductDetailPage() {
             <div className="flex gap-4">
               <Button
                 onClick={handleAddToCart}
-                disabled={!productInStock || !selectedSize || currentStock === 0}
+                disabled={!canAddCurrentSelection}
                 className="flex-1 bg-gold text-black hover:bg-gold/90 font-semibold py-3"
               >
                 <ShoppingBag className="h-5 w-5 mr-2" />
@@ -704,9 +626,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Auth Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab="login" />
     </div>
   )
 }

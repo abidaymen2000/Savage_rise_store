@@ -8,7 +8,10 @@ export interface ProductImage {
 
 export interface SizeStock {
   size: string
-  stock: number
+  stock_on_hand?: number
+  stock_reserved?: number
+  stock_available?: number
+  stock?: number
   meta_content_id?: string | null
 }
 
@@ -79,40 +82,178 @@ export interface ShippingInfo {
   country: string
 }
 
-export interface OrderItem {
+export interface OrderItemCreate {
   product_id: string
   color: string
   size: string
-  qty: number // Changed back to 'qty' as per OpenAPI spec
-  unit_price: number
+  qty: number
 }
+
+export type OrderItem = OrderItemCreate
+
+export interface PackOrderComponentCreate {
+  component_id?: string | null
+  product_id: string
+  color: string
+  size: string
+  qty: number
+}
+
+export interface PackOrderSelection {
+  pack_id: string
+  qty: number
+  items: PackOrderComponentCreate[]
+}
+
+export type OrderShippingCreate = ShippingInfo
+
+export interface PromotionQuoteOut {
+  code?: string | null
+  discount_value?: number | null
+  discounted_total?: number | null
+}
+
+export interface LoyaltyQuoteSummaryOut {
+  points_balance?: number
+  requested_points?: number
+  usable_points?: number
+  discount_value?: number
+  remaining_total?: number
+  estimated_points_earned?: number
+}
+
+export interface InventoryAllocationOut {
+  product_id?: string
+  color?: string | null
+  size?: string | null
+  qty?: number
+  pack_id?: string | null
+  pack_component_id?: string | null
+  item_type?: "single" | "pack_component" | string
+  stock_available?: number | null
+}
+
+export interface OrderQuoteLineOut {
+  item_type?: "single" | "pack_component" | string
+  product_id: string
+  variant_id?: string | null
+  sku?: string | null
+  meta_content_id?: string | null
+  product_name?: string | null
+  color: string
+  size: string
+  qty: number
+  unit_price_original?: number | null
+  unit_price?: number | null
+  unit_price_final?: number | null
+  discount_amount?: number | null
+  line_total?: number | null
+  pack_id?: string | null
+  pack_title?: string | null
+  pack_component_id?: string | null
+  stock_available?: number | null
+}
+
+export interface OrderPackQuoteOut {
+  pack_id?: string | null
+  pack_title?: string | null
+  qty?: number
+  total_price?: number | null
+  items?: OrderQuoteLineOut[]
+}
+
+export interface OrderQuoteOut {
+  currency?: string
+  subtotal: number
+  pack_discount: number
+  promotion_discount: number
+  loyalty_discount: number
+  shipping_amount: number
+  total: number
+  items?: OrderQuoteLineOut[]
+  promotion?: PromotionQuoteOut | null
+  loyalty?: LoyaltyQuoteSummaryOut | null
+  warnings?: string[]
+  shipping_rate_id?: string | null
+  shipping_rate_name?: string | null
+  pack_items?: OrderPackQuoteOut[]
+  inventory_allocations?: InventoryAllocationOut[]
+  discount_value?: number
+  pack_discount_value?: number
+  promo_code?: string | null
+  promo_discount_value?: number
+  loyalty_points_used?: number
+  loyalty_discount_value?: number
+  total_amount: number
+  item_snapshots?: OrderQuoteLineOut[]
+}
+
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "preparing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "return_requested"
+  | "return_in_transit"
+  | "return_received"
+  | "returned"
+
+export type PaymentStatus =
+  | "unpaid"
+  | "pending"
+  | "paid"
+  | "failed"
+  | "refunded"
+  | "partially_refunded"
+
+export type FulfillmentStatus =
+  | "unfulfilled"
+  | "reserved"
+  | "processing"
+  | "fulfilled"
+  | "returning"
+  | "returned"
+  | "cancelled"
 
 export interface Order {
   id: string
   user_id?: string | null
   user_email?: string | null
   is_guest?: boolean
-  items: OrderItem[]
+  items: OrderItemCreate[]
   shipping: ShippingInfo
   payment_method: "cod" | "stripe" | "paypal"
   total_amount: number
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled"
-  payment_status: "unpaid" | "paid" | "refunded"
+  status: OrderStatus
+  order_status?: OrderStatus
+  payment_status: PaymentStatus
+  fulfillment_status: FulfillmentStatus
   created_at: string
   updated_at: string
-  promo_code?: string | null;     // <-- optionnel si le back le renvoie
-  pack_items?: any[];
-  subtotal?: number | null;
-  discount_value?: number | null;
-  pack_discount_value?: number;
-  loyalty_points_to_use?: number;
-  loyalty_points_used?: number;
-  loyalty_discount_value?: number;
-  loyalty_points_earned?: number;
-  loyalty_points_awarded?: boolean;
-  shipping_amount?: number | null;
-  shipping_rate_id?: string | null;
-  shipping_rate_name?: string | null;
+  idempotency_key?: string | null
+  promo_code?: string | null
+  pack_items?: OrderPackQuoteOut[]
+  subtotal?: number | null
+  discount_value?: number | null
+  pack_discount_value?: number
+  loyalty_points_to_use?: number
+  loyalty_points_used?: number
+  loyalty_discount_value?: number
+  loyalty_eligible_amount?: number
+  loyalty_points_earned?: number
+  loyalty_points_awarded?: boolean
+  shipping_amount?: number | null
+  shipping_rate_id?: string | null
+  shipping_rate_name?: string | null
+  item_snapshots?: OrderQuoteLineOut[] | null
+  inventory_allocations?: InventoryAllocationOut[] | null
+  paid_at?: string | null
+  cancelled_at?: string | null
+  cancelled_by?: string | null
+  cancellation_reason?: string | null
+  refunded_amount?: number
 }
 
 export interface Review {
@@ -251,19 +392,8 @@ export interface Pack {
   updated_at: string
 }
 
-export interface PackOrderComponent {
-  component_id?: string | null
-  product_id: string
-  color: string
-  size: string
-  qty?: number
+export interface PackOrderComponent extends PackOrderComponentCreate {
   unit_price: number
-}
-
-export interface PackOrderSelection {
-  pack_id: string
-  qty?: number
-  items: PackOrderComponent[]
 }
 
 export interface ShortFilm {
@@ -413,7 +543,7 @@ export interface WishlistCreate {
 export interface HealthStatus {
   status: "online" | "offline"
 }
-export interface OrderCreate {
+export interface OrderCreatePayload {
   items: OrderItem[]          // liste des produits/quantités
   shipping: ShippingInfo      // infos de livraison
   payment_method?: "cod" | "stripe" | "paypal"
@@ -421,6 +551,10 @@ export interface OrderCreate {
   promo_code?: string | null;
   loyalty_points_to_use?: number;
   pack_items?: PackOrderSelection[];
+}
+
+export interface OrderActionReasonIn {
+  reason?: string | null
 }
 
 // apres WishlistCreate
