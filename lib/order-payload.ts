@@ -63,7 +63,7 @@ export function buildOrderPayload(params: {
     pack_items: buildPackOrderSelections(packItems),
     shipping: {
       full_name: normalizeRequiredString(shipping.full_name),
-      email: normalizeRequiredString(shipping.email),
+      email: normalizeOptionalString(shipping.email),
       phone: normalizeRequiredString(shipping.phone),
       address_line1: normalizeRequiredString(shipping.address_line1),
       address_line2: normalizeOptionalString(shipping.address_line2),

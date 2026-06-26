@@ -73,7 +73,7 @@ export interface AuthTokens {
 
 export interface ShippingInfo {
   full_name: string
-  email: string
+  email?: string | null
   phone: string
   address_line1: string
   address_line2?: string | null

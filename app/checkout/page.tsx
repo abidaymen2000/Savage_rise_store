@@ -385,6 +385,9 @@ export default function CheckoutPage() {
         if (isQuoteConflict(err)) {
           clearCheckoutIdempotencyKey()
         }
+        if (isStockConflict(err)) {
+          clearCheckoutIdempotencyKey()
+        }
       }
       if (!(err instanceof ApiError) || err.status >= 500) {
         lastAttemptHadUnknownFailureRef.current = true
