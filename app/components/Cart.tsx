@@ -13,6 +13,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
+import { OPEN_CART_DRAWER_EVENT } from "@/lib/cart-ui"
 import { getAvailableStock, getVariantSize } from "@/lib/inventory"
 import {
   buildPackSelections,
@@ -181,6 +182,17 @@ export default function Cart() {
       router.push("/checkout")
     }
   }, [isAuthenticated, showAuthModal, router])
+
+  useEffect(() => {
+    const handleOpenCartDrawer = () => {
+      setIsOpen(true)
+    }
+
+    window.addEventListener(OPEN_CART_DRAWER_EVENT, handleOpenCartDrawer)
+    return () => {
+      window.removeEventListener(OPEN_CART_DRAWER_EVENT, handleOpenCartDrawer)
+    }
+  }, [])
 
   const handleProceed = () => {
     trackStoreEvent("button_clicked", {
@@ -527,7 +539,8 @@ export default function Cart() {
 
                 <Separator className="bg-gray-800" />
 
-                {/* Promo code (toggle) */}
+                {/* Promo code (signed-in users only) */}
+                {isAuthenticated ? (
                 <div className="py-2">
                   <button
                     type="button"
@@ -616,6 +629,17 @@ export default function Cart() {
                     </div>
                   </div>
                 </div>
+                ) : (
+                  <div className="py-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthModal(true)}
+                      className="w-full rounded-md border border-gold/25 bg-gold/5 px-3 py-3 text-left text-sm text-gold transition hover:bg-gold/10"
+                    >
+                      Sign in to use a promo code
+                    </button>
+                  </div>
+                )}
 
                 <Separator className="bg-gray-800" />
 
