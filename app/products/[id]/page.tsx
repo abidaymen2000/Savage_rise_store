@@ -32,6 +32,8 @@ import ProductReviewSection from "@/components/ProductReviewSection"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
+const viewTrackedKeyPrefix = "meta_viewcontent_product:"
+
 export default function ProductDetailPage() {
   const params = useParams()
   const productId = params.id as string
@@ -119,6 +121,13 @@ export default function ProductDetailPage() {
       size: selectedVariantSize,
       selectedSize,
     })
+    const viewTrackedKey = `${viewTrackedKeyPrefix}${product.id}:${currentVariant?.color ?? "none"}:${selectedSize || "none"}`
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(viewTrackedKey) === "1") {
+      return
+    }
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(viewTrackedKey, "1")
+    }
     trackMetaPixelEvent("ViewContent", {
       content_ids: metaContentId ? [metaContentId] : [product.id],
       content_name: product.name,

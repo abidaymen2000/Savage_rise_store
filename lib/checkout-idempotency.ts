@@ -1,5 +1,7 @@
 const CHECKOUT_IDEMPOTENCY_KEY = "savage-rise-checkout-idempotency-key"
 const CHECKOUT_IDEMPOTENCY_FINGERPRINT = "savage-rise-checkout-idempotency-fingerprint"
+const CHECKOUT_IDEMPOTENCY_CREATED_AT = "savage-rise-checkout-idempotency-created-at"
+const CHECKOUT_IDEMPOTENCY_TTL_MS = 30 * 60 * 1000
 
 function canUseSessionStorage() {
   return typeof window !== "undefined" && typeof window.sessionStorage !== "undefined"
@@ -15,6 +17,14 @@ function createKey() {
 
 export function getStoredCheckoutIdempotencyKey(): string | null {
   if (!canUseSessionStorage()) return null
+  const createdAt = window.sessionStorage.getItem(CHECKOUT_IDEMPOTENCY_CREATED_AT)
+  if (createdAt) {
+    const age = Date.now() - Number(createdAt)
+    if (Number.isFinite(age) && age > CHECKOUT_IDEMPOTENCY_TTL_MS) {
+      clearCheckoutIdempotencyKey()
+      return null
+    }
+  }
   return window.sessionStorage.getItem(CHECKOUT_IDEMPOTENCY_KEY)
 }
 
@@ -26,11 +36,15 @@ export function getStoredCheckoutFingerprint(): string | null {
 export function getOrCreateCheckoutIdempotencyKey(fingerprint?: string): string {
   const existing = getStoredCheckoutIdempotencyKey()
   const existingFingerprint = getStoredCheckoutFingerprint()
-  if (existing && (!fingerprint || !existingFingerprint || existingFingerprint === fingerprint)) {
+  if (existing && !fingerprint) {
     return existing
   }
 
-  if (existing && fingerprint && existingFingerprint && existingFingerprint !== fingerprint) {
+  if (existing && fingerprint && existingFingerprint === fingerprint) {
+    return existing
+  }
+
+  if (existing && fingerprint && existingFingerprint !== fingerprint) {
     clearCheckoutIdempotencyKey()
   }
 
@@ -40,6 +54,7 @@ export function getOrCreateCheckoutIdempotencyKey(fingerprint?: string): string 
   const key = createKey()
   if (canUseSessionStorage()) {
     window.sessionStorage.setItem(CHECKOUT_IDEMPOTENCY_KEY, key)
+    window.sessionStorage.setItem(CHECKOUT_IDEMPOTENCY_CREATED_AT, String(Date.now()))
     if (fingerprint) {
       window.sessionStorage.setItem(CHECKOUT_IDEMPOTENCY_FINGERPRINT, fingerprint)
     } else {
@@ -53,4 +68,5 @@ export function clearCheckoutIdempotencyKey(): void {
   if (!canUseSessionStorage()) return
   window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_KEY)
   window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_FINGERPRINT)
+  window.sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_CREATED_AT)
 }

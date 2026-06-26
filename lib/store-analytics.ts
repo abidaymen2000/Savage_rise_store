@@ -11,6 +11,8 @@ const API_BASE_URL =
 const ANONYMOUS_ID_KEY = "savage_rise_anonymous_id"
 const SESSION_ID_KEY = "savage_rise_session_id"
 const SESSION_STARTED_AT_KEY = "savage_rise_session_started_at"
+const RECENT_EVENT_DEDUPE_MS = 1200
+const recentEventMap = new Map<string, number>()
 
 type TrackStoreEventOptions = Omit<
   StoreAnalyticsEventPayload,
@@ -115,10 +117,26 @@ function getDefaultEventCategory(eventName: string) {
   return "custom"
 }
 
+function shouldSkipDuplicateEvent(eventName: string, options: TrackStoreEventOptions) {
+  const key = JSON.stringify({
+    eventName,
+    product_id: options.product_id ?? null,
+    order_id: options.order_id ?? null,
+    action_target: options.action_target ?? null,
+    page_path: options.page_path ?? null,
+  })
+  const now = Date.now()
+  const previous = recentEventMap.get(key)
+  recentEventMap.set(key, now)
+  return typeof previous === "number" && now - previous < RECENT_EVENT_DEDUPE_MS
+}
+
 export function trackStoreEvent(eventName: StoreAnalyticsEventName | string, options: TrackStoreEventOptions = {}) {
   if (typeof window === "undefined") return
 
   try {
+    if (shouldSkipDuplicateEvent(eventName, options)) return
+
     const token = localStorage.getItem("savage_rise_token")
     const searchParams = new URLSearchParams(window.location.search)
     const referrer = document.referrer || null

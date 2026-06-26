@@ -14,6 +14,10 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import { ApiError, api } from "@/lib/api"
 import { clearCheckoutIdempotencyKey, getOrCreateCheckoutIdempotencyKey, getStoredCheckoutIdempotencyKey } from "@/lib/checkout-idempotency"
+import { buildCheckoutFingerprint, buildQuoteSignature } from "@/lib/checkout-fingerprint"
+import { getMetaEventContext } from "@/lib/meta-event-context"
+import { trackPurchasePixelOnce } from "@/lib/meta-purchase"
+import { getBackendConflictBody, getBackendConflictCode, getBackendConflictMessage, isIdempotencyConflict, isQuoteConflict, isStockConflict } from "@/lib/order-conflicts"
 import { buildOrderPayload } from "@/lib/order-payload"
 import AuthModal from "@/app/components/AuthModal"
 import EmailVerificationModal from "@/app/components/EmailVerificationModal"
@@ -25,6 +29,9 @@ import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
+const CHECKOUT_START_TRACKING_KEY = "meta_initiate_checkout_tracked"
+
+type CheckoutStatus = "idle" | "quoting" | "ready" | "submitting" | "success" | "conflict" | "error"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -34,6 +41,7 @@ export default function CheckoutPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showEmailVerification, setShowEmailVerification] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [checkoutStatus, setCheckoutStatus] = useState<CheckoutStatus>("idle")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null)
@@ -92,6 +100,7 @@ export default function CheckoutPage() {
   const loyaltyPointsUsed = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
   const estimatedPointsEarned = isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
   const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
+  const metaEventContext = useMemo(() => getMetaEventContext(), [])
 
   const orderPayload = useMemo(
     () =>
@@ -103,9 +112,12 @@ export default function CheckoutPage() {
         promo_code: isAuthenticated ? promoCode : null,
         loyalty_points_to_use: isAuthenticated ? loyaltyPointsUsed : 0,
         user_id: isAuthenticated ? user?.id ?? null : null,
+        meta: metaEventContext,
       }),
-    [cartState.items, cartState.packItems, shippingInfo, isAuthenticated, promoCode, loyaltyPointsUsed, user?.id],
+    [cartState.items, cartState.packItems, shippingInfo, isAuthenticated, promoCode, loyaltyPointsUsed, user?.id, metaEventContext],
   )
+
+  const quoteSignature = useMemo(() => buildQuoteSignature(orderQuote), [orderQuote])
 
   // (Re)valider un code promo sauvegardé
   const revalidatePromo = async (code: string) => {
@@ -233,16 +245,35 @@ export default function CheckoutPage() {
       }
 
       if (err.status === 409) {
-        if (lowerDetail.includes("idempotency")) {
-          clearCheckoutIdempotencyKey()
-          return "This checkout attempt no longer matches the current cart. Please review the updated checkout and try again."
+        const conflictCode = getBackendConflictCode(err)
+        const conflictMessage = getBackendConflictMessage(err)
+        const conflictBody = getBackendConflictBody(err)
+        const lineItem = typeof conflictBody?.item === "string" ? conflictBody.item : null
+
+        if (isIdempotencyConflict(err)) {
+          return conflictMessage
+            ? `This checkout attempt is already in progress or no longer matches the previous payload. ${conflictMessage}`
+            : "This checkout attempt is already in progress or no longer matches the previous payload. Please review before trying again."
         }
 
-        if (lowerDetail.includes("stock") || lowerDetail.includes("inventory") || lowerDetail.includes("available")) {
-          return "Stock changed while you were checking out. We refreshed your cart with the latest availability."
+        if (isQuoteConflict(err)) {
+          return conflictMessage
+            ? `Your checkout quote is no longer valid. ${conflictMessage}`
+            : "Your checkout quote is no longer valid. We refreshed the latest pricing and need a new confirmation."
         }
 
-        return "Your order could not be created because the checkout changed or another business rule blocked it. Please review and try again."
+        if (isStockConflict(err)) {
+          if (lineItem) {
+            return `Availability changed for ${lineItem}. Please review the updated checkout before trying again.`
+          }
+          return conflictMessage
+            ? `Stock changed while you were checking out. ${conflictMessage}`
+            : "Stock changed while you were checking out. We refreshed your cart with the latest availability."
+        }
+
+        return conflictMessage
+          ? `${conflictMessage}${conflictCode ? ` (${conflictCode})` : ""}`
+          : "Your order could not be created because the checkout changed or another business rule blocked it. Please review and try again."
       }
 
       return detail
@@ -277,6 +308,7 @@ export default function CheckoutPage() {
     }
 
     setIsProcessing(true)
+    setCheckoutStatus("submitting")
     setError(null)
     const idempotencyKey = getOrCreateCheckoutIdempotencyKey(checkoutFingerprint)
     lastAttemptFingerprintRef.current = checkoutFingerprint
@@ -300,19 +332,19 @@ export default function CheckoutPage() {
     try {
       const order = await api.createOrder(orderPayload, idempotencyKey)
 
-      trackMetaPixelEvent("Purchase", {
+      trackPurchasePixelOnce({
+        orderId: order.id,
+        value: order.total_amount ?? orderQuote.total_amount,
+        currency: orderQuote.currency ?? "TND",
         content_ids: pixelContentIds,
         contents: pixelContents,
-        currency: "TND",
         num_items: cartState.itemCount,
-        order_id: order.id,
-        value: order.total_amount ?? orderQuote.total,
       })
       trackStoreEvent("payment_success", {
         order_id: order.id,
         metadata: {
           payment_method: "cod",
-          value: order.total_amount ?? orderQuote.total,
+          value: order.total_amount ?? orderQuote.total_amount,
         },
       })
       trackStoreEvent("order_completed", {
@@ -329,18 +361,14 @@ export default function CheckoutPage() {
       })
       setCreatedOrder(order)
       setSuccess(true)
+      setCheckoutStatus("success")
       clearCheckoutIdempotencyKey()
       lastAttemptFingerprintRef.current = null
       clearCart()
       localStorage.removeItem(PROMO_STORAGE_KEY)
       setUseLoyaltyPoints(false)
       setLoyaltyPointsToUse(0)
-
-      if (isAuthenticated) {
-        setTimeout(() => {
-          router.push(`/profile/orders/${order.id}`)
-        }, 2000)
-      }
+      router.replace(`/checkout/success?order_id=${encodeURIComponent(order.id)}`)
     } catch (err) {
       trackStoreEvent("payment_failed", {
         metadata: {
@@ -351,10 +379,14 @@ export default function CheckoutPage() {
       })
       if (err instanceof ApiError && (err.status === 404 || err.status === 409)) {
         await refreshCheckoutProducts()
+        if (isQuoteConflict(err)) {
+          clearCheckoutIdempotencyKey()
+        }
       }
       if (!(err instanceof ApiError) || err.status >= 500) {
         lastAttemptHadUnknownFailureRef.current = true
       }
+      setCheckoutStatus(err instanceof ApiError && err.status === 409 ? "conflict" : "error")
       setError(getFriendlyCheckoutError(err))
     } finally {
       setIsProcessing(false)
@@ -362,19 +394,8 @@ export default function CheckoutPage() {
   }
 
   const checkoutFingerprint = useMemo(
-    () =>
-      JSON.stringify({
-        items: orderPayload.items.map((item) => `${item.product_id}:${item.color}:${item.size}:${item.qty}`),
-        packs: orderPayload.pack_items?.map((item) => ({
-          pack_id: item.pack_id,
-          qty: item.qty,
-          items: item.items.map((selection) => `${selection.product_id}:${selection.color}:${selection.size}:${selection.qty}`),
-        })),
-        promoCode: isAuthenticated ? promoCode : null,
-        loyaltyPointsUsed: isAuthenticated ? loyaltyPointsUsed : 0,
-        shipping: orderPayload.shipping,
-      }),
-    [orderPayload, isAuthenticated, promoCode, loyaltyPointsUsed],
+    () => buildCheckoutFingerprint(orderPayload, quoteSignature),
+    [orderPayload, quoteSignature],
   )
 
   useEffect(() => {
@@ -413,13 +434,16 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (cartState.itemCount === 0) return
-    trackMetaPixelEvent("InitiateCheckout", {
-      content_ids: pixelContentIds,
-      contents: pixelContents,
-      currency: "TND",
-      num_items: cartState.itemCount,
-      value: subtotal,
-    })
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(CHECKOUT_START_TRACKING_KEY) !== checkoutFingerprint) {
+      window.sessionStorage.setItem(CHECKOUT_START_TRACKING_KEY, checkoutFingerprint)
+      trackMetaPixelEvent("InitiateCheckout", {
+        content_ids: pixelContentIds,
+        contents: pixelContents,
+        currency: "TND",
+        num_items: cartState.itemCount,
+        value: subtotal,
+      })
+    }
     trackStoreEvent("checkout_started", {
       metadata: {
         content_ids: pixelContentIds,
@@ -428,9 +452,7 @@ export default function CheckoutPage() {
         value: subtotal,
       },
     })
-    // Track once when entering checkout with the current cart.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [cartState.itemCount, checkoutFingerprint, pixelContentIds, pixelContents, subtotal])
 
   useEffect(() => {
     if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {
@@ -470,22 +492,26 @@ export default function CheckoutPage() {
     if (!validateShippingInfo() || cartState.itemCount === 0) {
       setOrderQuote(null)
       setQuoteError(null)
+      setCheckoutStatus("idle")
       return
     }
 
     const requestId = ++quoteRequestIdRef.current
     const timeout = setTimeout(async () => {
+      setCheckoutStatus("quoting")
       setQuoteLoading(true)
       setQuoteError(null)
       try {
         const quote = await api.quoteOrder(orderPayload)
         if (requestId === quoteRequestIdRef.current) {
           setOrderQuote(quote)
+          setCheckoutStatus("ready")
         }
       } catch (err) {
         if (requestId === quoteRequestIdRef.current) {
           setOrderQuote(null)
           setQuoteError(err instanceof Error ? err.message : "Unable to validate your order total right now.")
+          setCheckoutStatus("error")
         }
       } finally {
         if (requestId === quoteRequestIdRef.current) {
@@ -527,7 +553,7 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-2xl font-bold mb-2">Order confirmed!</h1>
           <p className="text-gray-400 mb-4">
-            Your order has been created successfully. You will be redirected to your order details.
+            Your order has been created successfully. Redirecting to your confirmation page...
           </p>
           {isAuthenticated && createdOrder && (
             <div className="mb-4 rounded-md border border-gold/25 bg-gold/10 p-3 text-sm text-gold">
@@ -539,30 +565,7 @@ export default function CheckoutPage() {
               ) : null}
             </div>
           )}
-          {isAuthenticated ? (
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold mx-auto"></div>
-          ) : (
-            <div className="space-y-4">
-              {createdOrder && (
-                <p className="text-sm text-gray-500">Order reference #{createdOrder.id.slice(-8)}</p>
-              )}
-              <p className="text-sm text-gray-400">
-                A confirmation email will be sent to {shippingInfo.email}. Create an account to track your next orders.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/products">
-                  <Button className="bg-gold text-black hover:bg-gold/90">Continue shopping</Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                  onClick={() => setShowAuthModal(true)}
-                >
-                  Create an account
-                </Button>
-              </div>
-            </div>
-          )}
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold mx-auto"></div>
         </div>
       </div>
     )
@@ -928,6 +931,10 @@ export default function CheckoutPage() {
                     <AlertDescription className="text-yellow-300">{quoteWarnings.join(" ")}</AlertDescription>
                   </Alert>
                 )}
+
+                <p className="text-xs text-gray-500">
+                  Status: {checkoutStatus}
+                </p>
 
                 <Separator className="bg-gray-700" />
 

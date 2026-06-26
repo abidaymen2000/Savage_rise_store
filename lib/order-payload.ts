@@ -1,6 +1,7 @@
 import type {
   CartItem,
   CartPackItem,
+  MetaEventContext,
   OrderCreatePayload,
   OrderShippingCreate,
   PackOrderSelection,
@@ -10,6 +11,10 @@ function normalizeOptionalString(value: string | null | undefined): string | nul
   if (typeof value !== "string") return null
   const trimmed = value.trim()
   return trimmed ? trimmed : null
+}
+
+function normalizeRequiredString(value: string): string {
+  return value.trim()
 }
 
 export function buildPackOrderSelections(packItems: CartPackItem[]): PackOrderSelection[] {
@@ -34,6 +39,7 @@ export function buildOrderPayload(params: {
   promo_code?: string | null
   loyalty_points_to_use?: number
   user_id?: string | null
+  meta?: MetaEventContext | null
 }): OrderCreatePayload {
   const {
     items,
@@ -43,6 +49,7 @@ export function buildOrderPayload(params: {
     promo_code = null,
     loyalty_points_to_use = 0,
     user_id,
+    meta = null,
   } = params
 
   return {
@@ -55,17 +62,18 @@ export function buildOrderPayload(params: {
     })),
     pack_items: buildPackOrderSelections(packItems),
     shipping: {
-      full_name: shipping.full_name,
-      email: shipping.email,
-      phone: shipping.phone,
-      address_line1: shipping.address_line1,
+      full_name: normalizeRequiredString(shipping.full_name),
+      email: normalizeRequiredString(shipping.email),
+      phone: normalizeRequiredString(shipping.phone),
+      address_line1: normalizeRequiredString(shipping.address_line1),
       address_line2: normalizeOptionalString(shipping.address_line2),
-      postal_code: shipping.postal_code,
-      city: shipping.city,
-      country: shipping.country,
+      postal_code: normalizeRequiredString(shipping.postal_code),
+      city: normalizeRequiredString(shipping.city),
+      country: normalizeRequiredString(shipping.country),
     },
     payment_method,
-    promo_code: normalizeOptionalString(promo_code),
+    promo_code: normalizeOptionalString(promo_code)?.toUpperCase() ?? null,
     loyalty_points_to_use: Math.max(0, Math.floor(loyalty_points_to_use)),
+    ...(meta ? { meta } : {}),
   }
 }

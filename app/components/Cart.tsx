@@ -56,7 +56,6 @@ export default function Cart() {
         color: it.selectedVariant.color,
         size: it.selectedSize,
         qty: it.quantity,
-        unit_price: it.product.price,
       })),
     [state.items]
   )
@@ -624,7 +623,7 @@ export default function Cart() {
                 <div className="space-y-4 py-6">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <Truck className="h-4 w-4" />
-                    <span>Shipping is calculated at the next step</span>
+                    <span>Final prices and shipping are confirmed by the backend at checkout</span>
                   </div>
 
                   <div className="space-y-2">
@@ -662,7 +661,7 @@ export default function Cart() {
                     <Separator className="bg-gray-800" />
 
                     <div className="flex justify-between font-semibold text-lg">
-                      <span>Total</span>
+                      <span>Estimated total</span>
                       <span className="text-gold">{grandTotal.toFixed(2)} TND</span>
                     </div>
                   </div>

@@ -66,9 +66,6 @@ test("checkout idempotency key is stable until cleared", async () => {
 
   assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey(), "uuid-123")
   assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey(), "uuid-123")
-  assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-a"), "uuid-123")
-  assert.equal(idempotency.getStoredCheckoutFingerprint(), null)
-  idempotency.clearCheckoutIdempotencyKey()
   Object.defineProperty(globalThis, "crypto", {
     configurable: true,
     value: {
@@ -77,13 +74,22 @@ test("checkout idempotency key is stable until cleared", async () => {
   })
   assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-a"), "uuid-456")
   assert.equal(idempotency.getStoredCheckoutFingerprint(), "fingerprint-a")
+  idempotency.clearCheckoutIdempotencyKey()
   Object.defineProperty(globalThis, "crypto", {
     configurable: true,
     value: {
       randomUUID: () => "uuid-789",
     },
   })
-  assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-b"), "uuid-789")
+  assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-a"), "uuid-789")
+  assert.equal(idempotency.getStoredCheckoutFingerprint(), "fingerprint-a")
+  Object.defineProperty(globalThis, "crypto", {
+    configurable: true,
+    value: {
+      randomUUID: () => "uuid-999",
+    },
+  })
+  assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-b"), "uuid-999")
   assert.equal(idempotency.getStoredCheckoutFingerprint(), "fingerprint-b")
 })
 
@@ -130,18 +136,22 @@ test("buildOrderPayload strips prices and unexpected fields", async () => {
       },
     ],
     shipping: {
-      full_name: "Ada",
-      email: "ada@example.com",
-      phone: "1",
-      address_line1: "a",
-      address_line2: "",
-      postal_code: "1",
-      city: "Paris",
-      country: "France",
+      full_name: " Ada ",
+      email: " ada@example.com ",
+      phone: " 1 ",
+      address_line1: " a ",
+      address_line2: "   ",
+      postal_code: " 1 ",
+      city: " Paris ",
+      country: " France ",
     },
-    promo_code: "WELCOME",
+    promo_code: " welcome ",
     loyalty_points_to_use: 20,
     user_id: "user_1",
+    meta: {
+      event_source_url: "https://savagerise.com/checkout",
+      fbp: "fbp-1",
+    },
   })
 
   assert.deepEqual(payload.items, [{ product_id: "prod_1", color: "Black", size: "M", qty: 2 }])
@@ -153,6 +163,11 @@ test("buildOrderPayload strips prices and unexpected fields", async () => {
     },
   ])
   assert.equal(payload.shipping.address_line2, null)
+  assert.equal(payload.shipping.full_name, "Ada")
+  assert.equal(payload.shipping.email, "ada@example.com")
+  assert.equal(payload.shipping.city, "Paris")
+  assert.equal(payload.promo_code, "WELCOME")
+  assert.equal(payload.meta.event_source_url, "https://savagerise.com/checkout")
   assert.equal("unit_price" in payload.items[0], false)
   assert.equal("line_total" in payload.items[0], false)
   assert.equal("product_name" in payload.pack_items[0].items[0], false)

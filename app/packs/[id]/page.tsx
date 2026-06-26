@@ -16,6 +16,8 @@ import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/a
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
+const viewTrackedKeyPrefix = "meta_viewcontent_pack:"
+
 type Selection = {
   color: string
   size: string
@@ -135,6 +137,13 @@ export default function PackDetailPage() {
 
   useEffect(() => {
     if (!pack) return
+    const viewTrackedKey = `${viewTrackedKeyPrefix}${pack.id}`
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(viewTrackedKey) === "1") {
+      return
+    }
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(viewTrackedKey, "1")
+    }
     trackMetaPixelEvent("ViewContent", {
       content_ids: [pack.id],
       content_name: pack.title,

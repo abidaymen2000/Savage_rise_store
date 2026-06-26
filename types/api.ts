@@ -87,6 +87,7 @@ export interface OrderItemCreate {
   color: string
   size: string
   qty: number
+  variant_id?: string | null
 }
 
 export type OrderItem = OrderItemCreate
@@ -97,6 +98,7 @@ export interface PackOrderComponentCreate {
   color: string
   size: string
   qty: number
+  variant_id?: string | null
 }
 
 export interface PackOrderSelection {
@@ -106,6 +108,14 @@ export interface PackOrderSelection {
 }
 
 export type OrderShippingCreate = ShippingInfo
+
+export interface MetaEventContext {
+  event_source_url?: string | null
+  fbp?: string | null
+  fbc?: string | null
+  fbclid?: string | null
+  consent?: string | null
+}
 
 export interface PromotionQuoteOut {
   code?: string | null
@@ -551,6 +561,16 @@ export interface OrderCreatePayload {
   promo_code?: string | null;
   loyalty_points_to_use?: number;
   pack_items?: PackOrderSelection[];
+  meta?: MetaEventContext | null
+}
+
+export interface BackendConflictBody {
+  detail?: string | { code?: string | null; message?: string | null; item?: string | null; [key: string]: unknown } | Array<Record<string, unknown>>
+  code?: string | null
+  message?: string | null
+  item?: string | null
+  order_id?: string | null
+  [key: string]: unknown
 }
 
 export interface OrderActionReasonIn {
