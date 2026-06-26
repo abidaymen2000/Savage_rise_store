@@ -216,7 +216,10 @@ export default function CheckoutPage() {
   }
 
   const validateShippingInfo = (): boolean => {
-    const required = ["full_name", "email", "phone", "address_line1", "postal_code", "city", "country"]
+    const required: Array<keyof ShippingInfo> = ["full_name", "phone", "address_line1", "postal_code", "city", "country"]
+    if (isAuthenticated) {
+      required.push("email")
+    }
     return required.every((field) => shippingInfo[field as keyof ShippingInfo]?.toString().trim())
   }
 
@@ -673,14 +676,15 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email">Email {isAuthenticated ? "*" : "(optional)"}</Label>
                     <Input
                       id="email"
                       type="email"
                       value={shippingInfo.email}
                       onChange={(e) => handleInputChange("email", e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white"
-                      required
+                      placeholder={isAuthenticated ? undefined : "Optional for guest checkout"}
+                      required={isAuthenticated}
                     />
                   </div>
                 </div>
