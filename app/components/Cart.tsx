@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,7 +13,6 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
-import { OPEN_CART_DRAWER_EVENT } from "@/lib/cart-ui"
 import { getAvailableStock, getVariantSize } from "@/lib/inventory"
 import {
   buildPackSelections,
@@ -30,10 +29,19 @@ import { formatPrice } from "@/lib/utils"
 
 export default function Cart() {
   const router = useRouter()
-  const { state, addPackToCart, updateQuantity, removeFromCart, updatePackQuantity, removePackFromCart, getPackCartKey } = useCart()
+  const {
+    state,
+    isCartOpen,
+    openCart,
+    closeCart,
+    addPackToCart,
+    updateQuantity,
+    removeFromCart,
+    updatePackQuantity,
+    removePackFromCart,
+    getPackCartKey,
+  } = useCart()
   const { isAuthenticated } = useAuth()
-
-  const [isOpen, setIsOpen] = useState(false)
 
   // Auth modal
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -183,17 +191,6 @@ export default function Cart() {
     }
   }, [isAuthenticated, showAuthModal, router])
 
-  useEffect(() => {
-    const handleOpenCartDrawer = () => {
-      setIsOpen(true)
-    }
-
-    window.addEventListener(OPEN_CART_DRAWER_EVENT, handleOpenCartDrawer)
-    return () => {
-      window.removeEventListener(OPEN_CART_DRAWER_EVENT, handleOpenCartDrawer)
-    }
-  }, [])
-
   const handleProceed = () => {
     trackStoreEvent("button_clicked", {
       metadata: {
@@ -202,12 +199,12 @@ export default function Cart() {
         item_count: state.itemCount,
       },
     })
-    setIsOpen(false)
+    closeCart()
     router.push("/checkout")
   }
 
   useEffect(() => {
-    if (!isOpen || state.items.length === 0) return
+    if (!isCartOpen || state.items.length === 0) return
 
     let isMounted = true
 
@@ -249,7 +246,7 @@ export default function Cart() {
     return () => {
       isMounted = false
     }
-  }, [isOpen, state.items, state.packItems])
+  }, [isCartOpen, state.items, state.packItems])
 
   const handleUpgradeToSet = () => {
     if (!upgradeCandidate || !upgradeCompanionProduct || !upgradeSelection) return
@@ -293,9 +290,13 @@ export default function Cart() {
   return (
     <>
       <Sheet
-        open={isOpen}
+        open={isCartOpen}
         onOpenChange={(open) => {
-          setIsOpen(open)
+          if (open) {
+            openCart()
+          } else {
+            closeCart()
+          }
           if (open) {
             trackStoreEvent("cart_viewed", {
               metadata: {
@@ -306,19 +307,20 @@ export default function Cart() {
           }
         }}
       >
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
-            <ShoppingBag className="h-5 w-5" />
-            {state.itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-gold text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {state.itemCount}
-              </span>
-            )}
-          </Button>
-        </SheetTrigger>
+        <Button variant="ghost" size="icon" className="text-white hover:text-gold relative" onClick={openCart}>
+          <ShoppingBag className="h-5 w-5" />
+          {state.itemCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-gold text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {state.itemCount}
+            </span>
+          )}
+        </Button>
 
-        <SheetContent className="bg-black text-white border-gray-800 w-full sm:max-w-lg">
-          <SheetHeader>
+        <SheetContent
+          data-cart-drawer="true"
+          className="w-full overflow-hidden border-gray-800 bg-black px-4 text-white sm:max-w-lg sm:px-6"
+        >
+          <SheetHeader className="pr-10">
             <SheetTitle className="text-white font-playfair text-2xl">Cart ({state.itemCount})</SheetTitle>
           </SheetHeader>
 

@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
 import { api } from "@/lib/api"
-import { requestOpenCartDrawer } from "@/lib/cart-ui"
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
@@ -194,7 +193,6 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (product && currentVariant && selectedSize && canAddCurrentSelection) {
       addToCart(product, currentVariant, selectedSize, quantity)
-      requestOpenCartDrawer()
     }
   }
 

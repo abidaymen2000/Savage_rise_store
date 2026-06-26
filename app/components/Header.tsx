@@ -122,75 +122,73 @@ export default function Header() {
               </Link>
             </nav>
 
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" size="icon" className="text-white hover:text-gold">
-                <Search className="h-5 w-5" />
-              </Button>
-
-              {isAuthenticated && (
-                <Link href="/profile?tab=wishlist">
-                  <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
-                    <Heart className="h-5 w-5" />
-                    {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-gold text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              )}
-
-              {isAuthenticated ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
-                      <User className="h-5 w-5" />
-                      {user?.is_active && <Badge className="absolute -top-1 -right-1 w-3 h-3 p-0 bg-green-500" />}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-black border-gray-800" align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile?tab=settings" className="text-white hover:text-gold">
-                        My Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile?tab=orders" className="text-white hover:text-gold">
-                        My Orders
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile?tab=wishlist" className="text-white hover:text-gold">
-                        My Wishlist
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-gray-700" />
-                    <DropdownMenuItem onClick={logout} className="text-red-400 hover:text-red-300">
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:text-gold"
-                  onClick={() => setShowAuthModal(true)}
-                >
-                  <User className="h-5 w-5" />
+            <div className="flex shrink-0 items-center gap-2 md:gap-4">
+              <div className="hidden md:flex items-center space-x-4">
+                <Button variant="ghost" size="icon" className="text-white hover:text-gold">
+                  <Search className="h-5 w-5" />
                 </Button>
-              )}
+
+                {isAuthenticated && (
+                  <Link href="/profile?tab=wishlist">
+                    <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
+                      <Heart className="h-5 w-5" />
+                      {wishlistCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-gold text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                )}
+
+                {isAuthenticated ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
+                        <User className="h-5 w-5" />
+                        {user?.is_active && <Badge className="absolute -top-1 -right-1 w-3 h-3 p-0 bg-green-500" />}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-black border-gray-800" align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile?tab=settings" className="text-white hover:text-gold">
+                          My Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile?tab=orders" className="text-white hover:text-gold">
+                          My Orders
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile?tab=wishlist" className="text-white hover:text-gold">
+                          My Wishlist
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      <DropdownMenuItem onClick={logout} className="text-red-400 hover:text-red-300">
+                        Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:text-gold"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    <User className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
 
               <Cart />
-            </div>
 
-            {/* Mobile actions (Cart + Menu toggle) */}
-            <div className="md:hidden flex shrink-0 items-center gap-2">
-              <Cart />
               <Button
                 variant="ghost"
-                className="h-10 shrink-0 gap-2 rounded-full border border-gold/70 bg-gold/10 px-3 text-sm font-semibold text-gold shadow-[0_0_18px_rgba(212,175,55,0.22)] hover:bg-gold hover:text-black"
+                size="icon"
+                className="md:hidden h-10 shrink-0 gap-2 rounded-full border border-gold/70 bg-gold/10 px-3 text-sm font-semibold text-gold shadow-[0_0_18px_rgba(212,175,55,0.22)] hover:bg-gold hover:text-black"
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-expanded={isMenuOpen}
                 aria-label={isMenuOpen ? "Close menu" : "Open menu"}

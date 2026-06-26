@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useReducer, useEffect } from "react"
+import { createContext, useContext, useReducer, useEffect, useState } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
 import { getAvailableStock, getVariantSize } from "@/lib/inventory"
 import { getMetaContentId } from "@/lib/meta-content"
@@ -33,7 +33,10 @@ type CartAction =
 
 const CartContext = createContext<{
   state: CartState
+  isCartOpen: boolean
   dispatch: React.Dispatch<CartAction>
+  openCart: () => void
+  closeCart: () => void
   addToCart: (product: Product, variant: Variant, size: string, quantity?: number) => void
   addPackToCart: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
   removeFromCart: (productId: string, color: string, size: string) => void
@@ -195,6 +198,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     total: 0,
     itemCount: 0,
   })
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -239,6 +243,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state])
 
+  const openCart = () => {
+    setIsCartOpen(true)
+  }
+
+  const closeCart = () => {
+    setIsCartOpen(false)
+  }
+
   const addToCart = (product: Product, variant: Variant, size: string, quantity = 1) => {
     // Validate inputs
     if (!product || !variant || !size) {
@@ -277,6 +289,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       },
     })
     dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
+    openCart()
   }
 
   const addPackToCart = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
@@ -311,6 +324,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       },
     })
     dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
+    openCart()
   }
 
   const removeFromCart = (productId: string, color: string, size: string) => {
@@ -441,7 +455,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         state,
+        isCartOpen,
         dispatch,
+        openCart,
+        closeCart,
         addToCart,
         addPackToCart,
         removeFromCart,
