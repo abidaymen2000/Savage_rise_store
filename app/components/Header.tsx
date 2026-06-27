@@ -74,13 +74,13 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-gold/20">
+      <header className="fixed top-0 z-50 w-full border-b border-gold/20 bg-black/90 backdrop-blur-md">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex h-16 items-center justify-between gap-3">
             {/* Logo */}
             <Link
               href="/"
-              className="min-w-0 truncate whitespace-nowrap text-xl sm:text-2xl font-playfair font-bold text-gold"
+              className="min-w-0 flex-1 truncate whitespace-nowrap text-lg font-playfair font-bold text-gold sm:text-2xl md:flex-none"
               onClick={closeMobileMenu}
             >
               SAVAGE RISE
@@ -187,8 +187,7 @@ export default function Header() {
 
               <Button
                 variant="ghost"
-                size="icon"
-                className="md:hidden h-10 shrink-0 gap-2 rounded-full border border-gold/70 bg-gold/10 px-3 text-sm font-semibold text-gold shadow-[0_0_18px_rgba(212,175,55,0.22)] hover:bg-gold hover:text-black"
+                className="md:hidden inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-gold/70 bg-gold/10 px-3 text-sm font-semibold text-gold shadow-[0_0_18px_rgba(212,175,55,0.22)] hover:bg-gold hover:text-black"
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-expanded={isMenuOpen}
                 aria-label={isMenuOpen ? "Close menu" : "Open menu"}
@@ -201,8 +200,8 @@ export default function Header() {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute left-0 right-0 top-16 max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-gold/30 bg-[#050505]/95 px-4 py-5 shadow-2xl shadow-black/70 backdrop-blur-md">
-              <nav className="mx-auto flex w-full max-w-screen-sm flex-col gap-3">
+            <div className="md:hidden fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-gold/30 bg-[#050505]/95 px-4 py-5 shadow-2xl shadow-black/70 backdrop-blur-md">
+              <nav className="mx-auto flex w-full max-w-screen-sm flex-col gap-3 pb-4">
                 <div className="mb-1 border-b border-gold/20 pb-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">Savage Rise</p>
                   <p className="mt-1 text-sm text-white/65">Explore the collection</p>

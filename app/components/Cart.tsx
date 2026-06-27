@@ -43,10 +43,7 @@ export default function Cart() {
   } = useCart()
   const { isAuthenticated } = useAuth()
 
-  // Auth modal
   const [showAuthModal, setShowAuthModal] = useState(false)
-
-  // Promo state
   const [promoInput, setPromoInput] = useState("")
   const [promo, setPromo] = useState<ApplyResponse | null>(null)
   const [promoLoading, setPromoLoading] = useState(false)
@@ -57,7 +54,6 @@ export default function Cart() {
   const [upgradeSelection, setUpgradeSelection] = useState<{ color: string; size: string } | null>(null)
   const [upgradeLoading, setUpgradeLoading] = useState(false)
 
-  // Items -> OrderItem[]
   const orderItems: OrderItem[] = useMemo(
     () =>
       state.items.map((it) => ({
@@ -69,22 +65,24 @@ export default function Cart() {
     [state.items]
   )
 
-  // Signature du panier pour revalidation
   const cartSignature = useMemo(
-    () => [
-      ...orderItems.map((i) => `${i.product_id}-${i.color}-${i.size}-${i.qty}`),
-      ...state.packItems.map((item) => getPackCartKey(item.pack.id, item.selections) + `-${item.quantity}`),
-    ].join("|"),
-    [getPackCartKey, orderItems, state.packItems],
+    () =>
+      [
+        ...orderItems.map((i) => `${i.product_id}-${i.color}-${i.size}-${i.qty}`),
+        ...state.packItems.map((item) => getPackCartKey(item.pack.id, item.selections) + `-${item.quantity}`),
+      ].join("|"),
+    [getPackCartKey, orderItems, state.packItems]
   )
 
-  // Totaux
   const subtotal = state.total
   const discount = promo?.valid ? promo.discount_value ?? 0 : 0
   const totalAfterDiscount = Math.max(0, subtotal - discount)
-
   const grandTotal = totalAfterDiscount
-  const upgradeCandidate = useMemo(() => findCartUpgradeCandidate(state.items, state.packItems, packs), [state.items, state.packItems, packs])
+
+  const upgradeCandidate = useMemo(
+    () => findCartUpgradeCandidate(state.items, state.packItems, packs),
+    [state.items, state.packItems, packs]
+  )
 
   const handleQuantityChange = (productId: string, color: string, size: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -117,13 +115,11 @@ export default function Cart() {
   const getItemMaxQuantity = (item: (typeof state.items)[0]) =>
     getAvailableStock(getVariantSize(item.selectedVariant, item.selectedSize))
 
-  // Flags d’affichage
   const alreadyUsed = !!promo && !promo.valid && promo.reason === "per_user_limit_reached"
   const loginRequired = !!promo && !promo.valid && promo.reason === "login_required"
   const maxReached = !!promo && !promo.valid && promo.reason === "max_uses_reached"
   const isPromoError = alreadyUsed || loginRequired || maxReached
 
-  // Appliquer / revalider le code promo
   const applyPromo = async (code: string) => {
     const normalized = code.trim().toUpperCase()
     if (!normalized) return
@@ -131,7 +127,7 @@ export default function Cart() {
     setPromoLoading(true)
     setPromoError(null)
     try {
-      const res = await api.applyPromo(normalized, orderItems, subtotal) // nécessite Authorization dans lib/api
+      const res = await api.applyPromo(normalized, orderItems, subtotal)
       setPromo(res)
       setPromoInput(normalized)
       if (res.valid) {
@@ -163,7 +159,6 @@ export default function Cart() {
     localStorage.removeItem("savage_rise_promo_code")
   }
 
-  // Réappliquer un code sauvegardé quand le panier change
   useEffect(() => {
     const saved = localStorage.getItem("savage_rise_promo_code")
     if (saved && orderItems.length > 0) {
@@ -174,7 +169,6 @@ export default function Cart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartSignature])
 
-  // ✅ PATCH: si l’utilisateur vient de se connecter, revalider le code immédiatement
   useEffect(() => {
     if (isAuthenticated) {
       const saved = localStorage.getItem("savage_rise_promo_code") || promoInput
@@ -183,25 +177,12 @@ export default function Cart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
-  // Quand l’utilisateur se connecte via le modal, on file sur /checkout
   useEffect(() => {
     if (showAuthModal && isAuthenticated) {
       setShowAuthModal(false)
       router.push("/checkout")
     }
   }, [isAuthenticated, showAuthModal, router])
-
-  const handleProceed = () => {
-    trackStoreEvent("button_clicked", {
-      metadata: {
-        button: "proceed_to_checkout",
-        cart_total: state.total,
-        item_count: state.itemCount,
-      },
-    })
-    closeCart()
-    router.push("/checkout")
-  }
 
   useEffect(() => {
     if (!isCartOpen || state.items.length === 0) return
@@ -230,7 +211,9 @@ export default function Cart() {
 
         if (companionProduct) {
           const sameColorAvailable = getProductColorOptions(companionProduct).includes(nextCandidate.item.selectedVariant.color)
-          const color = nextCandidate.companion.color || (sameColorAvailable ? nextCandidate.item.selectedVariant.color : companionProduct.variants?.[0]?.color || "")
+          const color =
+            nextCandidate.companion.color ||
+            (sameColorAvailable ? nextCandidate.item.selectedVariant.color : companionProduct.variants?.[0]?.color || "")
           const size = nextCandidate.companion.size || getAvailableSizesForColor(companionProduct, color)[0] || ""
           setUpgradeSelection({ color, size })
         } else {
@@ -247,6 +230,18 @@ export default function Cart() {
       isMounted = false
     }
   }, [isCartOpen, state.items, state.packItems])
+
+  const handleProceed = () => {
+    trackStoreEvent("button_clicked", {
+      metadata: {
+        button: "proceed_to_checkout",
+        cart_total: state.total,
+        item_count: state.itemCount,
+      },
+    })
+    closeCart()
+    router.push("/checkout")
+  }
 
   const handleUpgradeToSet = () => {
     if (!upgradeCandidate || !upgradeCompanionProduct || !upgradeSelection) return
@@ -266,7 +261,7 @@ export default function Cart() {
           },
           [upgradeCompanionProduct.id]: upgradeSelection,
         },
-      },
+      }
     )
 
     if (!selections) return
@@ -275,7 +270,7 @@ export default function Cart() {
     removeFromCart(
       upgradeCandidate.item.product.id,
       upgradeCandidate.item.selectedVariant.color,
-      upgradeCandidate.item.selectedSize,
+      upgradeCandidate.item.selectedSize
     )
     trackStoreEvent("button_clicked", {
       product_id: upgradeCandidate.item.product.id,
@@ -294,23 +289,21 @@ export default function Cart() {
         onOpenChange={(open) => {
           if (open) {
             openCart()
-          } else {
-            closeCart()
-          }
-          if (open) {
             trackStoreEvent("cart_viewed", {
               metadata: {
                 item_count: state.itemCount,
                 cart_total: state.total,
               },
             })
+          } else {
+            closeCart()
           }
         }}
       >
-        <Button variant="ghost" size="icon" className="text-white hover:text-gold relative" onClick={openCart}>
+        <Button variant="ghost" size="icon" className="relative text-white hover:text-gold" onClick={openCart}>
           <ShoppingBag className="h-5 w-5" />
           {state.itemCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-gold text-black text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs text-black">
               {state.itemCount}
             </span>
           )}
@@ -318,25 +311,24 @@ export default function Cart() {
 
         <SheetContent
           data-cart-drawer="true"
-          className="w-full overflow-hidden border-gray-800 bg-black px-4 text-white sm:max-w-lg sm:px-6"
+          className="w-full overflow-hidden border-gray-800 bg-black px-4 text-white sm:max-w-xl sm:px-5 lg:max-w-4xl lg:px-6"
         >
           <SheetHeader className="pr-10">
-            <SheetTitle className="text-white font-playfair text-2xl">Cart ({state.itemCount})</SheetTitle>
+            <SheetTitle className="font-playfair text-2xl text-white">Cart ({state.itemCount})</SheetTitle>
           </SheetHeader>
 
-          <div className="flex flex-col h-full">
+          <div className="flex h-full min-h-0 flex-col">
             {state.itemCount === 0 ? (
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
-                  <ShoppingBag className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg mb-2">Your cart is empty</p>
-                  <p className="text-gray-500 text-sm">Add products to start shopping</p>
+                  <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-gray-600" />
+                  <p className="mb-2 text-lg text-gray-400">Your cart is empty</p>
+                  <p className="text-sm text-gray-500">Add products to start shopping</p>
                 </div>
               </div>
             ) : (
-              <>
-                {/* Cart Items */}
-                <div className="flex-1 overflow-y-auto py-6 space-y-6">
+              <div className="grid min-h-0 flex-1 gap-6 py-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.95fr)] lg:items-start">
+                <div className="min-h-0 space-y-4 lg:overflow-y-auto lg:pr-2">
                   {state.items.map((item) => {
                     const cartKey = `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`
                     const imageUrl = getItemImage(item)
@@ -344,64 +336,66 @@ export default function Cart() {
                     const maxQuantity = getItemMaxQuantity(item)
 
                     return (
-                      <div key={cartKey} className="flex gap-4">
-                        <div className="w-20 h-20 relative overflow-hidden rounded-lg bg-gray-900">
+                      <div key={cartKey} className="flex gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-900">
                           <Image src={imageUrl || "/placeholder.svg"} alt={imageAlt} fill className="object-cover" />
                         </div>
 
-                        <div className="flex-1 space-y-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-semibold text-sm line-clamp-2">{item.product.name}</h3>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="line-clamp-2 text-sm font-semibold">{item.product.name}</h3>
                               <p className="text-xs text-gray-400">Color: {item.selectedVariant.color}</p>
                               <p className="text-xs text-gray-400">Size: {item.selectedSize}</p>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-gray-400 hover:text-white"
-                              onClick={() => removeFromCart(item.product.id, item.selectedVariant.color, item.selectedSize)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
+                            <div className="flex shrink-0 items-start gap-3">
+                              <p className="text-right text-lg font-semibold text-gold">
+                                {(item.product.price * item.quantity).toFixed(2)} TND
+                              </p>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                                disabled={item.quantity >= maxQuantity}
-                                onClick={() =>
-                                  handleQuantityChange(
-                                    item.product.id,
-                                    item.selectedVariant.color,
-                                    item.selectedSize,
-                                    item.quantity - 1
-                                  )
-                                }
+                                className="h-6 w-6 text-gray-400 hover:text-white"
+                                onClick={() => removeFromCart(item.product.id, item.selectedVariant.color, item.selectedSize)}
                               >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                                onClick={() =>
-                                  handleQuantityChange(
-                                    item.product.id,
-                                    item.selectedVariant.color,
-                                    item.selectedSize,
-                                    item.quantity + 1
-                                  )
-                                }
-                              >
-                                <Plus className="h-3 w-3" />
+                                <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            <p className="font-semibold text-gold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.product.id,
+                                  item.selectedVariant.color,
+                                  item.selectedSize,
+                                  item.quantity - 1
+                                )
+                              }
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              disabled={item.quantity >= maxQuantity}
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.product.id,
+                                  item.selectedVariant.color,
+                                  item.selectedSize,
+                                  item.quantity + 1
+                                )
+                              }
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -411,20 +405,24 @@ export default function Cart() {
                   {state.packItems.map((item) => {
                     const selectionKey = getPackCartKey(item.pack.id, item.selections).replace(`${item.pack.id}-`, "")
                     const cartKey = getPackCartKey(item.pack.id, item.selections)
-                    const imageUrl = item.pack.image_url || item.pack.products?.[0]?.image_url || "/placeholder.svg?height=80&width=80"
-                    const linePrice = (item.pack.pack_price ?? item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) * item.quantity
+                    const imageUrl =
+                      item.pack.image_url || item.pack.products?.[0]?.image_url || "/placeholder.svg?height=80&width=80"
+                    const linePrice =
+                      (item.pack.pack_price ??
+                        item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) *
+                      item.quantity
 
                     return (
-                      <div key={cartKey} className="flex gap-4 rounded-lg border border-gold/20 bg-gold/5 p-3">
-                        <div className="w-20 h-20 relative overflow-hidden rounded-lg bg-gray-900">
+                      <div key={cartKey} className="flex gap-4 rounded-xl border border-gold/20 bg-gold/5 p-3">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-900">
                           <Image src={imageUrl} alt={item.pack.title} fill className="object-cover" />
                         </div>
 
-                        <div className="flex-1 space-y-2">
-                          <div className="flex justify-between items-start">
-                            <div>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
                               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pack</p>
-                              <h3 className="font-semibold text-sm line-clamp-2">{item.pack.title}</h3>
+                              <h3 className="line-clamp-2 text-sm font-semibold">{item.pack.title}</h3>
                               <div className="mt-1 space-y-0.5">
                                 {item.selections.map((selection) => (
                                   <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
@@ -433,37 +431,37 @@ export default function Cart() {
                                 ))}
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-gray-400 hover:text-white"
-                              onClick={() => removePackFromCart(item.pack.id, selectionKey)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
+                            <div className="flex shrink-0 items-start gap-3">
+                              <p className="text-right text-lg font-semibold text-gold">{linePrice.toFixed(2)} TND</p>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                                onClick={() => handlePackQuantityChange(item, item.quantity - 1)}
+                                className="h-6 w-6 text-gray-400 hover:text-white"
+                                onClick={() => removePackFromCart(item.pack.id, selectionKey)}
                               >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 border-gray-600 text-white hover:bg-gray-800 bg-transparent"
-                                onClick={() => handlePackQuantityChange(item, item.quantity + 1)}
-                              >
-                                <Plus className="h-3 w-3" />
+                                <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            <p className="font-semibold text-gold">{linePrice.toFixed(2)} TND</p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              onClick={() => handlePackQuantityChange(item, item.quantity - 1)}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              onClick={() => handlePackQuantityChange(item, item.quantity + 1)}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -522,7 +520,7 @@ export default function Cart() {
                         </div>
                       )}
 
-                      <div className="mt-4 flex items-end justify-between gap-3">
+                      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                           <p className="text-sm text-gray-500 line-through">
                             {formatPrice((upgradeCandidate.pack.original_price ?? 0) * upgradeCandidate.item.quantity)}
@@ -539,170 +537,162 @@ export default function Cart() {
                   )}
                 </div>
 
-                <Separator className="bg-gray-800" />
+                <div className="space-y-4 lg:sticky lg:top-0">
+                  {isAuthenticated ? (
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowPromo((v) => !v)}
+                        aria-expanded={showPromo}
+                        className={`flex w-full items-center justify-between rounded-md px-1 py-2 transition ${
+                          isPromoError ? "bg-red-900/20" : "hover:bg-white/5"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Ticket className={`h-4 w-4 ${isPromoError ? "text-red-400" : "text-gold"}`} />
+                          <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Promo code</span>
+                          {promo?.valid && <span className="ml-2 text-xs text-green-400">{promo.code} applied</span>}
+                          {alreadyUsed && <span className="ml-2 text-xs text-red-400">{promo?.code || promoInput} already used</span>}
+                          {loginRequired && <span className="ml-2 text-xs text-red-400">sign in required</span>}
+                          {maxReached && <span className="ml-2 text-xs text-red-400">usage limit reached</span>}
+                        </div>
+                        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showPromo ? "rotate-180" : ""}`} />
+                      </button>
 
-                {/* Promo code (signed-in users only) */}
-                {isAuthenticated ? (
-                <div className="py-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowPromo((v) => !v)}
-                    aria-expanded={showPromo}
-                    className={`w-full flex items-center justify-between rounded-md px-1 py-2 transition ${
-                      isPromoError ? "bg-red-900/20" : "hover:bg-white/5"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Ticket className={`h-4 w-4 ${isPromoError ? "text-red-400" : "text-gold"}`} />
-                      <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Promo code</span>
+                      <div
+                        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                          showPromo ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="space-y-3 pt-3">
+                            {!promo?.valid ? (
+                              <>
+                                <form
+                                  className="flex gap-2"
+                                  onSubmit={(e) => {
+                                    e.preventDefault()
+                                    applyPromo(promoInput)
+                                  }}
+                                >
+                                  <Input
+                                    value={promoInput}
+                                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                                    placeholder="ENTER YOUR CODE"
+                                    className={`bg-transparent text-white placeholder:text-gray-500 ${
+                                      isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-gray-700"
+                                    }`}
+                                  />
+                                  <Button
+                                    type="submit"
+                                    disabled={promoLoading}
+                                    className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-gold text-black hover:bg-gold/90"}
+                                  >
+                                    {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                                  </Button>
+                                </form>
 
-                      {promo?.valid && <span className="ml-2 text-xs text-green-400">{promo.code} applied</span>}
-                      {alreadyUsed && <span className="ml-2 text-xs text-red-400">{promo?.code || promoInput} already used</span>}
-                      {loginRequired && <span className="ml-2 text-xs text-red-400">sign in required</span>}
-                      {maxReached && <span className="ml-2 text-xs text-red-400">usage limit reached</span>}
-                    </div>
-                    <ChevronDown className={`h-4 w-4 transition-transform text-gray-400 ${showPromo ? "rotate-180" : ""}`} />
-                  </button>
-
-                  {/* zone repliable */}
-                  <div
-                    className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-                      showPromo ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="pt-3 space-y-3">
-                        {!promo?.valid ? (
-                          <>
-                            <form
-                              className="flex gap-2"
-                              onSubmit={(e) => {
-                                e.preventDefault()
-                                applyPromo(promoInput)
-                              }}
-                            >
-                              <Input
-                                value={promoInput}
-                                onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                                placeholder="ENTER YOUR CODE"
-                                className={`bg-transparent text-white placeholder:text-gray-500 ${
-                                  isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-gray-700"
-                                }`}
-                              />
-                              <Button
-                                type="submit"
-                                disabled={promoLoading}
-                                className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-gold text-black hover:bg-gold/90"}
-                              >
-                                {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-                              </Button>
-                            </form>
-
-                            {/* messages d’erreur */}
-                            {alreadyUsed && <p className="text-sm text-red-400">This code has already been used by your account.</p>}
-                            {loginRequired && (
-                              <p className="text-sm text-red-400">
-                                Sign in to use this code.{" "}
-                                <button className="underline hover:opacity-80" onClick={() => setShowAuthModal(true)}>
-                                  Sign in
-                                </button>
-                              </p>
+                                {alreadyUsed && <p className="text-sm text-red-400">This code has already been used by your account.</p>}
+                                {loginRequired && (
+                                  <p className="text-sm text-red-400">
+                                    Sign in to use this code.{" "}
+                                    <button className="underline hover:opacity-80" onClick={() => setShowAuthModal(true)}>
+                                      Sign in
+                                    </button>
+                                  </p>
+                                )}
+                                {maxReached && <p className="text-sm text-red-400">The usage limit for this code has been reached.</p>}
+                                {promoError && <p className="text-sm text-red-500">{promoError}</p>}
+                                {promo && !promo.valid && !isPromoError && (
+                                  <p className="text-sm text-red-500">
+                                    Invalid code{promo.reason ? `: ${promo.reason}` : ""}.
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <div className="flex items-center justify-between rounded-lg border border-green-700/40 p-2">
+                                <div className="text-sm">
+                                  <span className="font-medium text-green-500">{promo.code}</span>{" "}
+                                  <span className="text-gray-400">applied</span>
+                                </div>
+                                <Button variant="ghost" size="sm" onClick={clearPromo} className="text-gray-400 hover:text-white">
+                                  Remove
+                                </Button>
+                              </div>
                             )}
-                            {maxReached && <p className="text-sm text-red-400">The usage limit for this code has been reached.</p>}
-                            {promoError && <p className="text-sm text-red-500">{promoError}</p>}
-                            {promo && !promo.valid && !isPromoError && (
-                              <p className="text-sm text-red-500">
-                                Invalid code{promo.reason ? `: ${promo.reason}` : ""}.
-                              </p>
-                            )}
-                          </>
-                        ) : (
-                          <div className="flex items-center justify-between rounded-lg border border-green-700/40 p-2">
-                            <div className="text-sm">
-                              <span className="text-green-500 font-medium">{promo.code}</span>{" "}
-                              <span className="text-gray-400">applied</span>
-                            </div>
-                            <Button variant="ghost" size="sm" onClick={clearPromo} className="text-gray-400 hover:text-white">
-                              Remove
-                            </Button>
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
+                  ) : (
+                    <div className="rounded-xl border border-gold/20 bg-gold/5 p-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowAuthModal(true)}
+                        className="w-full rounded-md border border-gold/25 bg-gold/5 px-3 py-3 text-left text-sm text-gold transition hover:bg-gold/10"
+                      >
+                        Sign in to use a promo code
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <Truck className="h-4 w-4" />
+                      <span>Final prices and shipping are confirmed by the backend at checkout</span>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Subtotal</span>
+                        <span>{subtotal.toFixed(2)} TND</span>
+                      </div>
+
+                      {promo?.valid && (
+                        <div className="flex justify-between text-sm text-green-500">
+                          <span>Discount ({promo.code})</span>
+                          <span>-{discount.toFixed(2)} TND</span>
+                        </div>
+                      )}
+
+                      {alreadyUsed && (
+                        <div className="flex justify-between text-sm text-red-400">
+                          <span>Code {promo?.code || promoInput}</span>
+                          <span>already used</span>
+                        </div>
+                      )}
+
+                      {maxReached && (
+                        <div className="flex justify-between text-sm text-red-400">
+                          <span>Code {promo?.code || promoInput}</span>
+                          <span>limit reached</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Shipping</span>
+                        <span>To calculate</span>
+                      </div>
+
+                      <Separator className="bg-gray-800" />
+
+                      <div className="flex justify-between text-lg font-semibold">
+                        <span>Estimated total</span>
+                        <span className="text-gold">{grandTotal.toFixed(2)} TND</span>
+                      </div>
+                    </div>
+
+                    <Button className="mt-4 w-full bg-gold py-3 font-semibold text-black hover:bg-gold/90" onClick={handleProceed}>
+                      Proceed to checkout
+                    </Button>
                   </div>
                 </div>
-                ) : (
-                  <div className="py-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowAuthModal(true)}
-                      className="w-full rounded-md border border-gold/25 bg-gold/5 px-3 py-3 text-left text-sm text-gold transition hover:bg-gold/10"
-                    >
-                      Sign in to use a promo code
-                    </button>
-                  </div>
-                )}
-
-                <Separator className="bg-gray-800" />
-
-                {/* Cart Summary */}
-                <div className="space-y-4 py-6">
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <Truck className="h-4 w-4" />
-                    <span>Final prices and shipping are confirmed by the backend at checkout</span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Subtotal</span>
-                      <span>{subtotal.toFixed(2)} TND</span>
-                    </div>
-
-                    {promo?.valid && (
-                      <div className="flex justify-between text-sm text-green-500">
-                        <span>Discount ({promo.code})</span>
-                        <span>-{discount.toFixed(2)} TND</span>
-                      </div>
-                    )}
-
-                    {alreadyUsed && (
-                      <div className="flex justify-between text-sm text-red-400">
-                        <span>Code {promo?.code || promoInput}</span>
-                        <span>already used</span>
-                      </div>
-                    )}
-
-                    {maxReached && (
-                      <div className="flex justify-between text-sm text-red-400">
-                        <span>Code {promo?.code || promoInput}</span>
-                        <span>limit reached</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Shipping</span>
-                      <span>To calculate</span>
-                    </div>
-
-                    <Separator className="bg-gray-800" />
-
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span>Estimated total</span>
-                      <span className="text-gold">{grandTotal.toFixed(2)} TND</span>
-                    </div>
-                  </div>
-
-                  <Button className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3" onClick={handleProceed}>
-                    Proceed to checkout
-                  </Button>
-                </div>
-              </>
+              </div>
             )}
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Modal d'authentification */}
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab="login" />
     </>
   )
