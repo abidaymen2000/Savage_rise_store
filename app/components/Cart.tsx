@@ -282,6 +282,160 @@ export default function Cart() {
     })
   }
 
+  const promoSection = (
+    <>
+      {isAuthenticated ? (
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <button
+            type="button"
+            onClick={() => setShowPromo((v) => !v)}
+            aria-expanded={showPromo}
+            className={`flex w-full items-center justify-between rounded-md px-1 py-2 text-left transition ${
+              isPromoError ? "bg-red-900/20" : "hover:bg-white/5"
+            }`}
+          >
+            <div className="min-w-0 flex items-center gap-2">
+              <Ticket className={`h-4 w-4 shrink-0 ${isPromoError ? "text-red-400" : "text-gold"}`} />
+              <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Promo code</span>
+            </div>
+            <ChevronDown className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${showPromo ? "rotate-180" : ""}`} />
+          </button>
+
+          {promo?.valid && <p className="mt-2 text-xs text-green-400">{promo.code} applied</p>}
+          {alreadyUsed && <p className="mt-2 text-xs text-red-400">{promo?.code || promoInput} already used</p>}
+          {loginRequired && <p className="mt-2 text-xs text-red-400">Sign in required</p>}
+          {maxReached && <p className="mt-2 text-xs text-red-400">Usage limit reached</p>}
+
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+              showPromo ? "mt-3 grid-rows-[1fr]" : "grid-rows-[0fr]"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="space-y-3">
+                {!promo?.valid ? (
+                  <>
+                    <form
+                      className="flex flex-col gap-2 sm:flex-row"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        applyPromo(promoInput)
+                      }}
+                    >
+                      <Input
+                        value={promoInput}
+                        onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                        placeholder="ENTER YOUR CODE"
+                        className={`bg-transparent text-white placeholder:text-gray-500 ${
+                          isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-gray-700"
+                        }`}
+                      />
+                      <Button
+                        type="submit"
+                        disabled={promoLoading}
+                        className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-gold text-black hover:bg-gold/90"}
+                      >
+                        {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                      </Button>
+                    </form>
+
+                    {alreadyUsed && <p className="text-sm text-red-400">This code has already been used by your account.</p>}
+                    {loginRequired && (
+                      <p className="text-sm text-red-400">
+                        Sign in to use this code.{" "}
+                        <button className="underline hover:opacity-80" onClick={() => setShowAuthModal(true)}>
+                          Sign in
+                        </button>
+                      </p>
+                    )}
+                    {maxReached && <p className="text-sm text-red-400">The usage limit for this code has been reached.</p>}
+                    {promoError && <p className="text-sm text-red-500">{promoError}</p>}
+                    {promo && !promo.valid && !isPromoError && (
+                      <p className="text-sm text-red-500">Invalid code{promo.reason ? `: ${promo.reason}` : ""}.</p>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between rounded-lg border border-green-700/40 p-2">
+                    <div className="text-sm">
+                      <span className="font-medium text-green-500">{promo.code}</span>{" "}
+                      <span className="text-gray-400">applied</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={clearPromo} className="text-gray-400 hover:text-white">
+                      Remove
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-gold/20 bg-gold/5 p-4">
+          <button
+            type="button"
+            onClick={() => setShowAuthModal(true)}
+            className="w-full rounded-md border border-gold/25 bg-gold/5 px-3 py-3 text-left text-sm text-gold transition hover:bg-gold/10"
+          >
+            Sign in to use a promo code
+          </button>
+        </div>
+      )}
+    </>
+  )
+
+  const summarySection = (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="flex items-center gap-2 text-sm text-gray-400">
+        <Truck className="h-4 w-4 shrink-0" />
+        <span>Final prices and shipping are confirmed by the backend at checkout</span>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <div className="flex justify-between gap-4 text-sm">
+          <span className="text-gray-400">Subtotal</span>
+          <span className="text-right">{subtotal.toFixed(2)} TND</span>
+        </div>
+
+        {promo?.valid && (
+          <div className="flex justify-between gap-4 text-sm text-green-500">
+            <span>Discount ({promo.code})</span>
+            <span className="text-right">-{discount.toFixed(2)} TND</span>
+          </div>
+        )}
+
+        {alreadyUsed && (
+          <div className="flex justify-between gap-4 text-sm text-red-400">
+            <span>Code {promo?.code || promoInput}</span>
+            <span className="text-right">already used</span>
+          </div>
+        )}
+
+        {maxReached && (
+          <div className="flex justify-between gap-4 text-sm text-red-400">
+            <span>Code {promo?.code || promoInput}</span>
+            <span className="text-right">limit reached</span>
+          </div>
+        )}
+
+        <div className="flex justify-between gap-4 text-sm">
+          <span className="text-gray-400">Shipping</span>
+          <span className="text-right">To calculate</span>
+        </div>
+
+        <Separator className="bg-gray-800" />
+
+        <div className="flex justify-between gap-4 text-lg font-semibold">
+          <span>Estimated total</span>
+          <span className="text-right text-gold">{grandTotal.toFixed(2)} TND</span>
+        </div>
+      </div>
+
+      <Button className="mt-4 w-full bg-gold py-3 font-semibold text-black hover:bg-gold/90" onClick={handleProceed}>
+        Proceed to checkout
+      </Button>
+    </div>
+  )
+
   return (
     <>
       <Sheet
@@ -311,9 +465,9 @@ export default function Cart() {
 
         <SheetContent
           data-cart-drawer="true"
-          className="w-full overflow-hidden border-gray-800 bg-black px-4 text-white sm:max-w-xl sm:px-5 lg:max-w-4xl lg:px-6"
+          className="flex h-[100dvh] max-h-[100dvh] w-full flex-col gap-0 overflow-hidden border-gray-800 bg-black p-0 text-white sm:max-w-xl lg:max-w-4xl"
         >
-          <SheetHeader className="pr-10">
+          <SheetHeader className="shrink-0 border-b border-white/10 px-4 pb-4 pt-6 pr-12 text-left sm:px-5 lg:px-6">
             <SheetTitle className="font-playfair text-2xl text-white">Cart ({state.itemCount})</SheetTitle>
           </SheetHeader>
 
@@ -327,8 +481,9 @@ export default function Cart() {
                 </div>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-6 py-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.95fr)] lg:items-start">
-                <div className="min-h-0 space-y-4 lg:overflow-y-auto lg:pr-2">
+              <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-0">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 [scrollbar-gutter:stable] sm:px-5 lg:px-6 lg:py-5">
+                  <div className="space-y-4 pb-4">
                   {state.items.map((item) => {
                     const cartKey = `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`
                     const imageUrl = getItemImage(item)
@@ -336,20 +491,20 @@ export default function Cart() {
                     const maxQuantity = getItemMaxQuantity(item)
 
                     return (
-                      <div key={cartKey} className="flex gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-900">
+                      <div key={cartKey} className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 sm:gap-4">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-gray-900">
                           <Image src={imageUrl || "/placeholder.svg"} alt={imageAlt} fill className="object-cover" />
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-2">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <h3 className="line-clamp-2 text-sm font-semibold">{item.product.name}</h3>
+                              <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.product.name}</h3>
                               <p className="text-xs text-gray-400">Color: {item.selectedVariant.color}</p>
                               <p className="text-xs text-gray-400">Size: {item.selectedSize}</p>
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
-                              <p className="text-right text-lg font-semibold text-gold">
+                              <p className="text-right text-base font-semibold text-gold sm:text-lg">
                                 {(item.product.price * item.quantity).toFixed(2)} TND
                               </p>
                               <Button
@@ -413,8 +568,8 @@ export default function Cart() {
                       item.quantity
 
                     return (
-                      <div key={cartKey} className="flex gap-4 rounded-xl border border-gold/20 bg-gold/5 p-3">
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-900">
+                      <div key={cartKey} className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-xl border border-gold/20 bg-gold/5 p-3 sm:gap-4">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-gray-900">
                           <Image src={imageUrl} alt={item.pack.title} fill className="object-cover" />
                         </div>
 
@@ -422,7 +577,7 @@ export default function Cart() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pack</p>
-                              <h3 className="line-clamp-2 text-sm font-semibold">{item.pack.title}</h3>
+                              <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.pack.title}</h3>
                               <div className="mt-1 space-y-0.5">
                                 {item.selections.map((selection) => (
                                   <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
@@ -432,7 +587,7 @@ export default function Cart() {
                               </div>
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
-                              <p className="text-right text-lg font-semibold text-gold">{linePrice.toFixed(2)} TND</p>
+                              <p className="text-right text-base font-semibold text-gold sm:text-lg">{linePrice.toFixed(2)} TND</p>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -487,8 +642,8 @@ export default function Cart() {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-white">{upgradeCandidate.pack.title}</p>
-                          <p className="mt-1 text-sm text-gray-300">
+                          <p className="font-semibold text-white sm:text-lg">{upgradeCandidate.pack.title}</p>
+                          <p className="mt-1 text-sm leading-6 text-gray-300">
                             Add the matching {upgradeCompanionProduct.name.toLowerCase()} and save{" "}
                             {formatPrice(getPackSavingsLabel(upgradeCandidate.pack) * upgradeCandidate.item.quantity)}.
                           </p>
@@ -529,163 +684,22 @@ export default function Cart() {
                             {formatPrice(getPackPrice(upgradeCandidate.pack) * upgradeCandidate.item.quantity)}
                           </p>
                         </div>
-                        <Button className="bg-gold text-black hover:bg-gold/90" onClick={handleUpgradeToSet}>
+                        <Button className="w-full bg-gold text-black hover:bg-gold/90 sm:w-auto" onClick={handleUpgradeToSet}>
                           Upgrade to the set
                         </Button>
                       </div>
                     </div>
                   )}
+                    {promoSection}
+                  </div>
                 </div>
 
-                <div className="space-y-4 lg:sticky lg:top-0">
-                  {isAuthenticated ? (
-                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowPromo((v) => !v)}
-                        aria-expanded={showPromo}
-                        className={`flex w-full items-center justify-between rounded-md px-1 py-2 transition ${
-                          isPromoError ? "bg-red-900/20" : "hover:bg-white/5"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Ticket className={`h-4 w-4 ${isPromoError ? "text-red-400" : "text-gold"}`} />
-                          <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Promo code</span>
-                          {promo?.valid && <span className="ml-2 text-xs text-green-400">{promo.code} applied</span>}
-                          {alreadyUsed && <span className="ml-2 text-xs text-red-400">{promo?.code || promoInput} already used</span>}
-                          {loginRequired && <span className="ml-2 text-xs text-red-400">sign in required</span>}
-                          {maxReached && <span className="ml-2 text-xs text-red-400">usage limit reached</span>}
-                        </div>
-                        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showPromo ? "rotate-180" : ""}`} />
-                      </button>
+                <div className="hidden border-l border-white/10 bg-black/95 px-6 py-5 lg:block">
+                  {summarySection}
+                </div>
 
-                      <div
-                        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-                          showPromo ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                        }`}
-                      >
-                        <div className="overflow-hidden">
-                          <div className="space-y-3 pt-3">
-                            {!promo?.valid ? (
-                              <>
-                                <form
-                                  className="flex gap-2"
-                                  onSubmit={(e) => {
-                                    e.preventDefault()
-                                    applyPromo(promoInput)
-                                  }}
-                                >
-                                  <Input
-                                    value={promoInput}
-                                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                                    placeholder="ENTER YOUR CODE"
-                                    className={`bg-transparent text-white placeholder:text-gray-500 ${
-                                      isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-gray-700"
-                                    }`}
-                                  />
-                                  <Button
-                                    type="submit"
-                                    disabled={promoLoading}
-                                    className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-gold text-black hover:bg-gold/90"}
-                                  >
-                                    {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-                                  </Button>
-                                </form>
-
-                                {alreadyUsed && <p className="text-sm text-red-400">This code has already been used by your account.</p>}
-                                {loginRequired && (
-                                  <p className="text-sm text-red-400">
-                                    Sign in to use this code.{" "}
-                                    <button className="underline hover:opacity-80" onClick={() => setShowAuthModal(true)}>
-                                      Sign in
-                                    </button>
-                                  </p>
-                                )}
-                                {maxReached && <p className="text-sm text-red-400">The usage limit for this code has been reached.</p>}
-                                {promoError && <p className="text-sm text-red-500">{promoError}</p>}
-                                {promo && !promo.valid && !isPromoError && (
-                                  <p className="text-sm text-red-500">
-                                    Invalid code{promo.reason ? `: ${promo.reason}` : ""}.
-                                  </p>
-                                )}
-                              </>
-                            ) : (
-                              <div className="flex items-center justify-between rounded-lg border border-green-700/40 p-2">
-                                <div className="text-sm">
-                                  <span className="font-medium text-green-500">{promo.code}</span>{" "}
-                                  <span className="text-gray-400">applied</span>
-                                </div>
-                                <Button variant="ghost" size="sm" onClick={clearPromo} className="text-gray-400 hover:text-white">
-                                  Remove
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-gold/20 bg-gold/5 p-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowAuthModal(true)}
-                        className="w-full rounded-md border border-gold/25 bg-gold/5 px-3 py-3 text-left text-sm text-gold transition hover:bg-gold/10"
-                      >
-                        Sign in to use a promo code
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <Truck className="h-4 w-4" />
-                      <span>Final prices and shipping are confirmed by the backend at checkout</span>
-                    </div>
-
-                    <div className="mt-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Subtotal</span>
-                        <span>{subtotal.toFixed(2)} TND</span>
-                      </div>
-
-                      {promo?.valid && (
-                        <div className="flex justify-between text-sm text-green-500">
-                          <span>Discount ({promo.code})</span>
-                          <span>-{discount.toFixed(2)} TND</span>
-                        </div>
-                      )}
-
-                      {alreadyUsed && (
-                        <div className="flex justify-between text-sm text-red-400">
-                          <span>Code {promo?.code || promoInput}</span>
-                          <span>already used</span>
-                        </div>
-                      )}
-
-                      {maxReached && (
-                        <div className="flex justify-between text-sm text-red-400">
-                          <span>Code {promo?.code || promoInput}</span>
-                          <span>limit reached</span>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Shipping</span>
-                        <span>To calculate</span>
-                      </div>
-
-                      <Separator className="bg-gray-800" />
-
-                      <div className="flex justify-between text-lg font-semibold">
-                        <span>Estimated total</span>
-                        <span className="text-gold">{grandTotal.toFixed(2)} TND</span>
-                      </div>
-                    </div>
-
-                    <Button className="mt-4 w-full bg-gold py-3 font-semibold text-black hover:bg-gold/90" onClick={handleProceed}>
-                      Proceed to checkout
-                    </Button>
-                  </div>
+                <div className="shrink-0 border-t border-white/10 bg-black/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur lg:hidden">
+                  {summarySection}
                 </div>
               </div>
             )}
