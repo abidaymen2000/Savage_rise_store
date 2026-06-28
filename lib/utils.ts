@@ -91,6 +91,10 @@ export function isProductInStock(product: Product): boolean {
   return productHasPurchasableVariant(product)
 }
 
+export function sortProductsByStockStatus(products: Product[]): Product[] {
+  return [...products].sort((a, b) => Number(isProductInStock(b)) - Number(isProductInStock(a)))
+}
+
 export function formatPrice(price: number): string {
   return `${price.toFixed(2)} TND`
 }

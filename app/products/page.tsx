@@ -15,7 +15,7 @@ import type { Pack, Product } from "@/types/api"
 import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
-import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
+import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
@@ -196,24 +196,26 @@ export default function ProductsPage() {
     return () => window.clearTimeout(timeout)
   }, [searchTerm])
 
-  const filteredAndSortedProducts = products
-    .filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price-asc":
-          return a.price - b.price
-        case "price-desc":
-          return b.price - a.price
-        case "name":
-        default:
-          return a.name.localeCompare(b.name)
-      }
-    })
+  const filteredAndSortedProducts = sortProductsByStockStatus(
+    products
+      .filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "price-asc":
+            return a.price - b.price
+          case "price-desc":
+            return b.price - a.price
+          case "name":
+          default:
+            return a.name.localeCompare(b.name)
+        }
+      }),
+  )
 
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return

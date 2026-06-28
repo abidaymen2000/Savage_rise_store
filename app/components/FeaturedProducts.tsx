@@ -13,7 +13,7 @@ import { getColorSwatch } from "@/lib/color-swatches"
 import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
-import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
+import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 
 function getDiscountLabel(pack: Pack) {
@@ -191,7 +191,7 @@ export default function FeaturedProducts() {
         if (product) productMap[product.id] = product
       })
 
-      setProducts(productsData)
+      setProducts(sortProductsByStockStatus(productsData))
       setProductLookup(productMap)
       setPacks([...packsData].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
     } catch (error) {
