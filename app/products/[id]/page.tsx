@@ -469,6 +469,19 @@ export default function ProductDetailPage() {
             </div>
             )}
 
+            {/* Actions */}
+            <div className="flex flex-col gap-3 min-[400px]:flex-row min-[400px]:items-stretch">
+              <Button
+                onClick={handleAddToCart}
+                disabled={!canAddCurrentSelection}
+                className="w-full flex-1 bg-gold px-4 py-3 text-black hover:bg-gold/90 font-semibold whitespace-normal text-center leading-snug"
+              >
+                <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
+                Buy this item only - {formatPrice(product.price * quantity)}
+              </Button>
+              <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />
+            </div>
+
             {relatedPack && companionComponents.length > 0 && (
               <div className="rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Complete the look</p>
@@ -559,19 +572,6 @@ export default function ProductDetailPage() {
                 </Button>
               </div>
             )}
-
-            {/* Actions */}
-            <div className="flex gap-4">
-              <Button
-                onClick={handleAddToCart}
-                disabled={!canAddCurrentSelection}
-                className="flex-1 bg-gold text-black hover:bg-gold/90 font-semibold py-3"
-              >
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                Buy this item only - {formatPrice(product.price * quantity)}
-              </Button>
-              <WishlistButton productId={product.id} className="h-12 w-12" />
-            </div>
 
             {/* Product Details */}
             <Separator className="bg-gray-700" />
