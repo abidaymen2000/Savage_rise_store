@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
+import { createPageView, getOrCreateSessionId, initializeAnalytics } from "@/lib/analytics-context"
 import { trackEvent, trackStoreEvent } from "@/lib/store-analytics"
 
 const IDLE_AFTER_MS = 30000
@@ -69,9 +70,10 @@ function shouldTrackField(element: HTMLInputElement | HTMLSelectElement | HTMLTe
 
 function createPageTiming(url: string): PageTiming {
   const now = Date.now()
+  const pageViewId = createPageView(url)
 
   return {
-    id: `page_${now}_${Math.random().toString(36).slice(2)}`,
+    id: pageViewId,
     url,
     title: document.title,
     enteredAt: now,
@@ -186,6 +188,7 @@ export default function StoreAnalytics() {
   }
 
   useEffect(() => {
+    initializeAnalytics()
     const url = `${window.location.pathname}${window.location.search}`
     if (previousUrl.current === url) return
 
@@ -198,6 +201,7 @@ export default function StoreAnalytics() {
       event_category: "navigation",
       page_path: url,
       page_title: document.title,
+      deduplication_key: `page_viewed:${currentPage.current.id}`,
       metadata: {
         url,
         page_view_id: currentPage.current.id,
@@ -207,8 +211,12 @@ export default function StoreAnalytics() {
   }, [pathname, searchParams])
 
   useEffect(() => {
+    initializeAnalytics()
+    const sessionId = getOrCreateSessionId()
+
     trackStoreEvent("session_started", {
       event_category: "session",
+      deduplication_key: `session_started:${sessionId}`,
       metadata: {
         visibility_state: document.visibilityState,
       },
@@ -437,6 +445,7 @@ export default function StoreAnalytics() {
       flushCurrentPage("pagehide")
       trackEvent("session_ended", {
         event_category: "session",
+        use_beacon: true,
         metadata: {
           auto: true,
           visibility_state: document.visibilityState,

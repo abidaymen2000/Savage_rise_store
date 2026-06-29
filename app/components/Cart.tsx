@@ -444,6 +444,33 @@ export default function Cart() {
           if (open) {
             openCart()
             trackStoreEvent("cart_viewed", {
+              currency: "TND",
+              value: state.total,
+              items: [
+                ...state.items.map((item) => ({
+                  product_id: item.product.id,
+                  variant_id: item.selectedVariant.meta_content_id ?? null,
+                  sku: item.product.sku ?? null,
+                  product_name: item.product.name,
+                  variant_name: `${item.selectedVariant.color} / ${item.selectedSize}`,
+                  item_type: "product",
+                  quantity: item.quantity,
+                  unit_price: item.product.price,
+                  line_total: item.product.price * item.quantity,
+                  currency: "TND",
+                })),
+                ...state.packItems.flatMap((item) =>
+                  item.selections.map((selection) => ({
+                    product_id: selection.product_id,
+                    item_type: "pack_component",
+                    pack_id: item.pack.id,
+                    quantity: (selection.qty ?? 1) * item.quantity,
+                    unit_price: selection.unit_price,
+                    line_total: selection.unit_price * (selection.qty ?? 1) * item.quantity,
+                    currency: "TND",
+                  })),
+                ),
+              ],
               metadata: {
                 item_count: state.itemCount,
                 cart_total: state.total,

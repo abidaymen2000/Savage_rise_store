@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,7 @@ import { ArrowLeft, Coins, Truck, Shield, CreditCard, Loader2, Ticket, X } from 
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import { ApiError, api } from "@/lib/api"
+import { clearCheckoutId, createEventId, getAnalyticsContext, getOrCreateCheckoutId } from "@/lib/analytics-context"
 import { clearCheckoutIdempotencyKey, getOrCreateCheckoutIdempotencyKey, getStoredCheckoutIdempotencyKey } from "@/lib/checkout-idempotency"
 import { buildCheckoutFingerprint, buildQuoteSignature } from "@/lib/checkout-fingerprint"
 import { getMetaEventContext } from "@/lib/meta-event-context"
@@ -29,7 +30,6 @@ import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
-const CHECKOUT_START_TRACKING_KEY = "meta_initiate_checkout_tracked"
 
 type CheckoutStatus = "idle" | "quoting" | "ready" | "submitting" | "success" | "conflict" | "error"
 
@@ -74,13 +74,22 @@ export default function CheckoutPage() {
   const lastAttemptFingerprintRef = useRef<string | null>(null)
   const lastAttemptHadUnknownFailureRef = useRef(false)
   const quoteRequestIdRef = useRef(0)
+  const purchaseEventIdRef = useRef<string | null>(null)
 
   // Redirect if cart is empty
   useEffect(() => {
     if (cartState.itemCount === 0 && !authLoading) {
+      purchaseEventIdRef.current = null
+      clearCheckoutId()
       router.push("/products")
     }
   }, [cartState.itemCount, authLoading, router])
+
+  useEffect(() => {
+    if (cartState.itemCount > 0) {
+      getOrCreateCheckoutId()
+    }
+  }, [cartState.itemCount])
 
   // Pre-fill shipping info if user is logged in
   useEffect(() => {
@@ -100,7 +109,11 @@ export default function CheckoutPage() {
   const loyaltyPointsUsed = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
   const estimatedPointsEarned = isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
   const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
-  const metaEventContext = useMemo(() => getMetaEventContext(), [])
+  const baseAnalyticsContext = useMemo(
+    () => getAnalyticsContext({ includeCheckoutId: cartState.itemCount > 0 }),
+    [cartState.itemCount],
+  )
+  const metaEventContext = getMetaEventContext()
 
   const orderPayload = useMemo(
     () =>
@@ -113,8 +126,19 @@ export default function CheckoutPage() {
         loyalty_points_to_use: isAuthenticated ? loyaltyPointsUsed : 0,
         user_id: isAuthenticated ? user?.id ?? null : null,
         meta: metaEventContext,
+        analytics_context: baseAnalyticsContext,
       }),
-    [cartState.items, cartState.packItems, shippingInfo, isAuthenticated, promoCode, loyaltyPointsUsed, user?.id, metaEventContext],
+    [
+      cartState.items,
+      cartState.packItems,
+      shippingInfo,
+      isAuthenticated,
+      promoCode,
+      loyaltyPointsUsed,
+      user?.id,
+      metaEventContext,
+      baseAnalyticsContext,
+    ],
   )
 
   const quoteSignature = useMemo(() => buildQuoteSignature(orderQuote), [orderQuote])
@@ -215,13 +239,13 @@ export default function CheckoutPage() {
     setShippingInfo((prev) => ({ ...prev, [field]: value }))
   }
 
-  const validateShippingInfo = (): boolean => {
+  const validateShippingInfo = useCallback((): boolean => {
     const required: Array<keyof ShippingInfo> = ["full_name", "phone", "address_line1", "postal_code", "city", "country"]
     if (isAuthenticated) {
       required.push("email")
     }
     return required.every((field) => shippingInfo[field as keyof ShippingInfo]?.toString().trim())
-  }
+  }, [isAuthenticated, shippingInfo])
 
   const refreshCheckoutProducts = async () => {
     const uniqueProductIds = Array.from(new Set(cartState.items.map((item) => item.product.id)))
@@ -314,9 +338,28 @@ export default function CheckoutPage() {
     setCheckoutStatus("submitting")
     setError(null)
     const idempotencyKey = getOrCreateCheckoutIdempotencyKey(checkoutFingerprint)
+    const metaEventId = purchaseEventIdRef.current ?? createEventId()
+    purchaseEventIdRef.current = metaEventId
+    const submitAnalyticsContext = getAnalyticsContext({ includeCheckoutId: true })
+    const finalOrderPayload = buildOrderPayload({
+      items: cartState.items,
+      packItems: cartState.packItems,
+      shipping: shippingInfo,
+      payment_method: "cod",
+      promo_code: isAuthenticated ? promoCode : null,
+      loyalty_points_to_use: isAuthenticated ? loyaltyPointsUsed : 0,
+      user_id: isAuthenticated ? user?.id ?? null : null,
+      meta: getMetaEventContext(metaEventId),
+      analytics_context: {
+        ...submitAnalyticsContext,
+        meta_event_id: metaEventId,
+      },
+      meta_event_id: metaEventId,
+    })
     lastAttemptFingerprintRef.current = checkoutFingerprint
     lastAttemptHadUnknownFailureRef.current = false
     trackStoreEvent("shipping_info_submitted", {
+      include_checkout_id: true,
       metadata: {
         city: shippingInfo.city,
         country: shippingInfo.country,
@@ -324,48 +367,24 @@ export default function CheckoutPage() {
         is_authenticated: isAuthenticated,
       },
     })
-    trackStoreEvent("payment_started", {
-      metadata: {
-        payment_method: "cod",
-        value: orderQuote.total,
-        item_count: cartState.itemCount,
-      },
-    })
 
     try {
-      const order = await api.createOrder(orderPayload, idempotencyKey)
+      const order = await api.createOrder(finalOrderPayload, idempotencyKey)
 
       trackPurchasePixelOnce({
         orderId: order.id,
+        metaEventId,
         value: order.total_amount ?? orderQuote.total_amount,
         currency: orderQuote.currency ?? "TND",
         content_ids: pixelContentIds,
         contents: pixelContents,
         num_items: cartState.itemCount,
       })
-      trackStoreEvent("payment_success", {
-        order_id: order.id,
-        metadata: {
-          payment_method: "cod",
-          value: order.total_amount ?? orderQuote.total_amount,
-        },
-      })
-      trackStoreEvent("order_completed", {
-        order_id: order.id,
-        metadata: {
-          value: order.total_amount ?? total,
-          subtotal,
-          shipping: orderQuote.shipping_amount,
-          promo_code: isAuthenticated ? promoCode : null,
-          loyalty_points_used: isAuthenticated ? loyaltyPointsUsed : 0,
-          item_count: cartState.itemCount,
-          contents: pixelContents,
-        },
-      })
       setCreatedOrder(order)
       setSuccess(true)
       setCheckoutStatus("success")
       clearCheckoutIdempotencyKey()
+      clearCheckoutId()
       lastAttemptFingerprintRef.current = null
       clearCart()
       localStorage.removeItem(PROMO_STORAGE_KEY)
@@ -373,9 +392,9 @@ export default function CheckoutPage() {
       setLoyaltyPointsToUse(0)
       router.replace(`/checkout/success?order_id=${encodeURIComponent(order.id)}`)
     } catch (err) {
-      trackStoreEvent("payment_failed", {
+      trackStoreEvent("checkout_validation_failed", {
+        include_checkout_id: true,
         metadata: {
-          payment_method: "cod",
           value: orderQuote.total,
           error: err instanceof Error ? err.message : "unknown",
         },
@@ -413,6 +432,7 @@ export default function CheckoutPage() {
       getStoredCheckoutIdempotencyKey()
     ) {
       clearCheckoutIdempotencyKey()
+      purchaseEventIdRef.current = null
       lastAttemptHadUnknownFailureRef.current = false
       lastAttemptFingerprintRef.current = null
     }
@@ -440,25 +460,55 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (cartState.itemCount === 0) return
-    if (typeof window !== "undefined" && window.sessionStorage.getItem(CHECKOUT_START_TRACKING_KEY) !== checkoutFingerprint) {
-      window.sessionStorage.setItem(CHECKOUT_START_TRACKING_KEY, checkoutFingerprint)
-      trackMetaPixelEvent("InitiateCheckout", {
-        content_ids: pixelContentIds,
-        contents: pixelContents,
-        currency: "TND",
-        num_items: cartState.itemCount,
-        value: subtotal,
-      })
-    }
-    trackStoreEvent("checkout_started", {
+    const checkoutId = getOrCreateCheckoutId()
+    const analyticsEvent = trackStoreEvent("checkout_started", {
+      include_checkout_id: true,
+      currency: "TND",
+      value: subtotal,
+      items: [
+        ...cartState.items.map((item) => ({
+          product_id: item.product.id,
+          variant_id: item.selectedVariant.meta_content_id ?? null,
+          sku: item.product.sku ?? null,
+          product_name: item.product.name,
+          variant_name: `${item.selectedVariant.color} / ${item.selectedSize}`,
+          item_type: "product",
+          quantity: item.quantity,
+          unit_price: item.product.price,
+          line_total: item.product.price * item.quantity,
+          currency: "TND",
+        })),
+        ...cartState.packItems.flatMap((item) =>
+          item.selections.map((selection) => ({
+            product_id: selection.product_id,
+            item_type: "pack_component",
+            pack_id: item.pack.id,
+            quantity: (selection.qty ?? 1) * item.quantity,
+            unit_price: selection.unit_price,
+            line_total: selection.unit_price * (selection.qty ?? 1) * item.quantity,
+            currency: "TND",
+          })),
+        ),
+      ],
+      deduplication_key: `checkout_started:${checkoutId}`,
       metadata: {
         content_ids: pixelContentIds,
-        contents: pixelContents,
         item_count: cartState.itemCount,
-        value: subtotal,
       },
     })
-  }, [cartState.itemCount, checkoutFingerprint, pixelContentIds, pixelContents, subtotal])
+
+    if (!analyticsEvent.eventId) return
+
+    trackMetaPixelEvent("InitiateCheckout", {
+      content_ids: pixelContentIds,
+      contents: pixelContents,
+      currency: "TND",
+      num_items: cartState.itemCount,
+      value: subtotal,
+    }, {
+      eventID: analyticsEvent.eventId,
+    })
+  }, [cartState.itemCount, cartState.items, cartState.packItems, pixelContentIds, pixelContents, subtotal])
 
   useEffect(() => {
     if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {
@@ -527,7 +577,7 @@ export default function CheckoutPage() {
     }, 400)
 
     return () => clearTimeout(timeout)
-  }, [cartState.itemCount, orderPayload])
+  }, [cartState.itemCount, orderPayload, validateShippingInfo])
 
   const shipping = orderQuote?.shipping_amount ?? 0
   const total = orderQuote?.total ?? afterDiscount
@@ -683,7 +733,7 @@ export default function CheckoutPage() {
                     <Input
                       id="email"
                       type="email"
-                      value={shippingInfo.email}
+                      value={shippingInfo.email ?? ""}
                       onChange={(e) => handleInputChange("email", e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white"
                       placeholder={isAuthenticated ? undefined : "Optional for guest checkout"}

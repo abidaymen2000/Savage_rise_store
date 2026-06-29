@@ -7,6 +7,7 @@ import { getAvailableStock, getVariantSize } from "@/lib/inventory"
 import { getMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
+import type { AnalyticsItem } from "@/types/api"
 
 interface CartState {
   items: CartItem[]
@@ -58,6 +59,37 @@ function getPackSelectionKey(selections: PackOrderComponent[]) {
 
 function getPackLineTotal(item: CartPackItem) {
   return (item.pack.pack_price ?? item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) * item.quantity
+}
+
+function buildProductAnalyticsItem(product: Product, variant: Variant, size: string, quantity: number): AnalyticsItem {
+  return {
+    product_id: product.id,
+    variant_id: variant.meta_content_id ?? null,
+    sku: product.sku ?? null,
+    product_name: product.name,
+    variant_name: `${variant.color} / ${size}`,
+    item_type: "product",
+    quantity,
+    unit_price: product.price,
+    line_total: product.price * quantity,
+    currency: "TND",
+  }
+}
+
+function buildPackAnalyticsItems(pack: Pack, selections: PackOrderComponent[], quantity: number): AnalyticsItem[] {
+  return selections.map((selection) => ({
+    product_id: selection.product_id,
+    variant_id: null,
+    sku: null,
+    product_name: null,
+    variant_name: `${selection.color} / ${selection.size}`,
+    item_type: "pack_component",
+    pack_id: pack.id,
+    quantity: (selection.qty ?? 1) * quantity,
+    unit_price: selection.unit_price,
+    line_total: selection.unit_price * (selection.qty ?? 1) * quantity,
+    currency: "TND",
+  }))
 }
 
 function calculateCart(items: CartItem[], packItems: CartPackItem[]) {
@@ -263,6 +295,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       selectedSize: size,
     })
 
+    const items = [buildProductAnalyticsItem(product, variant, size, quantity)]
+
+    const analyticsEvent = trackStoreEvent("add_to_cart", {
+      product_id: product.id,
+      variant_id: variant.meta_content_id ?? null,
+      currency: "TND",
+      value: product.price * quantity,
+      items,
+      metadata: {
+        product_name: product.name,
+        color: variant.color,
+        size,
+        quantity,
+        unit_price: product.price,
+      },
+    })
+
     trackMetaPixelEvent("AddToCart", {
       content_ids: metaContentId ? [metaContentId] : [product.id],
       content_name: product.name,
@@ -276,17 +325,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       ],
       currency: "TND",
       value: product.price * quantity,
-    })
-    trackStoreEvent("add_to_cart", {
-      product_id: product.id,
-      metadata: {
-        product_name: product.name,
-        color: variant.color,
-        size,
-        quantity,
-        unit_price: product.price,
-        value: product.price * quantity,
-      },
+    }, {
+      eventID: analyticsEvent.eventId ?? undefined,
     })
     dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
     openCart()
@@ -300,6 +340,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const value =
       (pack.pack_price ?? selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) *
       quantity
+    const items = buildPackAnalyticsItems(pack, selections, quantity)
+
+    const analyticsEvent = trackStoreEvent("add_to_cart", {
+      currency: "TND",
+      value,
+      items,
+      metadata: {
+        item_type: "pack",
+        pack_id: pack.id,
+        pack_title: pack.title,
+        quantity,
+      },
+    })
 
     trackMetaPixelEvent("AddToCart", {
       content_ids: [pack.id],
@@ -312,16 +365,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       })),
       currency: "TND",
       value,
-    })
-    trackStoreEvent("add_to_cart", {
-      metadata: {
-        item_type: "pack",
-        pack_id: pack.id,
-        pack_title: pack.title,
-        quantity,
-        value,
-        items: selections,
-      },
+    }, {
+      eventID: analyticsEvent.eventId ?? undefined,
     })
     dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
     openCart()

@@ -29,10 +29,9 @@ import {
 import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import ProductReviewSection from "@/components/ProductReviewSection"
+import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
-
-const viewTrackedKeyPrefix = "meta_viewcontent_product:"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -121,13 +120,37 @@ export default function ProductDetailPage() {
       size: selectedVariantSize,
       selectedSize,
     })
-    const viewTrackedKey = `${viewTrackedKeyPrefix}${product.id}:${currentVariant?.color ?? "none"}:${selectedSize || "none"}`
-    if (typeof window !== "undefined" && window.sessionStorage.getItem(viewTrackedKey) === "1") {
-      return
-    }
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(viewTrackedKey, "1")
-    }
+    const pageViewId = getCurrentPageViewId()
+    const analyticsEvent = trackStoreEvent("product_viewed", {
+      product_id: product.id,
+      variant_id: currentVariant?.meta_content_id ?? null,
+      currency: "TND",
+      value: product.price,
+      deduplication_key: `product_viewed:${pageViewId ?? "no_page"}:${product.id}:${currentVariant?.color ?? "none"}:${selectedSize || "none"}`,
+      items: [
+        {
+          product_id: product.id,
+          variant_id: currentVariant?.meta_content_id ?? null,
+          sku: product.sku ?? null,
+          product_name: product.name,
+          variant_name: currentVariant ? `${currentVariant.color} / ${selectedSize}` : null,
+          item_type: "product",
+          quantity: 1,
+          unit_price: product.price,
+          line_total: product.price,
+          currency: "TND",
+        },
+      ],
+      metadata: {
+        product_name: product.name,
+        full_name: product.full_name,
+        price: product.price,
+        in_stock: product.in_stock,
+        categories: product.categories,
+      },
+    })
+    if (!analyticsEvent.eventId) return
+
     trackMetaPixelEvent("ViewContent", {
       content_ids: metaContentId ? [metaContentId] : [product.id],
       content_name: product.name,
@@ -141,16 +164,8 @@ export default function ProductDetailPage() {
       ],
       currency: "TND",
       value: product.price,
-    })
-    trackStoreEvent("product_viewed", {
-      product_id: product.id,
-      metadata: {
-        product_name: product.name,
-        full_name: product.full_name,
-        price: product.price,
-        in_stock: product.in_stock,
-        categories: product.categories,
-      },
+    }, {
+      eventID: analyticsEvent.eventId,
     })
   }, [product, currentVariant, selectedSize])
 

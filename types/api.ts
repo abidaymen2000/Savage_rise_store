@@ -110,12 +110,80 @@ export interface PackOrderSelection {
 export type OrderShippingCreate = ShippingInfo
 
 export interface MetaEventContext {
+  event_id?: string | null
   event_source_url?: string | null
   fbp?: string | null
   fbc?: string | null
   fbclid?: string | null
   consent?: string | null
 }
+
+export interface AnalyticsAttribution {
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  utm_content?: string | null
+  utm_term?: string | null
+  raw_referrer?: string | null
+  referrer_domain?: string | null
+  landing_page?: string | null
+  landing_url?: string | null
+  fbclid?: string | null
+  fbp?: string | null
+  fbc?: string | null
+  captured_at?: string | null
+  source?: string | null
+  medium?: string | null
+  channel_group?: string | null
+}
+
+export interface AnalyticsItem {
+  product_id?: string | null
+  variant_id?: string | null
+  sku?: string | null
+  product_name?: string | null
+  variant_name?: string | null
+  item_type?: string | null
+  pack_id?: string | null
+  quantity?: number | null
+  unit_price?: number | null
+  discount?: number | null
+  line_total?: number | null
+  currency?: string | null
+}
+
+export interface AnalyticsContext {
+  anonymous_id: string
+  session_id: string
+  page_view_id?: string | null
+  checkout_id?: string | null
+  event_id?: string | null
+  page_url?: string | null
+  page_path?: string | null
+  referrer?: string | null
+  source?: string | null
+  medium?: string | null
+  channel_group?: string | null
+  landing_page?: string | null
+  landing_url?: string | null
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  utm_content?: string | null
+  utm_term?: string | null
+  fbclid?: string | null
+  fbp?: string | null
+  fbc?: string | null
+  first_touch_attribution?: AnalyticsAttribution | null
+  last_touch_attribution?: AnalyticsAttribution | null
+  session_attribution?: AnalyticsAttribution | null
+}
+
+export interface CreateOrderAnalyticsContext extends AnalyticsContext {
+  meta_event_id?: string | null
+}
+
+export type MetaEventId = string
 
 export interface PromotionQuoteOut {
   code?: string | null
@@ -562,6 +630,24 @@ export interface OrderCreatePayload {
   loyalty_points_to_use?: number;
   pack_items?: PackOrderSelection[];
   meta?: MetaEventContext | null
+  anonymous_id?: string | null
+  session_id?: string | null
+  page_view_id?: string | null
+  checkout_id?: string | null
+  meta_event_id?: string | null
+  referrer?: string | null
+  landing_page?: string | null
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  utm_content?: string | null
+  utm_term?: string | null
+  fbclid?: string | null
+  fbp?: string | null
+  fbc?: string | null
+  first_touch_attribution?: AnalyticsAttribution | null
+  last_touch_attribution?: AnalyticsAttribution | null
+  session_attribution?: AnalyticsAttribution | null
 }
 
 export interface BackendConflictBody {
@@ -671,6 +757,8 @@ export type StoreAnalyticsEventName =
   | "remove_from_cart"
   | "cart_viewed"
   | "checkout_started"
+  | "checkout_updated"
+  | "checkout_validation_failed"
   | "shipping_info_submitted"
   | "payment_started"
   | "payment_success"
@@ -699,20 +787,49 @@ export type StoreAnalyticsEventName =
 
 export interface StoreAnalyticsEventPayload {
   event_name: StoreAnalyticsEventName | string
+  event_id?: string | null
+  event_version?: number
+  event_source?: string | null
+  occurred_at?: string | null
   anonymous_id?: string | null
   session_id?: string | null
+  page_view_id?: string | null
+  checkout_id?: string | null
   product_id?: string | null
+  variant_id?: string | null
   order_id?: string | null
   event_category?: string | null
   page_path?: string | null
   page_title?: string | null
   action_target?: string | null
   device_type?: string | null
+  currency?: string | null
+  value?: number | null
   metadata?: Record<string, unknown>
+  properties?: Record<string, unknown>
   referrer?: string | null
   source?: string | null
+  channel_group?: string | null
   utm_source?: string | null
   utm_medium?: string | null
   utm_campaign?: string | null
+  utm_content?: string | null
+  utm_term?: string | null
+  fbclid?: string | null
+  fbp?: string | null
+  fbc?: string | null
+  deduplication_key?: string | null
   has_account?: boolean
+}
+
+export interface MetaEventPayload {
+  value?: number
+  currency?: string
+  content_ids?: string[]
+  contents?: Array<Record<string, unknown>>
+  content_type?: string
+  content_name?: string
+  num_items?: number
+  order_id?: string
+  [key: string]: unknown
 }

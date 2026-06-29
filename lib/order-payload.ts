@@ -1,4 +1,5 @@
 import type {
+  CreateOrderAnalyticsContext,
   CartItem,
   CartPackItem,
   MetaEventContext,
@@ -40,6 +41,8 @@ export function buildOrderPayload(params: {
   loyalty_points_to_use?: number
   user_id?: string | null
   meta?: MetaEventContext | null
+  analytics_context?: CreateOrderAnalyticsContext | null
+  meta_event_id?: string | null
 }): OrderCreatePayload {
   const {
     items,
@@ -50,7 +53,21 @@ export function buildOrderPayload(params: {
     loyalty_points_to_use = 0,
     user_id,
     meta = null,
+    analytics_context = null,
+    meta_event_id = null,
   } = params
+
+  const mergedMeta: MetaEventContext | null =
+    analytics_context || meta_event_id
+      ? {
+          event_id: meta_event_id ?? analytics_context?.meta_event_id ?? analytics_context?.event_id ?? meta?.event_id ?? null,
+          event_source_url: meta?.event_source_url ?? analytics_context?.page_url ?? null,
+          fbp: meta?.fbp ?? analytics_context?.fbp ?? null,
+          fbc: meta?.fbc ?? analytics_context?.fbc ?? null,
+          fbclid: meta?.fbclid ?? analytics_context?.fbclid ?? null,
+          consent: meta?.consent ?? null,
+        }
+      : meta
 
   return {
     ...(user_id ? { user_id } : {}),
@@ -74,6 +91,24 @@ export function buildOrderPayload(params: {
     payment_method,
     promo_code: normalizeOptionalString(promo_code)?.toUpperCase() ?? null,
     loyalty_points_to_use: Math.max(0, Math.floor(loyalty_points_to_use)),
-    ...(meta ? { meta } : {}),
+    ...(mergedMeta ? { meta: mergedMeta } : {}),
+    anonymous_id: analytics_context?.anonymous_id ?? null,
+    session_id: analytics_context?.session_id ?? null,
+    page_view_id: analytics_context?.page_view_id ?? null,
+    checkout_id: analytics_context?.checkout_id ?? null,
+    meta_event_id: meta_event_id ?? analytics_context?.meta_event_id ?? null,
+    referrer: analytics_context?.referrer ?? null,
+    landing_page: analytics_context?.landing_page ?? null,
+    utm_source: analytics_context?.utm_source ?? null,
+    utm_medium: analytics_context?.utm_medium ?? null,
+    utm_campaign: analytics_context?.utm_campaign ?? null,
+    utm_content: analytics_context?.utm_content ?? null,
+    utm_term: analytics_context?.utm_term ?? null,
+    fbclid: analytics_context?.fbclid ?? null,
+    fbp: analytics_context?.fbp ?? null,
+    fbc: analytics_context?.fbc ?? null,
+    first_touch_attribution: analytics_context?.first_touch_attribution ?? null,
+    last_touch_attribution: analytics_context?.last_touch_attribution ?? null,
+    session_attribution: analytics_context?.session_attribution ?? null,
   }
 }

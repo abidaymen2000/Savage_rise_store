@@ -3,8 +3,9 @@
 import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import Script from "next/script"
+import { initializeAnalytics } from "@/lib/analytics-context"
 
-const META_PIXEL_ID = "1279504980929252"
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "1279504980929252"
 
 declare global {
   interface Window {
@@ -16,6 +17,10 @@ declare global {
 export default function MetaPixel() {
   const pathname = usePathname()
   const hasSkippedInitialPageView = useRef(false)
+
+  useEffect(() => {
+    initializeAnalytics()
+  }, [])
 
   useEffect(() => {
     if (!window.fbq) return

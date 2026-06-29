@@ -9,14 +9,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
+import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { isSizePurchasable } from "@/lib/inventory"
 import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
-
-const viewTrackedKeyPrefix = "meta_viewcontent_pack:"
 
 type Selection = {
   color: string
@@ -137,21 +136,20 @@ export default function PackDetailPage() {
 
   useEffect(() => {
     if (!pack) return
-    const viewTrackedKey = `${viewTrackedKeyPrefix}${pack.id}`
-    if (typeof window !== "undefined" && window.sessionStorage.getItem(viewTrackedKey) === "1") {
-      return
-    }
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(viewTrackedKey, "1")
-    }
-    trackMetaPixelEvent("ViewContent", {
-      content_ids: [pack.id],
-      content_name: pack.title,
-      content_type: "product_group",
+    const pageViewId = getCurrentPageViewId()
+    const analyticsEvent = trackStoreEvent("product_viewed", {
       currency: "TND",
       value: pack.pack_price ?? 0,
-    })
-    trackStoreEvent("product_viewed", {
+      deduplication_key: `product_viewed:${pageViewId ?? "no_page"}:pack:${pack.id}`,
+      items: (pack.components ?? []).map((component) => ({
+        product_id: component.product_id,
+        item_type: "pack_component",
+        pack_id: pack.id,
+        quantity: component.qty ?? 1,
+        unit_price: products[component.product_id]?.price ?? component.product.price,
+        line_total: (products[component.product_id]?.price ?? component.product.price) * (component.qty ?? 1),
+        currency: "TND",
+      })),
       metadata: {
         item_type: "pack",
         pack_id: pack.id,
@@ -160,7 +158,18 @@ export default function PackDetailPage() {
         components: pack.components,
       },
     })
-  }, [pack])
+    if (!analyticsEvent.eventId) return
+
+    trackMetaPixelEvent("ViewContent", {
+      content_ids: [pack.id],
+      content_name: pack.title,
+      content_type: "product_group",
+      currency: "TND",
+      value: pack.pack_price ?? 0,
+    }, {
+      eventID: analyticsEvent.eventId,
+    })
+  }, [pack, products])
 
   const components = pack?.components ?? []
 
