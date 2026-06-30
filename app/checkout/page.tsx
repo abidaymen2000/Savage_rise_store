@@ -113,7 +113,16 @@ export default function CheckoutPage() {
     () => getAnalyticsContext({ includeCheckoutId: cartState.itemCount > 0 }),
     [cartState.itemCount],
   )
-  const metaEventContext = getMetaEventContext()
+  const metaEventContext = useMemo(
+    () => getMetaEventContext(baseAnalyticsContext.event_id ?? null),
+    [
+      baseAnalyticsContext.event_id,
+      baseAnalyticsContext.page_url,
+      baseAnalyticsContext.fbp,
+      baseAnalyticsContext.fbc,
+      baseAnalyticsContext.fbclid,
+    ],
+  )
 
   const orderPayload = useMemo(
     () =>
