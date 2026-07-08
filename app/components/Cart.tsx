@@ -61,6 +61,9 @@ export default function Cart() {
         color: it.selectedVariant.color,
         size: it.selectedSize,
         qty: it.quantity,
+        variant_id: it.selectedVariant.id ?? null,
+        variant_item_id: it.selectedVariantItemId ?? getVariantSize(it.selectedVariant, it.selectedSize)?.variant_item_id ?? null,
+        sku: getVariantSize(it.selectedVariant, it.selectedSize)?.sku ?? null,
       })),
     [state.items]
   )
@@ -84,11 +87,11 @@ export default function Cart() {
     [state.items, state.packItems, packs]
   )
 
-  const handleQuantityChange = (productId: string, color: string, size: string, newQuantity: number) => {
+  const handleQuantityChange = (productId: string, color: string, size: string, newQuantity: number, variantItemId?: string | null) => {
     if (newQuantity <= 0) {
-      removeFromCart(productId, color, size)
+      removeFromCart(productId, color, size, variantItemId)
     } else {
-      updateQuantity(productId, color, size, newQuantity)
+      updateQuantity(productId, color, size, newQuantity, variantItemId)
     }
   }
 
@@ -270,7 +273,8 @@ export default function Cart() {
     removeFromCart(
       upgradeCandidate.item.product.id,
       upgradeCandidate.item.selectedVariant.color,
-      upgradeCandidate.item.selectedSize
+      upgradeCandidate.item.selectedSize,
+      upgradeCandidate.item.selectedVariantItemId
     )
     trackStoreEvent("button_clicked", {
       product_id: upgradeCandidate.item.product.id,
@@ -512,7 +516,9 @@ export default function Cart() {
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 [scrollbar-gutter:stable] sm:px-5 lg:px-6 lg:py-5">
                   <div className="space-y-4 pb-4">
                   {state.items.map((item) => {
-                    const cartKey = `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`
+                    const cartKey = item.selectedVariantItemId
+                      ? `${item.product.id}-${item.selectedVariantItemId}`
+                      : `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`
                     const imageUrl = getItemImage(item)
                     const imageAlt = getItemImageAlt(item)
                     const maxQuantity = getItemMaxQuantity(item)
@@ -538,7 +544,7 @@ export default function Cart() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 text-gray-400 hover:text-white"
-                                onClick={() => removeFromCart(item.product.id, item.selectedVariant.color, item.selectedSize)}
+                                onClick={() => removeFromCart(item.product.id, item.selectedVariant.color, item.selectedSize, item.selectedVariantItemId)}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -555,7 +561,8 @@ export default function Cart() {
                                   item.product.id,
                                   item.selectedVariant.color,
                                   item.selectedSize,
-                                  item.quantity - 1
+                                  item.quantity - 1,
+                                  item.selectedVariantItemId
                                 )
                               }
                             >
@@ -572,7 +579,8 @@ export default function Cart() {
                                   item.product.id,
                                   item.selectedVariant.color,
                                   item.selectedSize,
-                                  item.quantity + 1
+                                  item.quantity + 1,
+                                  item.selectedVariantItemId
                                 )
                               }
                             >

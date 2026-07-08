@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useReducer, useEffect, useState } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
 import { getAvailableStock, getVariantSize } from "@/lib/inventory"
+import { getProductCartKey, matchesCartItem, resolveVariantItemId } from "@/lib/cart-identity"
 import { getMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
@@ -25,9 +26,9 @@ type CartAction =
       type: "ADD_PACK"
       payload: { pack: Pack; selections: PackOrderComponent[]; quantity?: number }
     }
-  | { type: "REMOVE_ITEM"; payload: { productId: string; color: string; size: string } }
+  | { type: "REMOVE_ITEM"; payload: { productId: string; color: string; size: string; variantItemId?: string | null } }
   | { type: "REMOVE_PACK"; payload: { packId: string; selectionKey: string } }
-  | { type: "UPDATE_QUANTITY"; payload: { productId: string; color: string; size: string; quantity: number } }
+  | { type: "UPDATE_QUANTITY"; payload: { productId: string; color: string; size: string; variantItemId?: string | null; quantity: number } }
   | { type: "UPDATE_PACK_QUANTITY"; payload: { packId: string; selectionKey: string; quantity: number } }
   | { type: "CLEAR_CART" }
   | { type: "LOAD_CART"; payload: CartState }
@@ -40,13 +41,13 @@ const CartContext = createContext<{
   closeCart: () => void
   addToCart: (product: Product, variant: Variant, size: string, quantity?: number) => void
   addPackToCart: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
-  removeFromCart: (productId: string, color: string, size: string) => void
+  removeFromCart: (productId: string, color: string, size: string, variantItemId?: string | null) => void
   removePackFromCart: (packId: string, selectionKey: string) => void
-  updateQuantity: (productId: string, color: string, size: string, quantity: number) => void
+  updateQuantity: (productId: string, color: string, size: string, quantity: number, variantItemId?: string | null) => void
   updatePackQuantity: (packId: string, selectionKey: string, quantity: number) => void
   clearCart: () => void
   refreshCartProducts: (products: Product[]) => void
-  getCartKey: (productId: string, color: string, size: string) => string
+  getCartKey: (productId: string, color: string, size: string, variantItemId?: string | null) => string
   getPackCartKey: (packId: string, selections: PackOrderComponent[]) => string
 } | null>(null)
 
@@ -116,10 +117,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       const { product, variant, size, quantity = 1 } = action.payload
       const maxQuantity = getMaxCartQuantity(variant, size)
       if (maxQuantity <= 0) return state
-      const cartKey = `${product.id}-${variant.color}-${size}`
+      const variantItemId = resolveVariantItemId(variant, size)
+      const cartKey = getProductCartKey(product.id, variant, size, variantItemId)
 
       const existingItemIndex = state.items.findIndex(
-        (item) => `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}` === cartKey,
+        (item) => getProductCartKey(item.product.id, item.selectedVariant, item.selectedSize, item.selectedVariantItemId) === cartKey,
       )
 
       let newItems: CartItem[]
@@ -135,6 +137,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           {
             product,
             selectedVariant: variant,
+            selectedVariantItemId: variantItemId,
             selectedSize: size,
             quantity: Math.min(quantity, maxQuantity),
           },
@@ -163,11 +166,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
 
     case "REMOVE_ITEM": {
-      const { productId, color, size } = action.payload
-      const cartKey = `${productId}-${color}-${size}`
+      const { productId, color, size, variantItemId } = action.payload
 
       const newItems = state.items.filter(
-        (item) => `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}` !== cartKey,
+        (item) => !matchesCartItem(item, { productId, color, size, variantItemId }),
       )
 
       return calculateCart(newItems, state.packItems)
@@ -183,15 +185,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
 
     case "UPDATE_QUANTITY": {
-      const { productId, color, size, quantity } = action.payload
-      const cartKey = `${productId}-${color}-${size}`
+      const { productId, color, size, variantItemId, quantity } = action.payload
 
       if (quantity <= 0) {
-        return cartReducer(state, { type: "REMOVE_ITEM", payload: { productId, color, size } })
+        return cartReducer(state, { type: "REMOVE_ITEM", payload: { productId, color, size, variantItemId } })
       }
 
       const newItems = state.items.map((item) =>
-        `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}` === cartKey
+        matchesCartItem(item, { productId, color, size, variantItemId })
           ? { ...item, quantity: Math.min(quantity, getMaxCartQuantity(item.selectedVariant, item.selectedSize)) }
           : item,
       )
@@ -372,12 +373,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     openCart()
   }
 
-  const removeFromCart = (productId: string, color: string, size: string) => {
+  const removeFromCart = (productId: string, color: string, size: string, variantItemId?: string | null) => {
     const item = state.items.find(
       (cartItem) =>
-        cartItem.product.id === productId &&
-        cartItem.selectedVariant.color === color &&
-        cartItem.selectedSize === size,
+        matchesCartItem(cartItem, { productId, color, size, variantItemId }),
     )
     trackStoreEvent("remove_from_cart", {
       product_id: productId,
@@ -390,7 +389,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         unit_price: item?.product.price,
       },
     })
-    dispatch({ type: "REMOVE_ITEM", payload: { productId, color, size } })
+    dispatch({ type: "REMOVE_ITEM", payload: { productId, color, size, variantItemId } })
   }
 
   const removePackFromCart = (packId: string, selectionKey: string) => {
@@ -409,12 +408,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "REMOVE_PACK", payload: { packId, selectionKey } })
   }
 
-  const updateQuantity = (productId: string, color: string, size: string, quantity: number) => {
+  const updateQuantity = (productId: string, color: string, size: string, quantity: number, variantItemId?: string | null) => {
     const item = state.items.find(
       (cartItem) =>
-        cartItem.product.id === productId &&
-        cartItem.selectedVariant.color === color &&
-        cartItem.selectedSize === size,
+        matchesCartItem(cartItem, { productId, color, size, variantItemId }),
     )
     trackStoreEvent("cart_quantity_changed", {
       product_id: productId,
@@ -430,7 +427,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         unit_price: item?.product.price,
       },
     })
-    dispatch({ type: "UPDATE_QUANTITY", payload: { productId, color, size, quantity } })
+    dispatch({ type: "UPDATE_QUANTITY", payload: { productId, color, size, variantItemId, quantity } })
   }
 
   const updatePackQuantity = (packId: string, selectionKey: string, quantity: number) => {
@@ -474,11 +471,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const freshProduct = productMap.get(item.product.id)
       if (!freshProduct) return item
 
-      const freshVariant = freshProduct.variants.find((variant) => variant.color === item.selectedVariant.color)
+      const freshVariant =
+        freshProduct.variants.find((variant) => variant.items?.some((variantItem) => variantItem.id === item.selectedVariantItemId)) ??
+        freshProduct.variants.find((variant) => variant.color === item.selectedVariant.color)
       return {
         ...item,
         product: freshProduct,
         selectedVariant: freshVariant ?? item.selectedVariant,
+        selectedVariantItemId: item.selectedVariantItemId ?? resolveVariantItemId(freshVariant ?? item.selectedVariant, item.selectedSize),
       }
     })
 
@@ -488,7 +488,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
-  const getCartKey = (productId: string, color: string, size: string) => {
+  const getCartKey = (productId: string, color: string, size: string, variantItemId?: string | null) => {
+    if (variantItemId) return `${productId}-${variantItemId}`
     return `${productId}-${color}-${size}`
   }
 

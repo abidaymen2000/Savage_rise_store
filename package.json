@@ -7,7 +7,7 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --loader ./tests/alias-loader.mjs --test tests/*.test.mjs tests/contract-smoke.mjs"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",

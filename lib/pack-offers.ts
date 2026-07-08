@@ -1,5 +1,5 @@
 import type { CartItem, Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
-import { isSizePurchasable } from "@/lib/inventory"
+import { getVariantSize, isSizePurchasable } from "@/lib/inventory"
 
 function getPackComponents(pack: Pack) {
   return pack.components ?? []
@@ -92,6 +92,8 @@ export function buildPackSelections(
     const override = options?.overrides?.[component.product_id]
     const color = resolveColor(product, component, options?.preferredColor, override?.color)
     const size = resolveSize(product, component, color, options?.preferredSize, override?.size)
+    const variant = getProductVariantByColor(product, color)
+    const variantSize = getVariantSize(variant, size)
     const unitPrice = product?.price ?? component.product.price
 
     if (!color || !size || unitPrice === undefined || unitPrice === null) {
@@ -101,6 +103,9 @@ export function buildPackSelections(
     selections.push({
       component_id: component.id,
       product_id: component.product_id,
+      variant_id: component.variant_id ?? variant?.id ?? null,
+      variant_item_id: component.variant_item_id ?? variantSize?.variant_item_id ?? null,
+      sku: component.sku ?? variantSize?.sku ?? null,
       color,
       size,
       qty: component.qty ?? 1,

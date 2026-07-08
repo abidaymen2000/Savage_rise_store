@@ -12,12 +12,33 @@ export interface SizeStock {
   stock_reserved?: number
   stock_available?: number
   stock?: number
+  sku?: string | null
+  status?: string | null
+  variant_item_id?: string | null
   meta_content_id?: string | null
 }
 
+export interface VariantItem {
+  id: string
+  variant_id?: string | null
+  sku?: string | null
+  size: string
+  price?: number | null
+  stock_on_hand?: number
+  stock_reserved?: number
+  stock_available?: number
+  in_stock?: boolean
+  status?: string | null
+}
+
 export interface Variant {
+  id?: string | null
+  name?: string | null
   color: string
+  color_code?: string | null
+  status?: string | null
   sizes: SizeStock[]
+  items?: VariantItem[]
   images: ProductImage[]
   meta_content_id?: string | null
 }
@@ -88,6 +109,8 @@ export interface OrderItemCreate {
   size: string
   qty: number
   variant_id?: string | null
+  variant_item_id?: string | null
+  sku?: string | null
 }
 
 export type OrderItem = OrderItemCreate
@@ -99,6 +122,8 @@ export interface PackOrderComponentCreate {
   size: string
   qty: number
   variant_id?: string | null
+  variant_item_id?: string | null
+  sku?: string | null
 }
 
 export interface PackOrderSelection {
@@ -202,6 +227,9 @@ export interface LoyaltyQuoteSummaryOut {
 
 export interface InventoryAllocationOut {
   product_id?: string
+  variant_id?: string | null
+  variant_item_id?: string | null
+  sku?: string | null
   color?: string | null
   size?: string | null
   qty?: number
@@ -215,9 +243,11 @@ export interface OrderQuoteLineOut {
   item_type?: "single" | "pack_component" | string
   product_id: string
   variant_id?: string | null
+  variant_item_id?: string | null
   sku?: string | null
   meta_content_id?: string | null
   product_name?: string | null
+  variant_name_snapshot?: string | null
   color: string
   size: string
   qty: number
@@ -442,6 +472,9 @@ export interface PackProductSummary {
 export interface PackComponent {
   id: string
   product_id: string
+  variant_id?: string | null
+  variant_item_id?: string | null
+  sku?: string | null
   color?: string | null
   size?: string | null
   qty?: number
@@ -555,6 +588,7 @@ export interface VlogPage {
 export interface CartItem {
   product: Product
   selectedVariant: Variant
+  selectedVariantItemId?: string | null
   selectedSize: string
   quantity: number // This remains 'quantity' for the frontend cart state
 }

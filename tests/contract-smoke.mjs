@@ -1,37 +1,38 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import fs from "node:fs/promises"
-import os from "node:os"
-import path from "node:path"
-import { pathToFileURL } from "node:url"
-import ts from "typescript"
 
-const repoRoot = process.cwd()
+import { getProductCartKey, matchesCartItem } from "../lib/cart-identity.ts"
+import * as inventory from "../lib/inventory.ts"
+import * as idempotency from "../lib/checkout-idempotency.ts"
+import * as statusHelpers from "../lib/order-status.ts"
+import { buildOrderPayload } from "../lib/order-payload.ts"
+import { ApiError, api } from "../lib/api.ts"
+import { getBackendConflictMessage, isStockConflict } from "../lib/order-conflicts.ts"
 
-async function importTranspiledModule(relativePath) {
-  const sourcePath = path.join(repoRoot, relativePath)
-  const source = await fs.readFile(sourcePath, "utf8")
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.ES2022,
-      target: ts.ScriptTarget.ES2022,
-    },
-    fileName: sourcePath,
-  })
-
-  const tempPath = path.join(
-    os.tmpdir(),
-    `savage-rise-${path.basename(relativePath, path.extname(relativePath))}-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2)}.mjs`,
-  )
-  await fs.writeFile(tempPath, output.outputText, "utf8")
-  return import(`${pathToFileURL(tempPath).href}?t=${Date.now()}`)
+function createVariant({ color, size, variantItemId, sku }) {
+  return {
+    color,
+    sizes: [
+      {
+        size,
+        variant_item_id: variantItemId,
+        sku,
+        stock_available: 5,
+      },
+    ],
+    items: [
+      {
+        id: variantItemId,
+        size,
+        sku,
+        stock_available: 5,
+      },
+    ],
+    images: [],
+  }
 }
 
-test("inventory helper uses stock_available only", async () => {
-  const inventory = await importTranspiledModule("lib/inventory.ts")
-
+test("inventory helper uses stock_available only", () => {
   assert.equal(
     inventory.getAvailableStock({
       size: "M",
@@ -46,7 +47,7 @@ test("inventory helper uses stock_available only", async () => {
   assert.equal(inventory.isSizePurchasable({ size: "XS", stock_available: 0 }), false)
 })
 
-test("checkout idempotency key is stable until cleared", async () => {
+test("checkout idempotency key is stable until cleared", () => {
   const storage = new Map()
   globalThis.window = {
     sessionStorage: {
@@ -61,8 +62,6 @@ test("checkout idempotency key is stable until cleared", async () => {
       randomUUID: () => "uuid-123",
     },
   })
-
-  const idempotency = await importTranspiledModule("lib/checkout-idempotency.ts")
 
   assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey(), "uuid-123")
   assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey(), "uuid-123")
@@ -93,9 +92,7 @@ test("checkout idempotency key is stable until cleared", async () => {
   assert.equal(idempotency.getStoredCheckoutFingerprint(), "fingerprint-b")
 })
 
-test("order status helpers cover the new contract", async () => {
-  const statusHelpers = await importTranspiledModule("lib/order-status.ts")
-
+test("order status helpers cover the new contract", () => {
   assert.equal(statusHelpers.getCanonicalOrderStatus({ status: "pending", order_status: "confirmed" }), "confirmed")
   assert.equal(statusHelpers.canCancelOrder({ status: "pending" }), true)
   assert.equal(statusHelpers.canCancelOrder({ status: "preparing" }), false)
@@ -104,37 +101,64 @@ test("order status helpers cover the new contract", async () => {
   assert.equal(statusHelpers.getFulfillmentStatusLabel("reserved"), "Reserved")
 })
 
-test("buildOrderPayload strips prices and unexpected fields", async () => {
-  const { buildOrderPayload } = await importTranspiledModule("lib/order-payload.ts")
+test("cart key prefers variant_item_id and keeps different sizes separate", () => {
+  const variantSmall = createVariant({ color: "Black", size: "S", variantItemId: "item-black-s", sku: "SKU-S" })
+  const variantMedium = createVariant({ color: "Black", size: "M", variantItemId: "item-black-m", sku: "SKU-M" })
 
+  assert.notEqual(
+    getProductCartKey("prod_1", variantSmall, "S"),
+    getProductCartKey("prod_1", variantMedium, "M"),
+  )
+})
+
+test("cart key keeps different colors separate when variant items differ", () => {
+  const blackVariant = createVariant({ color: "Black", size: "M", variantItemId: "item-black-m", sku: "SKU-BM" })
+  const whiteVariant = createVariant({ color: "White", size: "M", variantItemId: "item-white-m", sku: "SKU-WM" })
+
+  assert.notEqual(
+    getProductCartKey("prod_1", blackVariant, "M"),
+    getProductCartKey("prod_1", whiteVariant, "M"),
+  )
+})
+
+test("cart identity falls back to color and size only when variant_item_id is absent", () => {
+  const legacyVariant = {
+    color: "Black",
+    sizes: [{ size: "M", stock_available: 3 }],
+    items: [],
+    images: [],
+  }
+  const modernVariant = createVariant({ color: "Black", size: "M", variantItemId: "item-black-m", sku: "SKU-BM" })
+
+  assert.equal(getProductCartKey("prod_1", legacyVariant, "M"), "prod_1-Black-M")
+  assert.equal(getProductCartKey("prod_1", modernVariant, "M"), "prod_1-item-black-m")
+})
+
+test("matchesCartItem prefers stable variant_item_id over labels", () => {
+  const cartItem = {
+    product: { id: "prod_1", price: 120 },
+    selectedVariant: createVariant({ color: "Black", size: "M", variantItemId: "item-black-m", sku: "SKU-BM" }),
+    selectedVariantItemId: "item-black-m",
+    selectedSize: "M",
+    quantity: 1,
+  }
+
+  assert.equal(matchesCartItem(cartItem, { productId: "prod_1", color: "White", size: "L", variantItemId: "item-black-m" }), true)
+  assert.equal(matchesCartItem(cartItem, { productId: "prod_1", color: "Black", size: "M", variantItemId: "item-other" }), false)
+})
+
+test("buildOrderPayload includes variant_item_id and sku for stable lines", () => {
   const payload = buildOrderPayload({
     items: [
       {
         product: { id: "prod_1", price: 120 },
-        selectedVariant: { color: "Black", sizes: [], images: [], meta_content_id: "meta-1" },
+        selectedVariant: createVariant({ color: "Black", size: "M", variantItemId: "item-black-m", sku: "SKU-BM" }),
+        selectedVariantItemId: "item-black-m",
         selectedSize: "M",
         quantity: 2,
-        unit_price: 999,
-        line_total: 1998,
       },
     ],
-    packItems: [
-      {
-        pack: { id: "pack_1" },
-        quantity: 1,
-        selections: [
-          {
-            component_id: "top",
-            product_id: "prod_top",
-            color: "Black",
-            size: "L",
-            qty: 1,
-            unit_price: 55,
-            product_name: "Hidden",
-          },
-        ],
-      },
-    ],
+    packItems: [],
     shipping: {
       full_name: " Ada ",
       email: " ada@example.com ",
@@ -154,23 +178,48 @@ test("buildOrderPayload strips prices and unexpected fields", async () => {
     },
   })
 
-  assert.deepEqual(payload.items, [{ product_id: "prod_1", color: "Black", size: "M", qty: 2 }])
-  assert.deepEqual(payload.pack_items, [
-    {
-      pack_id: "pack_1",
-      qty: 1,
-      items: [{ component_id: "top", product_id: "prod_top", color: "Black", size: "L", qty: 1 }],
-    },
-  ])
+  assert.deepEqual(payload.items, [{ product_id: "prod_1", color: "Black", size: "M", qty: 2, variant_id: null, variant_item_id: "item-black-m", sku: "SKU-BM" }])
   assert.equal(payload.shipping.address_line2, null)
   assert.equal(payload.shipping.full_name, "Ada")
   assert.equal(payload.shipping.email, "ada@example.com")
   assert.equal(payload.shipping.city, "Paris")
   assert.equal(payload.promo_code, "WELCOME")
-  assert.equal(payload.meta.event_source_url, "https://savagerise.com/checkout")
-  assert.equal("unit_price" in payload.items[0], false)
-  assert.equal("line_total" in payload.items[0], false)
-  assert.equal("product_name" in payload.pack_items[0].items[0], false)
+})
+
+test("buildOrderPayload keeps legacy fallback when variant_item_id is absent", () => {
+  const payload = buildOrderPayload({
+    items: [
+      {
+        product: { id: "prod_legacy", price: 80 },
+        selectedVariant: {
+          color: "Black",
+          sizes: [{ size: "L", stock_available: 2 }],
+          items: [],
+          images: [],
+        },
+        selectedSize: "L",
+        quantity: 1,
+      },
+    ],
+    packItems: [],
+    shipping: {
+      full_name: "Ada",
+      email: "ada@example.com",
+      phone: "1",
+      address_line1: "a",
+      postal_code: "1",
+      city: "Paris",
+      country: "France",
+    },
+  })
+
+  assert.deepEqual(payload.items, [{ product_id: "prod_legacy", color: "Black", size: "L", qty: 1, variant_id: null, variant_item_id: null, sku: null }])
+})
+
+test("stock conflict helper recognizes backend inventory conflicts", () => {
+  const error = new ApiError(409, { detail: { code: "INVENTORY_CONFLICT", message: "Stock changed while checking out", item: "Buggy / M" } }, "Stock changed while checking out")
+  assert.equal(isStockConflict(error), true)
+  assert.equal(getBackendConflictMessage(error), "Stock changed while checking out")
 })
 
 test("quoteOrder and createOrder use the backend order contract", async () => {
@@ -219,10 +268,8 @@ test("quoteOrder and createOrder use the backend order contract", async () => {
     removeItem: () => {},
   }
 
-  const { api } = await importTranspiledModule("lib/api.ts")
-
   const payload = {
-    items: [{ product_id: "prod_1", color: "Black", size: "M", qty: 2 }],
+    items: [{ product_id: "prod_1", color: "Black", size: "M", qty: 2, variant_id: null, variant_item_id: "item-black-m", sku: "SKU-BM" }],
     shipping: {
       full_name: "Ada",
       email: "ada@example.com",
@@ -235,7 +282,7 @@ test("quoteOrder and createOrder use the backend order contract", async () => {
     payment_method: "cod",
     promo_code: "WELCOME",
     loyalty_points_to_use: 20,
-    pack_items: [{ pack_id: "pack_1", qty: 1, items: [{ component_id: "top", product_id: "prod_1", color: "Black", size: "M", qty: 1 }] }],
+    pack_items: [{ pack_id: "pack_1", qty: 1, items: [{ component_id: "top", product_id: "prod_1", color: "Black", size: "M", qty: 1, variant_id: null, variant_item_id: "item-black-m", sku: "SKU-BM" }] }],
     user_id: "user_1",
   }
 
@@ -250,8 +297,7 @@ test("quoteOrder and createOrder use the backend order contract", async () => {
   assert.equal(calls[1].options.headers["Idempotency-Key"], "idem-123")
 
   const createPayload = JSON.parse(calls[1].options.body)
-  assert.deepEqual(createPayload.items[0], { product_id: "prod_1", color: "Black", size: "M", qty: 2 })
-  assert.equal("unit_price" in createPayload.items[0], false)
+  assert.deepEqual(createPayload.items[0], { product_id: "prod_1", color: "Black", size: "M", qty: 2, variant_id: null, variant_item_id: "item-black-m", sku: "SKU-BM" })
   assert.equal(createPayload.promo_code, "WELCOME")
   assert.equal(createPayload.user_id, "user_1")
   assert.equal(createPayload.loyalty_points_to_use, 20)

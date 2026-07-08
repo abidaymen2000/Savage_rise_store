@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
-import { isSizePurchasable } from "@/lib/inventory"
+import { getVariantSize, isSizePurchasable } from "@/lib/inventory"
 import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
@@ -231,9 +231,14 @@ export default function PackDetailPage() {
     const product = products[component.product_id]
     const selection = selections[component.id] ?? { color: component.color ?? "", size: component.size ?? "" }
     const size = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
+    const variant = product?.variants?.find((item) => item.color === selection.color)
+    const variantSize = getVariantSize(variant, size)
     return {
       component_id: component.id,
       product_id: component.product_id,
+      variant_id: component.variant_id ?? variant?.id ?? null,
+      variant_item_id: component.variant_item_id ?? variantSize?.variant_item_id ?? null,
+      sku: component.sku ?? variantSize?.sku ?? null,
       color: selection.color,
       size,
       qty: getComponentQty(component),

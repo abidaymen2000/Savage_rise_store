@@ -47,13 +47,14 @@ export const API_BASE_URL =
     : "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com");
 
 export class ApiError extends Error {
-  constructor(
-    public status: number,
-    public body: unknown,
-    message: string,
-  ) {
+  status: number
+  body: unknown
+
+  constructor(status: number, body: unknown, message: string) {
     super(message)
     this.name = "ApiError"
+    this.status = status
+    this.body = body
   }
 }
 

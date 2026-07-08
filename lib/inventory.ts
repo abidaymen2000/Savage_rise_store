@@ -1,5 +1,19 @@
 import type { Product, SizeStock, Variant } from "@/types/api"
 
+function sizeRows(variant: Variant | null | undefined): SizeStock[] {
+  if (!variant) return []
+  if (variant.sizes?.length) return variant.sizes
+  return (variant.items ?? []).map((item) => ({
+    size: item.size,
+    stock_on_hand: item.stock_on_hand,
+    stock_reserved: item.stock_reserved,
+    stock_available: item.stock_available,
+    sku: item.sku,
+    status: item.status,
+    variant_item_id: item.id,
+  }))
+}
+
 export function getAvailableStock(size: SizeStock | null | undefined): number {
   if (!size) return 0
   if (typeof size.stock_available === "number") return size.stock_available
@@ -12,12 +26,12 @@ export function isSizePurchasable(size: SizeStock | null | undefined): boolean {
 
 export function getVariantSize(variant: Variant | null | undefined, sizeName: string | null | undefined) {
   if (!variant || !sizeName) return null
-  return variant.sizes.find((size) => size.size === sizeName) ?? null
+  return sizeRows(variant).find((size) => size.size === sizeName) ?? null
 }
 
 export function getPurchasableSizes(variant: Variant | null | undefined): SizeStock[] {
   if (!variant) return []
-  return variant.sizes.filter(isSizePurchasable)
+  return sizeRows(variant).filter(isSizePurchasable)
 }
 
 export function variantHasPurchasableSize(variant: Variant | null | undefined): boolean {

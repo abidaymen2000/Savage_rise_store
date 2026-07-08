@@ -667,7 +667,7 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {cartState.items.map((item) => (
                   <div
-                    key={`${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`}
+                    key={item.selectedVariantItemId ? `${item.product.id}-${item.selectedVariantItemId}` : `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`}
                     className="flex gap-4"
                   >
                     <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">

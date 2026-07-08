@@ -7,6 +7,7 @@ import type {
   OrderShippingCreate,
   PackOrderSelection,
 } from "@/types/api"
+import { getVariantSize } from "@/lib/inventory"
 
 function normalizeOptionalString(value: string | null | undefined): string | null {
   if (typeof value !== "string") return null
@@ -18,6 +19,19 @@ function normalizeRequiredString(value: string): string {
   return value.trim()
 }
 
+function buildSingleItemPayload(item: CartItem) {
+  const selectedSize = getVariantSize(item.selectedVariant, item.selectedSize)
+  return {
+    product_id: item.product.id,
+    color: item.selectedVariant.color,
+    size: item.selectedSize,
+    qty: item.quantity,
+    variant_id: item.selectedVariant.id ?? null,
+    variant_item_id: selectedSize?.variant_item_id ?? null,
+    sku: selectedSize?.sku ?? null,
+  }
+}
+
 export function buildPackOrderSelections(packItems: CartPackItem[]): PackOrderSelection[] {
   return packItems.map((packItem) => ({
     pack_id: packItem.pack.id,
@@ -25,6 +39,9 @@ export function buildPackOrderSelections(packItems: CartPackItem[]): PackOrderSe
     items: packItem.selections.map((selection) => ({
       component_id: selection.component_id ?? null,
       product_id: selection.product_id,
+      variant_id: selection.variant_id ?? null,
+      variant_item_id: selection.variant_item_id ?? null,
+      sku: selection.sku ?? null,
       color: selection.color,
       size: selection.size,
       qty: selection.qty ?? 1,
@@ -71,12 +88,7 @@ export function buildOrderPayload(params: {
 
   return {
     ...(user_id ? { user_id } : {}),
-    items: items.map((item) => ({
-      product_id: item.product.id,
-      color: item.selectedVariant.color,
-      size: item.selectedSize,
-      qty: item.quantity,
-    })),
+    items: items.map(buildSingleItemPayload),
     pack_items: buildPackOrderSelections(packItems),
     shipping: {
       full_name: normalizeRequiredString(shipping.full_name),
