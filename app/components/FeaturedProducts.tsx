@@ -2,55 +2,37 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Package, ShoppingBag } from "lucide-react"
-import { api } from "@/lib/api"
-import ProductSetBadge from "@/components/ProductSetBadge"
-import { useCart } from "@/contexts/CartContext"
-import type { Pack, Product } from "@/types/api"
 import Link from "next/link"
+import { ArrowRight, Package, ShoppingBag } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import ProductSetBadge from "@/components/ProductSetBadge"
+import WishlistButton from "@/components/WishlistButton"
+import { useCart } from "@/contexts/CartContext"
+import { api } from "@/lib/api"
+import { getBundleColorOptions, getBundlePreviewItems } from "@/lib/bundle-media"
 import { getColorSwatch } from "@/lib/color-swatches"
+import { getActiveBundles, getFeaturedPhysicalProducts } from "@/lib/home-products"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
-import { getAvailableColors, getAvailableSizes, getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
-import WishlistButton from "@/components/WishlistButton"
+import {
+  formatPrice,
+  getAvailableColors,
+  getFirstProductImage,
+  getProductImageAlt,
+  isProductInStock,
+  sortProductsByStockStatus,
+} from "@/lib/utils"
+import type { Pack, Product } from "@/types/api"
+
+function getPackSavings(pack: Pack) {
+  if ((pack.savings_value ?? 0) > 0) return pack.savings_value ?? 0
+  if (typeof pack.original_price !== "number" || typeof pack.pack_price !== "number") return 0
+  return Math.max(0, pack.original_price - pack.pack_price)
+}
 
 function getDiscountLabel(pack: Pack) {
-  return (pack.savings_value ?? 0) > 0 ? `${formatPrice(pack.savings_value ?? 0)} off` : null
-}
-
-function getVariantImage(product: Product | undefined, color?: string | null) {
-  if (!product) return null
-  const normalizedColor = color?.toLowerCase().trim()
-  const variant = normalizedColor
-    ? product.variants?.find((item) => item.color.toLowerCase().trim() === normalizedColor)
-    : product.variants?.[0]
-
-  return variant?.images?.[0]?.url ?? null
-}
-
-function getPackPreviewItems(pack: Pack, productLookup: Record<string, Product>) {
-  if (pack.components?.length) {
-    return pack.components.map((component) => ({
-      id: component.id,
-      name: component.product?.name ?? "Pack item",
-      image: getVariantImage(productLookup[component.product_id], component.color) ?? component.product?.image_url,
-      qty: component.qty ?? 1,
-      color: null,
-      size: null,
-    }))
-  }
-
-  return (
-    pack.products?.map((product) => ({
-      id: product.id,
-      name: product.name,
-      image: product.image_url,
-      qty: 1,
-      color: null,
-      size: null,
-    })) ?? []
-  )
+  const savings = getPackSavings(pack)
+  return savings > 0 ? `${formatPrice(savings)} off` : null
 }
 
 function ProductVariantMedia({
@@ -147,12 +129,129 @@ function ProductVariantMedia({
 
       {!isInStock && (
         <div className="absolute top-4 left-4">
-          <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
-            Out of stock
-          </span>
+          <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">Out of stock</span>
         </div>
       )}
     </div>
+  )
+}
+
+function ActivePackCard({ pack, productLookup }: { pack: Pack; productLookup: Record<string, Product> }) {
+  const colorOptions = useMemo(() => getBundleColorOptions(pack, productLookup), [pack, productLookup])
+  const [selectedColor, setSelectedColor] = useState("")
+
+  useEffect(() => {
+    if (colorOptions.length === 0) {
+      setSelectedColor("")
+      return
+    }
+
+    const hasSelectedColor = colorOptions.some(
+      (color) => color.trim().toLowerCase() === selectedColor.trim().toLowerCase(),
+    )
+    if (!selectedColor || !hasSelectedColor) {
+      setSelectedColor(colorOptions[0])
+    }
+  }, [colorOptions, selectedColor])
+
+  const activeColor = selectedColor || colorOptions[0] || null
+  const previewItems = getBundlePreviewItems(pack, productLookup, activeColor)
+  const visualItems = previewItems.length > 0 ? previewItems : [{ id: pack.id, name: pack.title, image: pack.image_url, qty: 1 }]
+  const discountLabel = getDiscountLabel(pack)
+  const savings = getPackSavings(pack)
+  const hasOriginalPrice =
+    typeof pack.original_price === "number" &&
+    typeof pack.pack_price === "number" &&
+    pack.original_price > pack.pack_price
+
+  return (
+    <article className="group overflow-hidden rounded-lg border border-gold/20 bg-black transition-colors hover:border-gold/70">
+      <div className="grid min-h-[340px] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <Link href={`/packs/${pack.id}`} className="relative block min-h-[280px] overflow-hidden bg-gray-900 sm:min-h-[340px]">
+          <div className={`absolute inset-0 grid ${visualItems.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+            {visualItems.slice(0, 4).map((item, index) => (
+              <div key={`${item.id}-${index}`} className="relative min-h-[280px] overflow-hidden sm:min-h-[340px]">
+                <Image
+                  src={item.image || pack.image_url || "/placeholder.svg"}
+                  alt={item.name}
+                  fill
+                  sizes="(min-width: 1024px) 42vw, 100vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/10" />
+              </div>
+            ))}
+          </div>
+
+          {discountLabel && (
+            <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+              {discountLabel}
+            </div>
+          )}
+        </Link>
+
+        <div className="flex flex-col justify-between gap-8 p-5 sm:p-8 lg:p-10">
+          <div>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-gold px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-black">
+                PACK
+              </span>
+              {activeColor && (
+                <span className="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white">
+                  Same-color set
+                </span>
+              )}
+            </div>
+
+            <Link href={`/packs/${pack.id}`}>
+              <h4 className="font-playfair text-3xl font-bold leading-tight text-white transition-colors group-hover:text-gold sm:text-4xl">
+                {pack.title}
+              </h4>
+            </Link>
+            {pack.description && <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-400 sm:text-base">{pack.description}</p>}
+
+            {colorOptions.length > 0 && (
+              <div className="mt-6">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Colors</p>
+                <div className="flex flex-wrap gap-2">
+                  {colorOptions.map((color) => {
+                    const isSelected = color.trim().toLowerCase() === activeColor?.trim().toLowerCase()
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Show ${color} pack`}
+                        onClick={() => setSelectedColor(color)}
+                        className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                          isSelected ? "border-gold text-gold" : "border-white/15 text-white hover:border-white/40"
+                        }`}
+                      >
+                        <span
+                          className="h-4 w-4 rounded-full border border-white/30"
+                          style={{ backgroundColor: getColorSwatch(color) }}
+                        />
+                        {color}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              {hasOriginalPrice && <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>}
+              <p className="text-3xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
+              {savings > 0 && <p className="mt-1 text-sm font-semibold text-emerald-300">Save {formatPrice(savings)}</p>}
+            </div>
+            <Button asChild className="w-full bg-gold text-black hover:bg-gold/90 sm:w-auto">
+              <Link href={`/packs/${pack.id}`}>Composer le pack</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </article>
   )
 }
 
@@ -170,15 +269,22 @@ export default function FeaturedProducts() {
         api.getProducts(0, 8),
         api.getPacks(0, 3).catch(() => [] as Pack[]),
       ])
-      const productMap = productsData.reduce<Record<string, Product>>((map, product) => {
+      const activeBundles = getActiveBundles(packsData)
+      const featuredPhysicalProducts = getFeaturedPhysicalProducts(productsData, activeBundles)
+      const productMap = featuredPhysicalProducts.reduce<Record<string, Product>>((map, product) => {
         map[product.id] = product
         return map
       }, {})
       const missingPackProductIds = Array.from(
         new Set(
-          packsData
-            .flatMap((pack) => pack.components?.map((component) => component.product_id) ?? [])
-            .filter((productId) => !productMap[productId]),
+          activeBundles
+            .flatMap((pack) => {
+              const bundleComponentIds =
+                pack.bundle_definition?.components?.map((component) => component.product_id) ?? []
+              const legacyComponentIds = pack.components?.map((component) => component.product_id) ?? []
+              return [...bundleComponentIds, ...legacyComponentIds]
+            })
+            .filter((productId) => productId && !productMap[productId]),
         ),
       )
       const missingProducts = await Promise.all(
@@ -188,11 +294,11 @@ export default function FeaturedProducts() {
         if (product) productMap[product.id] = product
       })
 
-      setProducts(sortProductsByStockStatus(productsData))
+      setProducts(sortProductsByStockStatus(featuredPhysicalProducts))
       setProductLookup(productMap)
-      setPacks([...packsData].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
+      setPacks([...activeBundles].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
     } catch (error) {
-      // Don't set error state, just log it since we have fallback data
+      // Keep the section non-blocking when the catalog is temporarily unavailable.
     } finally {
       setLoading(false)
     }
@@ -260,69 +366,10 @@ export default function FeaturedProducts() {
                 See all packs
               </Link>
             </div>
-            <div className="grid gap-5 md:grid-cols-3">
-              {packs.map((pack) => {
-                const previewItems = getPackPreviewItems(pack, productLookup)
-                const discountLabel = getDiscountLabel(pack)
-
-                return (
-                  <Link
-                    key={pack.id}
-                    href={`/packs/${pack.id}`}
-                    className="group grid overflow-hidden rounded-lg border border-gold/20 bg-black transition-colors hover:border-gold/70 sm:grid-cols-[180px_minmax(0,1fr)] md:block"
-                  >
-                    <div
-                      className={`relative grid aspect-[4/3] min-h-[170px] overflow-hidden bg-gray-900 ${
-                        previewItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
-                      }`}
-                    >
-                      {(previewItems.length > 0 ? previewItems : [{ id: pack.id, name: pack.title, image: pack.image_url, qty: 1, color: null, size: null }])
-                        .slice(0, 4)
-                        .map((item, index) => (
-                          <div key={`${item.id}-${index}`} className="relative min-h-[170px] overflow-hidden">
-                            <Image
-                              src={item.image || "/placeholder.svg"}
-                              alt={item.name}
-                              fill
-                              className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-black/10" />
-                            {item.qty > 1 && (
-                              <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                                <span>{item.name}</span>
-                                {item.qty > 1 && <span className="text-gold">x{item.qty}</span>}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      {discountLabel && (
-                        <div className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
-                          {discountLabel}
-                        </div>
-                      )}
-                      {previewItems.length > 4 && (
-                        <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                          +{previewItems.length - 4}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col justify-between gap-4 p-5">
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-gold">Pack</p>
-                        <h4 className="text-lg font-semibold transition-colors group-hover:text-gold">{pack.title}</h4>
-                        {pack.description && <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-400">{pack.description}</p>}
-                      </div>
-                      <div className="flex items-end justify-between gap-3">
-                        <div>
-                          <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
-                          <p className="text-xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
-                        </div>
-                        <span className="text-sm font-semibold text-white transition-colors group-hover:text-gold">Configure</span>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
+            <div className="space-y-6">
+              {packs.map((pack) => (
+                <ActivePackCard key={pack.id} pack={pack} productLookup={productLookup} />
+              ))}
             </div>
           </div>
         )}
@@ -334,34 +381,35 @@ export default function FeaturedProducts() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => {
-            const productInStock = isProductInStock(product)
-            const imageAlt = getProductImageAlt(product)
-            const colors = getAvailableColors(product)
-            const relatedPack = findRelatedPack(product.id, packs)
-            const sizes = getAvailableSizes(product)
-            const isBundle = product.product_kind === "bundle"
+        {products.length === 0 ? (
+          <div className="rounded-lg border border-white/10 bg-black p-8 text-center text-sm text-gray-400">
+            No featured products available yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {products.map((product) => {
+              const productInStock = isProductInStock(product)
+              const imageAlt = getProductImageAlt(product)
+              const colors = getAvailableColors(product)
+              const relatedPack = findRelatedPack(product.id, packs)
 
-            return (
-              <div
-                key={product.id}
-                className="group relative overflow-hidden rounded-lg border border-white/10 bg-black transition-colors hover:border-gold/40"
-                onMouseEnter={() => setHoveredProduct(product.id)}
-                onMouseLeave={() => setHoveredProduct(null)}
-              >
-                <Link href={`/products/${product.id}`}>
-                  <ProductVariantMedia product={product} alt={imageAlt} isInStock={productInStock} />
-                </Link>
-
-                {/* Quick Actions */}
+              return (
                 <div
-                  className={`absolute top-4 right-4 flex flex-col gap-2 transition-opacity duration-300 ${
-                    hoveredProduct === product.id ? "opacity-100" : "opacity-0"
-                  }`}
+                  key={product.id}
+                  className="group relative overflow-hidden rounded-lg border border-white/10 bg-black transition-colors hover:border-gold/40"
+                  onMouseEnter={() => setHoveredProduct(product.id)}
+                  onMouseLeave={() => setHoveredProduct(null)}
                 >
-                  <WishlistButton productId={product.id} />
-                  {!isBundle && (
+                  <Link href={`/products/${product.id}`}>
+                    <ProductVariantMedia product={product} alt={imageAlt} isInStock={productInStock} />
+                  </Link>
+
+                  <div
+                    className={`absolute top-4 right-4 flex flex-col gap-2 transition-opacity duration-300 ${
+                      hoveredProduct === product.id ? "opacity-100" : "opacity-0"
+                    }`}
+                  >
+                    <WishlistButton productId={product.id} />
                     <Button
                       size="icon"
                       variant="secondary"
@@ -371,18 +419,15 @@ export default function FeaturedProducts() {
                     >
                       <ShoppingBag className="h-4 w-4 text-black" />
                     </Button>
-                  )}
-                </div>
+                  </div>
 
                   <div className="space-y-4 p-5">
                     <Link href={`/products/${product.id}`}>
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-gold transition-colors line-clamp-2">
+                      <h3 className="mb-2 line-clamp-2 text-xl font-semibold transition-colors group-hover:text-gold">
                         {product.name}
                       </h3>
-                      {product.description && (
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                      )}
-                      <p className="text-gold text-lg font-bold">{formatPrice(product.price)}</p>
+                      {product.description && <p className="mb-3 line-clamp-2 text-sm text-gray-400">{product.description}</p>}
+                      <p className="text-lg font-bold text-gold">{formatPrice(product.price)}</p>
                     </Link>
 
                     {relatedPack && (
@@ -392,45 +437,33 @@ export default function FeaturedProducts() {
                     )}
 
                     <div className="space-y-3 border-t border-white/10 pt-4">
-                    {colors.length > 0 && (
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Colors</span>
-                        <div className="flex flex-wrap justify-end gap-1.5">
-                          {colors.slice(0, 5).map((color) => (
-                            <span
-                              key={color}
-                              title={color}
-                              className="h-5 w-5 rounded-full border border-white/30"
-                              style={{ backgroundColor: getColorSwatch(color) }}
-                            />
-                          ))}
-                          {colors.length > 5 && <span className="text-xs text-gray-400">+{colors.length - 5}</span>}
+                      {colors.length > 0 && (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Colors</span>
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {colors.slice(0, 5).map((color) => (
+                              <span
+                                key={color}
+                                title={color}
+                                className="h-5 w-5 rounded-full border border-white/30"
+                                style={{ backgroundColor: getColorSwatch(color) }}
+                              />
+                            ))}
+                            {colors.length > 5 && <span className="text-xs text-gray-400">+{colors.length - 5}</span>}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {sizes.length > 0 && (
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Sizes</span>
-                        <div className="flex flex-wrap justify-end gap-1.5">
-                          {sizes.slice(0, 6).map((size) => (
-                            <span key={size} className="min-w-7 rounded border border-white/15 px-2 py-1 text-center text-xs text-gray-200">
-                              {size}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <Button asChild className="w-full bg-white text-black hover:bg-gold">
-                      <Link href={isBundle ? `/packs/${product.id}` : `/products/${product.id}`}>{isBundle ? "Configure" : "Choose size"}</Link>
-                    </Button>
+                      <Button asChild className="w-full bg-white text-black hover:bg-gold">
+                        <Link href={`/products/${product.id}`}>Choose product</Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
 
         <div className="mt-12 grid gap-4 rounded-lg border border-white/10 bg-black p-5 text-sm text-gray-300 sm:grid-cols-3">
           <div>
