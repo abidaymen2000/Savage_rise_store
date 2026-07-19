@@ -7,7 +7,8 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "test": "node --experimental-strip-types --loader ./tests/alias-loader.mjs --test tests/*.test.mjs tests/contract-smoke.mjs"
+    "test": "node --experimental-strip-types --loader ./tests/alias-loader.mjs --test tests/*.test.mjs tests/contract-smoke.mjs",
+    "api:generate": "openapi --input https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/openapi.json --output ./lib/api/generated --client fetch --useOptions --useUnionTypes"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -70,6 +71,7 @@
     "@types/react-dom": "^18",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.16",
+    "openapi-typescript-codegen": "^0.31.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

@@ -10,16 +10,13 @@ import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product } from "@/types/api"
 import Link from "next/link"
 import { getColorSwatch } from "@/lib/color-swatches"
-import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
-import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
+import { getAvailableColors, getAvailableSizes, getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 
 function getDiscountLabel(pack: Pack) {
-  return pack.discount_type === "percent"
-    ? `${pack.discount_value}% off`
-    : `${formatPrice(pack.discount_value)} off`
+  return (pack.savings_value ?? 0) > 0 ? `${formatPrice(pack.savings_value ?? 0)} off` : null
 }
 
 function getVariantImage(product: Product | undefined, color?: string | null) {
@@ -39,8 +36,8 @@ function getPackPreviewItems(pack: Pack, productLookup: Record<string, Product>)
       name: component.product?.name ?? "Pack item",
       image: getVariantImage(productLookup[component.product_id], component.color) ?? component.product?.image_url,
       qty: component.qty ?? 1,
-      color: component.color,
-      size: component.size,
+      color: null,
+      size: null,
     }))
   }
 
@@ -123,7 +120,7 @@ function ProductVariantMedia({
 
       <div className="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      {slides.length > 1 && (
+      {slides.length > 1 && activeSlide.color && (
         <>
           <div className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
             {activeSlide.color}
@@ -266,6 +263,7 @@ export default function FeaturedProducts() {
             <div className="grid gap-5 md:grid-cols-3">
               {packs.map((pack) => {
                 const previewItems = getPackPreviewItems(pack, productLookup)
+                const discountLabel = getDiscountLabel(pack)
 
                 return (
                   <Link
@@ -289,23 +287,19 @@ export default function FeaturedProducts() {
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-black/10" />
-                            {(item.color || item.qty > 1) && (
+                            {item.qty > 1 && (
                               <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                                {item.color && (
-                                  <span
-                                    className="h-3 w-3 rounded-full border border-white/40"
-                                    style={{ backgroundColor: getColorSwatch(item.color) }}
-                                  />
-                                )}
-                                <span>{item.color || item.name}</span>
+                                <span>{item.name}</span>
                                 {item.qty > 1 && <span className="text-gold">x{item.qty}</span>}
                               </div>
                             )}
                           </div>
                         ))}
-                      <div className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
-                        {getDiscountLabel(pack)}
-                      </div>
+                      {discountLabel && (
+                        <div className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+                          {discountLabel}
+                        </div>
+                      )}
                       {previewItems.length > 4 && (
                         <div className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
                           +{previewItems.length - 4}
@@ -344,15 +338,10 @@ export default function FeaturedProducts() {
           {products.map((product) => {
             const productInStock = isProductInStock(product)
             const imageAlt = getProductImageAlt(product)
-            const colors = product.variants?.map((variant) => variant.color) ?? []
+            const colors = getAvailableColors(product)
             const relatedPack = findRelatedPack(product.id, packs)
-            const sizes = Array.from(
-              new Set(
-                product.variants?.flatMap((variant) =>
-                  variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size),
-                ) ?? [],
-              ),
-            )
+            const sizes = getAvailableSizes(product)
+            const isBundle = product.product_kind === "bundle"
 
             return (
               <div
@@ -372,15 +361,17 @@ export default function FeaturedProducts() {
                   }`}
                 >
                   <WishlistButton productId={product.id} />
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="bg-white/90 hover:bg-white"
-                    onClick={() => handleAddToCart(product)}
-                    disabled={!productInStock}
-                  >
-                    <ShoppingBag className="h-4 w-4 text-black" />
-                  </Button>
+                  {!isBundle && (
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="bg-white/90 hover:bg-white"
+                      onClick={() => handleAddToCart(product)}
+                      disabled={!productInStock}
+                    >
+                      <ShoppingBag className="h-4 w-4 text-black" />
+                    </Button>
+                  )}
                 </div>
 
                   <div className="space-y-4 p-5">
@@ -432,7 +423,7 @@ export default function FeaturedProducts() {
                     )}
 
                     <Button asChild className="w-full bg-white text-black hover:bg-gold">
-                      <Link href={`/products/${product.id}`}>Choose size</Link>
+                      <Link href={isBundle ? `/packs/${product.id}` : `/products/${product.id}`}>{isBundle ? "Configure" : "Choose size"}</Link>
                     </Button>
                   </div>
                 </div>

@@ -1,12 +1,4 @@
-import type {
-  CreateOrderAnalyticsContext,
-  CartItem,
-  CartPackItem,
-  MetaEventContext,
-  OrderCreatePayload,
-  OrderShippingCreate,
-  PackOrderSelection,
-} from "@/types/api"
+import type { CreateOrderAnalyticsContext, CartItem, CartPackItem, MetaEventContext, OrderCreatePayload, OrderShippingCreate, PackOrderSelection } from "@/types/api"
 import { getVariantSize } from "@/lib/inventory"
 
 function normalizeOptionalString(value: string | null | undefined): string | null {
@@ -23,12 +15,9 @@ function buildSingleItemPayload(item: CartItem) {
   const selectedSize = getVariantSize(item.selectedVariant, item.selectedSize)
   return {
     product_id: item.product.id,
-    color: item.selectedVariant.color,
-    size: item.selectedSize,
+    variant_id: item.selectedVariant.id ?? selectedSize?.variant_item_id ?? null,
+    sku: selectedSize?.sku ?? item.selectedVariant.sku ?? item.product.sku ?? null,
     qty: item.quantity,
-    variant_id: item.selectedVariant.id ?? null,
-    variant_item_id: selectedSize?.variant_item_id ?? null,
-    sku: selectedSize?.sku ?? null,
   }
 }
 
@@ -39,14 +28,31 @@ export function buildPackOrderSelections(packItems: CartPackItem[]): PackOrderSe
     items: packItem.selections.map((selection) => ({
       component_id: selection.component_id ?? null,
       product_id: selection.product_id,
-      variant_id: selection.variant_id ?? null,
-      variant_item_id: selection.variant_item_id ?? null,
+      variant_id: selection.variant_id ?? selection.variant_item_id ?? null,
+      variant_item_id: selection.variant_item_id ?? selection.variant_id ?? null,
       sku: selection.sku ?? null,
       color: selection.color,
       size: selection.size,
       qty: selection.qty ?? 1,
     })),
   }))
+}
+
+function buildBundleItemPayload(packItem: CartPackItem) {
+  return {
+    product_id: packItem.pack.id,
+    variant_id: null,
+    sku: null,
+    qty: packItem.quantity,
+    bundle_selection: {
+      components: packItem.selections
+        .map((selection) => ({
+          component_id: selection.component_id ?? selection.product_id,
+          variant_id: selection.variant_id ?? selection.variant_item_id ?? "",
+        }))
+        .filter((selection) => selection.component_id && selection.variant_id),
+    },
+  }
 }
 
 export function buildOrderPayload(params: {
@@ -88,8 +94,7 @@ export function buildOrderPayload(params: {
 
   return {
     ...(user_id ? { user_id } : {}),
-    items: items.map(buildSingleItemPayload),
-    pack_items: buildPackOrderSelections(packItems),
+    items: [...items.map(buildSingleItemPayload), ...packItems.map(buildBundleItemPayload)] as any,
     shipping: {
       full_name: normalizeRequiredString(shipping.full_name),
       email: normalizeOptionalString(shipping.email),
@@ -122,5 +127,6 @@ export function buildOrderPayload(params: {
     first_touch_attribution: analytics_context?.first_touch_attribution ?? null,
     last_touch_attribution: analytics_context?.last_touch_attribution ?? null,
     session_attribution: analytics_context?.session_attribution ?? null,
-  }
+  } as OrderCreatePayload
 }
+

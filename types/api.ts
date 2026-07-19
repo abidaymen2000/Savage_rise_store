@@ -4,6 +4,7 @@ export interface ProductImage {
   url: string
   alt_text?: string | null
   order?: number | null
+  is_primary?: boolean | null
 }
 
 export interface SizeStock {
@@ -34,6 +35,9 @@ export interface VariantItem {
 export interface Variant {
   id?: string | null
   name?: string | null
+  sku?: string | null
+  price?: number | null
+  compare_at_price?: number | null
   color: string
   color_code?: string | null
   status?: string | null
@@ -41,6 +45,7 @@ export interface Variant {
   items?: VariantItem[]
   images: ProductImage[]
   meta_content_id?: string | null
+  option_values?: Record<string, string>
 }
 
 export interface Product {
@@ -76,8 +81,37 @@ export interface Product {
   care_instructions?: string | null
   categories: string[]
   price: number
+  compare_at_price?: number | null
   in_stock: boolean
   variants: Variant[]
+  images?: ProductImage[]
+  slug?: string
+  product_kind?: string
+  option_axes?: string[]
+  option_values?: Array<Record<string, string>>
+  media?: Array<Record<string, unknown>>
+  bundle_definition?: {
+    components?: PackBundleComponent[]
+    pricing_policy?: {
+      pricing_mode?: "fixed" | "sum_components" | "percentage_discount" | "fixed_discount"
+      fixed_price?: string | null
+      percentage_discount?: string | null
+      fixed_discount?: string | null
+    }
+    [key: string]: unknown
+  } | null
+}
+
+export interface PackBundleComponent {
+  component_id: string
+  product_id: string
+  quantity?: number
+  selection_mode: "fixed_variant" | "customer_select_variant" | "any_available_variant"
+  fixed_variant_id?: string | null
+  allowed_variant_ids?: string[]
+  allowed_option_values?: Record<string, string[]>
+  is_required?: boolean
+  position?: number
 }
 
 export interface User {
@@ -499,6 +533,9 @@ export interface Pack {
   original_price?: number
   pack_price?: number
   savings_value?: number
+  compare_at_price?: number | null
+  product_kind?: string
+  bundle_definition?: Product["bundle_definition"]
   created_at: string
   updated_at: string
 }

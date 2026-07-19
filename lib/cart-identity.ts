@@ -1,24 +1,17 @@
 import type { CartItem, Variant } from "@/types/api"
-import { getVariantSize } from "@/lib/inventory"
 
-export function resolveVariantItemId(variant: Variant, size: string) {
-  return getVariantSize(variant, size)?.variant_item_id ?? null
+export function resolveVariantItemId(variant: Variant | null | undefined, size: string | null | undefined) {
+  if (!variant || !size) return variant?.id ?? null
+  return variant.sizes?.find((item) => item.size === size)?.variant_item_id ?? variant.items?.find((item) => item.size === size)?.id ?? variant.id ?? null
 }
 
 export function getProductCartKey(productId: string, variant: Variant, size: string, variantItemId?: string | null) {
-  const stableVariantItemId = variantItemId ?? resolveVariantItemId(variant, size)
-  if (stableVariantItemId) return `${productId}-${stableVariantItemId}`
-  return `${productId}-${variant.color}-${size}`
+  const resolvedVariantItemId = variantItemId ?? resolveVariantItemId(variant, size)
+  return resolvedVariantItemId ? `${productId}-${resolvedVariantItemId}` : `${productId}-${variant.id ?? variant.color}-${size}`
 }
 
-export function matchesCartItem(
-  item: CartItem,
-  payload: { productId: string; color: string; size: string; variantItemId?: string | null },
-) {
-  if (item.product.id !== payload.productId) return false
-  const itemVariantItemId = item.selectedVariantItemId ?? resolveVariantItemId(item.selectedVariant, item.selectedSize)
-  if (payload.variantItemId || itemVariantItemId) {
-    return itemVariantItemId === (payload.variantItemId ?? null)
-  }
-  return item.selectedVariant.color === payload.color && item.selectedSize === payload.size
+export function matchesCartItem(item: CartItem, target: { productId: string; color: string; size: string; variantItemId?: string | null }) {
+  if (item.product.id !== target.productId) return false
+  if (target.variantItemId && item.selectedVariantItemId) return item.selectedVariantItemId === target.variantItemId
+  return item.selectedVariant.color === target.color && item.selectedSize === target.size
 }

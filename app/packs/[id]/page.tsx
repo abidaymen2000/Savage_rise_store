@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
+import { getBundleColorOptions, getBundlePreviewItems, getComponentImageForColor } from "@/lib/bundle-media"
+import { getColorSwatch } from "@/lib/color-swatches"
 import { getVariantSize, isSizePurchasable } from "@/lib/inventory"
 import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
@@ -33,7 +35,16 @@ function getProductImage(product?: Product | null, fallback?: string | null) {
 }
 
 function getColorOptions(product?: Product | null) {
-  return product?.variants?.map((variant) => variant.color) ?? []
+  const seen = new Set<string>()
+  const colors: string[] = []
+  for (const variant of product?.variants ?? []) {
+    const color = variant.option_values?.color ?? variant.color
+    const key = color.trim().toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    colors.push(color)
+  }
+  return colors
 }
 
 function getSizeOptions(product: Product | null | undefined, color: string) {
@@ -68,6 +79,7 @@ export default function PackDetailPage() {
   const [selections, setSelections] = useState<Record<string, Selection>>({})
   const [sameSizeMode, setSameSizeMode] = useState(true)
   const [sameSize, setSameSize] = useState("")
+  const [selectedColor, setSelectedColor] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [added, setAdded] = useState(false)
@@ -93,17 +105,7 @@ export default function PackDetailPage() {
           if (product) productMap[product.id] = product
         })
 
-        const unlockedColorSets = components
-          .filter((component) => !component.color)
-          .map((component) => getColorOptions(productMap[component.product_id]))
-
-        const commonColors =
-          unlockedColorSets.length > 0
-            ? unlockedColorSets.reduce<string[]>(
-                (common, colors) => common.filter((color) => colors.includes(color)),
-                unlockedColorSets[0] ?? [],
-              )
-            : []
+        const commonColors = getBundleColorOptions(data, productMap)
         const defaultColor = commonColors[0]
 
         const initialSelections: Record<string, Selection> = {}
@@ -120,6 +122,7 @@ export default function PackDetailPage() {
         setPack(data)
         setProducts(productMap)
         setSelections(initialSelections)
+        setSelectedColor(defaultColor ?? "")
       } catch (err) {
         if (isMounted) setError("Unable to load this pack.")
       } finally {
@@ -172,6 +175,11 @@ export default function PackDetailPage() {
   }, [pack, products])
 
   const components = pack?.components ?? []
+  const colorOptions = useMemo(() => (pack ? getBundleColorOptions(pack, products) : []), [pack, products])
+  const previewItems = useMemo(
+    () => (pack ? getBundlePreviewItems(pack, products, selectedColor || colorOptions[0]) : []),
+    [pack, products, selectedColor, colorOptions],
+  )
 
   const commonSizes = useMemo(() => {
     if (components.length === 0) return []
@@ -198,6 +206,7 @@ export default function PackDetailPage() {
       const previous = current[componentId] ?? { color: "", size: "" }
 
       if (updates.color && updates.color !== previous.color) {
+        setSelectedColor(updates.color)
         const next = { ...current }
         components.forEach((component) => {
           if (component.color) return
@@ -214,6 +223,25 @@ export default function PackDetailPage() {
       }
 
       return { ...current, [componentId]: { ...previous, ...updates } }
+    })
+  }
+
+  const updateSharedColor = (color: string) => {
+    setSelectedColor(color)
+    setSelections((current) => {
+      const next = { ...current }
+      components.forEach((component) => {
+        if (component.color) return
+        const product = products[component.product_id]
+        if (!getColorOptions(product).some((option) => option.trim().toLowerCase() === color.trim().toLowerCase())) return
+        const existing = next[component.id] ?? { color: "", size: "" }
+        const sizeOptions = getSizeOptions(product, color)
+        next[component.id] = {
+          color,
+          size: sizeOptions.includes(existing.size) ? existing.size : sizeOptions[0] || "",
+        }
+      })
+      return next
     })
   }
 
@@ -285,8 +313,16 @@ export default function PackDetailPage() {
 
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="space-y-4">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-900">
-              <Image src={getPackImage(pack)} alt={pack.title} fill className="object-cover" />
+            <div
+              className={`relative grid aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 ${
+                previewItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
+              }`}
+            >
+              {(previewItems.length > 0 ? previewItems : [{ id: pack.id, name: pack.title, image: getPackImage(pack), qty: 1 }]).slice(0, 4).map((item) => (
+                <div key={item.id} className="relative min-h-full overflow-hidden">
+                  <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                </div>
+              ))}
               <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
                 Pack deal
               </div>
@@ -316,7 +352,11 @@ export default function PackDetailPage() {
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-black">
                       <Image
-                        src={getProductImage(product, component.product.image_url)}
+                        src={getComponentImageForColor({
+                          product,
+                          selectedColor,
+                          fallback: component.product.image_url ?? pack.image_url,
+                        })}
                         alt={component.product.name}
                         fill
                         className="object-cover transition duration-300 group-hover:scale-105"
@@ -335,9 +375,11 @@ export default function PackDetailPage() {
 
           <div className="space-y-6">
             <div>
-              <Badge className="mb-4 bg-gold text-black">
-                {pack.discount_type === "percent" ? `${pack.discount_value}% off` : `${formatPrice(pack.discount_value)} off`}
-              </Badge>
+              {(pack.savings_value ?? 0) > 0 && (
+                <Badge className="mb-4 bg-gold text-black">
+                  {formatPrice(pack.savings_value ?? 0)} off
+                </Badge>
+              )}
               <h1 className="font-playfair text-4xl font-bold sm:text-5xl">{pack.title}</h1>
               {pack.description && <p className="mt-4 leading-7 text-gray-300">{pack.description}</p>}
               <div className="mt-5 flex flex-wrap items-end gap-4">
@@ -393,6 +435,36 @@ export default function PackDetailPage() {
                   </button>
                 </div>
               </div>
+
+              {colorOptions.length > 0 && (
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {colorOptions.map((color) => {
+                    const isSelected = color.trim().toLowerCase() === selectedColor.trim().toLowerCase()
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          updateSharedColor(color)
+                          trackStoreEvent("color_selected", {
+                            metadata: {
+                              item_type: "pack",
+                              pack_id: pack.id,
+                              color,
+                            },
+                          })
+                        }}
+                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                          isSelected ? "border-gold bg-gold text-black" : "border-white/15 bg-black text-white hover:border-gold/70"
+                        }`}
+                      >
+                        <span className="h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: getColorSwatch(color) }} />
+                        {color}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
 
               {sameSizeMode && commonSizes.length > 0 && (
                 <div className="mb-5">

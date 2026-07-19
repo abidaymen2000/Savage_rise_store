@@ -26,25 +26,18 @@ export function trackPurchasePixelOnce(params: {
   content_ids: string[]
   contents: Array<Record<string, unknown>>
   num_items: number
-}): boolean {
+}) {
   if (hasMetaPurchaseBeenSent(params.orderId, params.metaEventId)) return false
-
-  trackMetaPixelEvent(
-    "Purchase",
-    {
-      value: params.value,
-      currency: params.currency,
-      order_id: params.orderId,
-      content_ids: params.content_ids,
-      contents: params.contents,
-      content_type: "product",
-      num_items: params.num_items,
-    },
-    {
-      eventID: params.metaEventId,
-    },
-  )
-
+  trackMetaPixelEvent("Purchase", {
+    value: params.value,
+    currency: params.currency,
+    order_id: params.orderId,
+    content_ids: params.content_ids,
+    contents: params.contents,
+    content_type: "product",
+    num_items: params.num_items,
+  }, { eventID: params.metaEventId })
   markMetaPurchaseSent(params.orderId, params.metaEventId)
   return true
 }
+

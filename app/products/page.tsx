@@ -12,10 +12,9 @@ import ProductSetBadge from "@/components/ProductSetBadge"
 import { getColorSwatch } from "@/lib/color-swatches"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product } from "@/types/api"
-import { isSizePurchasable } from "@/lib/inventory"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
-import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
+import { getAvailableColors, getAvailableSizes, getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
@@ -87,7 +86,7 @@ function ProductVariantMedia({
 
       <div className="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      {slides.length > 1 && (
+      {slides.length > 1 && activeSlide.color && (
         <>
           <div className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
             {activeSlide.color}
@@ -313,14 +312,9 @@ export default function ProductsPage() {
               const productInStock = isProductInStock(product)
               const imageAlt = getProductImageAlt(product)
               const relatedPack = findRelatedPack(product.id, packs)
-              const colors = product.variants?.map((variant) => variant.color) ?? []
-              const sizes = Array.from(
-                new Set(
-                  product.variants?.flatMap((variant) =>
-                    variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size),
-                  ) ?? [],
-                ),
-              )
+              const colors = getAvailableColors(product)
+              const sizes = getAvailableSizes(product)
+              const isBundle = product.product_kind === "bundle"
 
               return (
                 <div
@@ -340,15 +334,17 @@ export default function ProductsPage() {
                     }`}
                   >
                     <WishlistButton productId={product.id} />
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="bg-white/90 hover:bg-white"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={!productInStock}
-                    >
-                      <ShoppingBag className="h-4 w-4 text-black" />
-                    </Button>
+                    {!isBundle && (
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="bg-white/90 hover:bg-white"
+                        onClick={() => handleAddToCart(product)}
+                        disabled={!productInStock}
+                      >
+                        <ShoppingBag className="h-4 w-4 text-black" />
+                      </Button>
+                    )}
                   </div>
 
                   <div className="space-y-4 p-5">
@@ -400,7 +396,7 @@ export default function ProductsPage() {
                       )}
 
                       <Button asChild className="w-full bg-white text-black hover:bg-gold">
-                        <Link href={`/products/${product.id}`}>Choose size</Link>
+                        <Link href={isBundle ? `/packs/${product.id}` : `/products/${product.id}`}>{isBundle ? "Configure" : "Choose size"}</Link>
                       </Button>
                     </div>
                   </div>

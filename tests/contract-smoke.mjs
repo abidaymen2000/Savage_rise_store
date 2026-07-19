@@ -96,9 +96,9 @@ test("order status helpers cover the new contract", () => {
   assert.equal(statusHelpers.getCanonicalOrderStatus({ status: "pending", order_status: "confirmed" }), "confirmed")
   assert.equal(statusHelpers.canCancelOrder({ status: "pending" }), true)
   assert.equal(statusHelpers.canCancelOrder({ status: "preparing" }), false)
-  assert.equal(statusHelpers.getOrderStatusLabel("return_in_transit"), "Return in transit")
-  assert.equal(statusHelpers.getPaymentStatusLabel("partially_refunded"), "Partially refunded")
-  assert.equal(statusHelpers.getFulfillmentStatusLabel("reserved"), "Reserved")
+  assert.equal(statusHelpers.getOrderStatusLabel("return_in_transit"), "Retour en transit")
+  assert.equal(statusHelpers.getPaymentStatusLabel("partially_refunded"), "Partiellement remboursé")
+  assert.equal(statusHelpers.getFulfillmentStatusLabel("reserved"), "Réservée")
 })
 
 test("cart key prefers variant_item_id and keeps different sizes separate", () => {
@@ -178,7 +178,7 @@ test("buildOrderPayload includes variant_item_id and sku for stable lines", () =
     },
   })
 
-  assert.deepEqual(payload.items, [{ product_id: "prod_1", color: "Black", size: "M", qty: 2, variant_id: null, variant_item_id: "item-black-m", sku: "SKU-BM" }])
+  assert.deepEqual(payload.items, [{ product_id: "prod_1", variant_id: "item-black-m", sku: "SKU-BM", qty: 2 }])
   assert.equal(payload.shipping.address_line2, null)
   assert.equal(payload.shipping.full_name, "Ada")
   assert.equal(payload.shipping.email, "ada@example.com")
@@ -213,7 +213,7 @@ test("buildOrderPayload keeps legacy fallback when variant_item_id is absent", (
     },
   })
 
-  assert.deepEqual(payload.items, [{ product_id: "prod_legacy", color: "Black", size: "L", qty: 1, variant_id: null, variant_item_id: null, sku: null }])
+  assert.deepEqual(payload.items, [{ product_id: "prod_legacy", variant_id: null, sku: null, qty: 1 }])
 })
 
 test("stock conflict helper recognizes backend inventory conflicts", () => {
@@ -294,12 +294,21 @@ test("quoteOrder and createOrder use the backend order contract", async () => {
   assert.equal(calls[0].url.endsWith("/orders/quote"), true)
   assert.equal(calls[0].options.headers["Idempotency-Key"], undefined)
   assert.equal(calls[1].url.endsWith("/orders/"), true)
-  assert.equal(calls[1].options.headers["Idempotency-Key"], "idem-123")
+  assert.equal(calls[1].options.headers.get("Idempotency-Key"), "idem-123")
 
   const createPayload = JSON.parse(calls[1].options.body)
-  assert.deepEqual(createPayload.items[0], { product_id: "prod_1", color: "Black", size: "M", qty: 2, variant_id: null, variant_item_id: "item-black-m", sku: "SKU-BM" })
+  assert.deepEqual(createPayload.items[0], { product_id: "prod_1", variant_id: "item-black-m", sku: "SKU-BM", qty: 2 })
   assert.equal(createPayload.promo_code, "WELCOME")
   assert.equal(createPayload.user_id, "user_1")
   assert.equal(createPayload.loyalty_points_to_use, 20)
-  assert.equal(createPayload.pack_items[0].pack_id, "pack_1")
+  assert.equal(createPayload.pack_items, undefined)
+  assert.deepEqual(createPayload.items[1], {
+    product_id: "pack_1",
+    variant_id: null,
+    sku: null,
+    qty: 1,
+    bundle_selection: {
+      components: [{ component_id: "top", variant_id: "item-black-m" }],
+    },
+  })
 })

@@ -16,8 +16,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Pack, Product, WishlistItem } from "@/types/api"
-import { isSizePurchasable } from "@/lib/inventory"
-import { getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
+import { getAvailableSizes, getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice } from "@/lib/utils"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
 export default function CategoryPage() {
@@ -108,13 +107,6 @@ export default function CategoryPage() {
           return a.name.localeCompare(b.name)
       }
     })
-
-  const getAvailableSizesLabel = (product: Product) =>
-    Array.from(
-      new Set(
-        product.variants?.flatMap((variant) => variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size)) ?? [],
-      ),
-    )
 
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return
@@ -240,7 +232,8 @@ export default function CategoryPage() {
               const imageAlt = getProductImageAlt(product)
               const inWishlist = isProductInWishlist(product.id);
               const relatedPack = findRelatedPack(product.id, packs)
-              const sizes = getAvailableSizesLabel(product)
+              const sizes = getAvailableSizes(product)
+              const isBundle = product.product_kind === "bundle"
 
               return (
                 <div
@@ -284,15 +277,17 @@ export default function CategoryPage() {
                     >
                       <Heart className={`h-4 w-4 ${inWishlist ? 'fill-black' : 'text-black'}`} />
                     </Button>
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="bg-white/90 hover:bg-white"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={!productInStock}
-                    >
-                      <ShoppingBag className="h-4 w-4 text-black" />
-                    </Button>
+                    {!isBundle && (
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="bg-white/90 hover:bg-white"
+                        onClick={() => handleAddToCart(product)}
+                        disabled={!productInStock}
+                      >
+                        <ShoppingBag className="h-4 w-4 text-black" />
+                      </Button>
+                    )}
                   </div>
 
                   <div className="p-6">

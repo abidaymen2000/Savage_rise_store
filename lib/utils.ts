@@ -7,88 +7,59 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Utility functions for product data
 export function getFirstProductImage(product: Product): string {
-  // Try to get the first image from the first variant
-  if (product.variants && product.variants.length > 0) {
-    const firstVariant = product.variants[0]
-    if (firstVariant.images && firstVariant.images.length > 0) {
-      return firstVariant.images[0].url
-    }
+  const productImages = (product as Product & { images?: Array<{ url: string }> }).images
+  if (productImages?.[0]?.url) return productImages[0].url
+  for (const variant of product.variants ?? []) {
+    if (variant.images?.[0]?.url) return variant.images[0].url
   }
-
-  // Fallback to placeholder
   return "/placeholder.svg?height=400&width=300"
 }
 
 export function getProductImageAlt(product: Product): string {
-  // Try to get alt text from the first image of the first variant
-  if (product.variants && product.variants.length > 0) {
-    const firstVariant = product.variants[0]
-    if (firstVariant.images && firstVariant.images.length > 0) {
-      return firstVariant.images[0].alt_text || product.name
-    }
+  for (const variant of product.variants ?? []) {
+    if (variant.images?.[0]?.alt_text) return variant.images[0].alt_text
   }
-
   return product.name
 }
 
 export function getAllProductImages(product: Product): Array<{ url: string; alt_text: string }> {
-  const images: Array<{ url: string; alt_text: string }> = []
-
-  if (product.variants) {
-    product.variants.forEach((variant) => {
-      if (variant.images) {
-        variant.images.forEach((image) => {
-          images.push({
-            url: image.url,
-            alt_text: image.alt_text || `${product.name} - ${variant.color}`,
-          })
-        })
-      }
-    })
-  }
-
+  const images = [
+    ...(((product as Product & { images?: Array<{ url: string; alt_text?: string | null }> }).images ?? []).map((image) => ({
+      url: image.url,
+      alt_text: image.alt_text || product.name,
+    }))),
+    ...(product.variants ?? []).flatMap((variant) =>
+      (variant.images ?? []).map((image) => ({
+        url: image.url,
+        alt_text: image.alt_text || `${product.name} - ${variant.color}`,
+      })),
+    ),
+  ]
   return images.length > 0 ? images : [{ url: "/placeholder.svg?height=400&width=300", alt_text: product.name }]
 }
 
 export function getAvailableColors(product: Product): string[] {
-  if (!product.variants) return []
-  return product.variants.map((variant) => variant.color)
+  if (product.product_kind === "bundle" && (!product.option_axes || product.option_axes.length === 0)) return []
+  return Array.from(new Set((product.variants ?? []).map((variant) => variant.color).filter(Boolean)))
 }
 
 export function getAvailableSizes(product: Product, selectedColor?: string): string[] {
-  if (!product.variants) return []
-
-  if (selectedColor) {
-    const variant = product.variants.find((v) => v.color === selectedColor)
-    return variant ? variant.sizes.map((s) => s.size) : []
-  }
-
-  // Return all unique sizes across all variants
-  const allSizes = new Set<string>()
-  product.variants.forEach((variant) => {
-    variant.sizes.forEach((size) => allSizes.add(size.size))
-  })
-
-  return Array.from(allSizes)
+  if (product.product_kind === "bundle" && (!product.option_axes || product.option_axes.length === 0)) return []
+  const variants = selectedColor ? product.variants?.filter((variant) => variant.color === selectedColor) : product.variants
+  return Array.from(new Set((variants ?? []).flatMap((variant) => (variant.sizes ?? []).map((size) => size.size).filter((size) => size && size.toLowerCase() !== "default"))))
 }
 
 export function getStockForSize(product: Product, color: string, size: string): number {
-  if (!product.variants) return 0
-
-  const variant = product.variants.find((v) => v.color === color)
-  if (!variant) return 0
-
-  const sizeStock = variant.sizes.find((s) => s.size === size)
+  const variant = product.variants?.find((item) => item.color === color)
+  const sizeStock = variant?.sizes?.find((item) => item.size === size)
   return getAvailableStock(sizeStock)
 }
 
 export function isProductInStock(product: Product): boolean {
   if (product.in_stock !== true) return false
-  if (!product.variants || product.variants.length === 0) return product.in_stock
-
-  return productHasPurchasableVariant(product)
+  if (product.product_kind === "bundle") return product.in_stock
+  return product.variants?.length ? productHasPurchasableVariant(product) : product.in_stock
 }
 
 export function sortProductsByStockStatus(products: Product[]): Product[] {
@@ -96,5 +67,5 @@ export function sortProductsByStockStatus(products: Product[]): Product[] {
 }
 
 export function formatPrice(price: number): string {
-  return `${price.toFixed(2)} TND`
+  return `${Number(price || 0).toFixed(2)} TND`
 }

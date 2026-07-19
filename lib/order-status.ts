@@ -1,103 +1,86 @@
-import type { FulfillmentStatus, Order, OrderStatus, PaymentStatus } from "@/types/api"
+import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/types/api"
 
-export function getCanonicalOrderStatus(order: Pick<Order, "status" | "order_status">): OrderStatus {
-  return order.order_status ?? order.status
+const orderLabels: Record<string, string> = {
+  pending: "En attente",
+  confirmed: "Confirmée",
+  preparing: "En préparation",
+  shipped: "Expédiée",
+  delivered: "Livrée",
+  cancelled: "Annulée",
+  refused: "Refusée",
+  return_requested: "Retour demandé",
+  return_in_transit: "Retour en transit",
+  return_received: "Retour reçu",
+  returned: "Retournée",
 }
 
-export function canCancelOrder(order: Pick<Order, "status" | "order_status">): boolean {
-  return getCanonicalOrderStatus(order) === "pending"
+const paymentLabels: Record<string, string> = {
+  unpaid: "Non payé",
+  pending: "En attente",
+  paid: "Payé",
+  collected: "Collecté",
+  failed: "Échoué",
+  refunded: "Remboursé",
+  partially_refunded: "Partiellement remboursé",
+  cancelled: "Annulé",
 }
 
-export function getOrderStatusLabel(status: OrderStatus): string {
-  switch (status) {
-    case "pending":
-      return "Pending"
-    case "confirmed":
-      return "Confirmed"
-    case "preparing":
-      return "Preparing"
-    case "shipped":
-      return "Shipped"
-    case "delivered":
-      return "Delivered"
-    case "cancelled":
-      return "Cancelled"
-    case "return_requested":
-      return "Return requested"
-    case "return_in_transit":
-      return "Return in transit"
-    case "return_received":
-      return "Return received"
-    case "returned":
-      return "Returned"
-    default:
-      return status
-  }
+const fulfillmentLabels: Record<string, string> = {
+  unfulfilled: "Non préparée",
+  reserved: "Réservée",
+  processing: "En traitement",
+  fulfilled: "Traitée",
+  returning: "Retour",
+  returned: "Retournée",
+  cancelled: "Annulée",
 }
 
-export function getOrderStatusColor(status: OrderStatus): string {
-  switch (status) {
-    case "pending":
-      return "bg-yellow-600"
-    case "confirmed":
-      return "bg-blue-600"
-    case "preparing":
-      return "bg-indigo-600"
-    case "shipped":
-      return "bg-purple-600"
-    case "delivered":
-      return "bg-green-600"
-    case "cancelled":
-      return "bg-red-600"
-    case "return_requested":
-      return "bg-orange-600"
-    case "return_in_transit":
-      return "bg-amber-600"
-    case "return_received":
-      return "bg-cyan-600"
-    case "returned":
-      return "bg-slate-600"
-    default:
-      return "bg-gray-600"
-  }
+function statusValue(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
+  return typeof status === "object" && status ? status.order_status ?? status.status ?? null : status
 }
 
-export function getPaymentStatusLabel(status: PaymentStatus): string {
-  switch (status) {
-    case "unpaid":
-      return "Unpaid"
-    case "pending":
-      return "Pending"
-    case "paid":
-      return "Paid"
-    case "failed":
-      return "Failed"
-    case "refunded":
-      return "Refunded"
-    case "partially_refunded":
-      return "Partially refunded"
-    default:
-      return status
-  }
+export function getOrderStatusLabel(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
+  const value = statusValue(status)
+  return orderLabels[value ?? ""] ?? value ?? "Inconnu"
 }
 
-export function getFulfillmentStatusLabel(status: FulfillmentStatus): string {
-  switch (status) {
-    case "unfulfilled":
-      return "Unfulfilled"
-    case "reserved":
-      return "Reserved"
-    case "processing":
-      return "Processing"
-    case "fulfilled":
-      return "Fulfilled"
-    case "returning":
-      return "Returning"
-    case "returned":
-      return "Returned"
-    case "cancelled":
-      return "Cancelled"
-    default:
-      return status
-  }
+export function getPaymentStatusLabel(status: PaymentStatus | string | null | undefined) {
+  return paymentLabels[status ?? ""] ?? status ?? "Inconnu"
+}
+
+export function getFulfillmentStatusLabel(status: FulfillmentStatus | string | null | undefined) {
+  return fulfillmentLabels[status ?? ""] ?? status ?? "Inconnu"
+}
+
+export function getOrderStatusClass(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
+  const value = statusValue(status)
+  if (value === "delivered") return "bg-green-500/10 text-green-600 border-green-500/30"
+  if (value === "cancelled" || value === "refused") return "bg-red-500/10 text-red-600 border-red-500/30"
+  if (value === "shipped" || value === "confirmed") return "bg-blue-500/10 text-blue-600 border-blue-500/30"
+  return "bg-muted text-muted-foreground border-border"
+}
+
+export function getOrderStatusColor(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
+  return getOrderStatusClass(status)
+}
+
+export function getCanonicalOrderStatus(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
+  return (statusValue(status) ?? "pending") as OrderStatus
+}
+
+export function canCancelOrder(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
+  const value = statusValue(status)
+  return value === "pending" || value === "confirmed"
+}
+
+export function getPaymentStatusClass(status: PaymentStatus | string | null | undefined) {
+  if (status === "paid" || status === "collected") return "bg-green-500/10 text-green-600 border-green-500/30"
+  if (status === "failed" || status === "cancelled") return "bg-red-500/10 text-red-600 border-red-500/30"
+  return "bg-muted text-muted-foreground border-border"
+}
+
+export function getFulfillmentStatusClass(status: FulfillmentStatus | string | null | undefined) {
+  if (status === "fulfilled") return "bg-green-500/10 text-green-600 border-green-500/30"
+  if (status === "cancelled") return "bg-red-500/10 text-red-600 border-red-500/30"
+  return "bg-muted text-muted-foreground border-border"
 }

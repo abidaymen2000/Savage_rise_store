@@ -1,67 +1,37 @@
 import { ApiError } from "@/lib/api"
 import type { BackendConflictBody } from "@/types/api"
 
-function normalizeCode(value: unknown): string | null {
-  if (typeof value !== "string") return null
-  return value.trim().toLowerCase().replace(/\s+/g, "_")
-}
-
 export function getBackendConflictBody(error: unknown): BackendConflictBody | null {
-  if (!(error instanceof ApiError) || error.status !== 409) return null
-  if (!error.body || typeof error.body !== "object") return null
-  return error.body as BackendConflictBody
+  if (error instanceof ApiError && error.body && typeof error.body === "object") return error.body as BackendConflictBody
+  return null
 }
 
 export function getBackendConflictCode(error: unknown): string | null {
   const body = getBackendConflictBody(error)
-  if (!body) return null
-
-  if (typeof body.detail === "object" && body.detail && !Array.isArray(body.detail)) {
-    return normalizeCode(body.detail.code) ?? normalizeCode(body.code)
-  }
-
-  return normalizeCode(body.code)
+  const detail = body?.detail
+  if (detail && !Array.isArray(detail) && typeof detail === "object" && typeof detail.code === "string") return detail.code
+  return typeof body?.code === "string" ? body.code : null
 }
 
-export function getBackendConflictMessage(error: unknown): string | null {
+export function getBackendConflictMessage(error: unknown): string {
   const body = getBackendConflictBody(error)
-  if (!body) return null
-
-  if (typeof body.detail === "string" && body.detail.trim()) return body.detail
-  if (typeof body.detail === "object" && body.detail && !Array.isArray(body.detail)) {
-    if (typeof body.detail.message === "string" && body.detail.message.trim()) return body.detail.message
-  }
-  if (typeof body.message === "string" && body.message.trim()) return body.message
-  return null
+  const detail = body?.detail
+  if (typeof detail === "string") return detail
+  if (detail && !Array.isArray(detail) && typeof detail === "object" && typeof detail.message === "string") return detail.message
+  if (typeof body?.message === "string") return body.message
+  return error instanceof Error ? error.message : "Une erreur est survenue."
 }
 
-export function isIdempotencyConflict(error: unknown): boolean {
-  const code = getBackendConflictCode(error)
-  const message = getBackendConflictMessage(error)?.toLowerCase() ?? ""
-  return Boolean(
-    code?.includes("idempot") ||
-      code?.includes("duplicate_order") ||
-      message.includes("idempot") ||
-      message.includes("already in progress") ||
-      message.includes("payload different"),
-  )
+export function isIdempotencyConflict(error: unknown) {
+  return error instanceof ApiError && error.status === 409
 }
 
-export function isQuoteConflict(error: unknown): boolean {
+export function isQuoteConflict(error: unknown) {
   const code = getBackendConflictCode(error)
-  const message = getBackendConflictMessage(error)?.toLowerCase() ?? ""
-  return Boolean(code?.includes("quote") || code?.includes("catalog") || message.includes("quote") || message.includes("catalog"))
+  return code === "quote_mismatch" || code === "QUOTE_MISMATCH"
 }
 
-export function isStockConflict(error: unknown): boolean {
+export function isStockConflict(error: unknown) {
   const code = getBackendConflictCode(error)
-  const message = getBackendConflictMessage(error)?.toLowerCase() ?? ""
-  return Boolean(
-    code?.includes("stock") ||
-      code?.includes("inventory") ||
-      code?.includes("variant") ||
-      message.includes("stock") ||
-      message.includes("inventory") ||
-      message.includes("available"),
-  )
+  return code === "stock_conflict" || code === "out_of_stock" || code === "STOCK_CONFLICT" || code === "INVENTORY_CONFLICT"
 }
