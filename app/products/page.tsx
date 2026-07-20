@@ -14,6 +14,7 @@ import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product } from "@/types/api"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
+import { isActiveBundlePack, isShopProduct, SHOP_PRODUCT_KIND } from "@/lib/product-kind"
 import { getAvailableColors, getAvailableSizes, getFirstProductImage, getProductImageAlt, isProductInStock, formatPrice, sortProductsByStockStatus } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -138,13 +139,11 @@ export default function ProductsPage() {
       setLoading(true)
       setError(null)
       const [productsData, packsData] = await Promise.all([
-        genderFilter === "all"
-          ? api.getProducts(0, 50)
-          : api.searchProducts({ gender: genderFilter }, 0, 50),
+        api.getProducts(0, 50, { productKind: SHOP_PRODUCT_KIND }),
         api.getPacks(0, 50).catch(() => [] as Pack[]),
       ])
-      setProducts(productsData)
-      setPacks(packsData)
+      setProducts(productsData.filter(isShopProduct))
+      setPacks(packsData.filter(isActiveBundlePack))
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error loading products"
       setError(errorMessage)
@@ -155,7 +154,7 @@ export default function ProductsPage() {
     } finally {
       setLoading(false)
     }
-  }, [genderFilter])
+  }, [])
 
   useEffect(() => {
     fetchProducts()
@@ -175,6 +174,32 @@ export default function ProductsPage() {
     setGenderFilter(params.get("gender") || "all")
   }, [])
 
+  const filteredAndSortedProducts = useMemo(
+    () =>
+      sortProductsByStockStatus(
+        products
+          .filter(
+            (product) =>
+              (genderFilter === "all" || product.gender === genderFilter) &&
+              (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.description?.toLowerCase().includes(searchTerm.toLowerCase())),
+          )
+          .sort((a, b) => {
+            switch (sortBy) {
+              case "price-asc":
+                return a.price - b.price
+              case "price-desc":
+                return b.price - a.price
+              case "name":
+              default:
+                return a.name.localeCompare(b.name)
+            }
+          }),
+      ),
+    [genderFilter, products, searchTerm, sortBy],
+  )
+
   useEffect(() => {
     const query = searchTerm.trim()
     if (query.length < 2) return
@@ -193,28 +218,7 @@ export default function ProductsPage() {
     }, 700)
 
     return () => window.clearTimeout(timeout)
-  }, [searchTerm])
-
-  const filteredAndSortedProducts = sortProductsByStockStatus(
-    products
-      .filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description?.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-      .sort((a, b) => {
-        switch (sortBy) {
-          case "price-asc":
-            return a.price - b.price
-          case "price-desc":
-            return b.price - a.price
-          case "name":
-          default:
-            return a.name.localeCompare(b.name)
-        }
-      }),
-  )
+  }, [filteredAndSortedProducts.length, searchTerm])
 
   const handleAddToCart = (product: Product) => {
     if (!isProductInStock(product)) return
@@ -314,7 +318,6 @@ export default function ProductsPage() {
               const relatedPack = findRelatedPack(product.id, packs)
               const colors = getAvailableColors(product)
               const sizes = getAvailableSizes(product)
-              const isBundle = product.product_kind === "bundle"
 
               return (
                 <div
@@ -334,17 +337,15 @@ export default function ProductsPage() {
                     }`}
                   >
                     <WishlistButton productId={product.id} />
-                    {!isBundle && (
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="bg-white/90 hover:bg-white"
-                        onClick={() => handleAddToCart(product)}
-                        disabled={!productInStock}
-                      >
-                        <ShoppingBag className="h-4 w-4 text-black" />
-                      </Button>
-                    )}
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="bg-white/90 hover:bg-white"
+                      onClick={() => handleAddToCart(product)}
+                      disabled={!productInStock}
+                    >
+                      <ShoppingBag className="h-4 w-4 text-black" />
+                    </Button>
                   </div>
 
                   <div className="space-y-4 p-5">
@@ -396,7 +397,7 @@ export default function ProductsPage() {
                       )}
 
                       <Button asChild className="w-full bg-white text-black hover:bg-gold">
-                        <Link href={isBundle ? `/packs/${product.id}` : `/products/${product.id}`}>{isBundle ? "Configure" : "Choose size"}</Link>
+                        <Link href={`/products/${product.id}`}>Choose size</Link>
                       </Button>
                     </div>
                   </div>

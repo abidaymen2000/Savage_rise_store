@@ -1,17 +1,43 @@
 "use client"
 
-import Link from "next/link"
+import { useEffect, useState } from "react"
 import { Instagram } from "lucide-react"
 import { SiTiktok } from "react-icons/si"
+import FooterNavigation from "@/components/store-navigation/footer-navigation"
+import { api } from "@/lib/api"
+import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
+import type { StoreNavigationPublicItem } from "@/lib/api/generated"
 
 export default function Footer() {
+  const [footerItems, setFooterItems] = useState<StoreNavigationPublicItem[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    api
+      .listStoreNavigationMenus(["footer"], "all")
+      .then((response) => {
+        if (cancelled) return
+        const footerMenu = response.menus?.find((menu) => menu.code === "footer")
+        setFooterItems(filterNavigationItemsBySurface(footerMenu?.items, "all"))
+      })
+      .catch((error) => {
+        console.error("Unable to load footer navigation", error)
+        if (!cancelled) setFooterItems([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
-    <footer className="bg-black border-t border-gray-800">
+    <footer className="border-t border-gray-800 bg-black">
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-2xl font-playfair font-bold text-gold mb-4">SAVAGE RISE</h3>
-            <p className="text-gray-400 mb-6 max-w-md">
+            <h3 className="mb-4 font-playfair text-2xl font-bold text-gold">SAVAGE RISE</h3>
+            <p className="mb-6 max-w-md text-gray-400">
               Excellence in contemporary fashion. Every piece tells a story of elegance and sophistication.
             </p>
             <div className="flex space-x-4">
@@ -21,7 +47,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 aria-label="Instagram Savage Rise"
                 title="Instagram"
-                className="text-gray-400 hover:text-gold transition-colors"
+                className="text-gray-400 transition-colors hover:text-gold"
               >
                 <Instagram className="h-6 w-6" />
               </a>
@@ -32,74 +58,20 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 aria-label="TikTok Savage Rise"
                 title="TikTok"
-                className="text-gray-400 hover:text-gold transition-colors"
+                className="text-gray-400 transition-colors hover:text-gold"
               >
                 <SiTiktok className="h-6 w-6" />
               </a>
             </div>
           </div>
 
-          <div>
-            <h4 className="text-white font-semibold mb-4">NAVIGATION</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/products" className="text-gray-400 hover:text-white transition-colors">
-                  Collections
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-gray-400 hover:text-white transition-colors">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-semibold mb-4">CUSTOMER SERVICE</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/help" className="text-gray-400 hover:text-white transition-colors">
-                  Help
-                </Link>
-              </li>
-              <li>
-                <Link href="/shipping" className="text-gray-400 hover:text-white transition-colors">
-                  Shipping
-                </Link>
-              </li>
-              <li>
-                <Link href="/returns" className="text-gray-400 hover:text-white transition-colors">
-                  Returns
-                </Link>
-              </li>
-              <li>
-                <Link href="/size-guide" className="text-gray-400 hover:text-white transition-colors">
-                  Size guide
-                </Link>
-              </li>
-            </ul>
+          <div className="md:col-span-2">
+            <FooterNavigation items={footerItems} />
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm">© 2025 Savage Rise. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/legal" className="text-gray-500 hover:text-white text-sm transition-colors">
-              Legal notice
-            </Link>
-            <Link href="/privacy" className="text-gray-500 hover:text-white text-sm transition-colors">
-              Privacy
-            </Link>
-            <Link href="/cookies" className="text-gray-500 hover:text-white text-sm transition-colors">
-              Cookies
-            </Link>
-          </div>
+        <div className="mt-12 flex flex-col items-center justify-between border-t border-gray-800 pt-8 md:flex-row">
+          <p className="text-sm text-gray-500">© 2025 Savage Rise. All rights reserved.</p>
         </div>
       </div>
     </footer>

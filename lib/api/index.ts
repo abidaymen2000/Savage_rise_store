@@ -13,6 +13,7 @@ import { cmsApi } from "./cms-api"
 import { storeConfigApi } from "./store-config-api"
 import { analyticsApi } from "./analytics-api"
 import { loyaltyApi } from "./loyalty-api"
+import { storeNavigationApi } from "./store-navigation-api"
 import { DefaultService, type HealthStatus } from "./generated"
 import { withApiErrors } from "./api-error"
 
@@ -30,6 +31,7 @@ export const api = {
   ...cmsApi,
   ...storeConfigApi,
   ...loyaltyApi,
+  ...storeNavigationApi,
 
   async trackAnalyticsEvent(payload: Parameters<typeof analyticsApi.trackEvent>[0]): Promise<void> {
     await analyticsApi.trackEvent(payload)

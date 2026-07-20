@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { getBundleColorOptions, getBundlePreviewItems } from "@/lib/bundle-media"
 import { getColorSwatch } from "@/lib/color-swatches"
+import { isActiveBundlePack } from "@/lib/product-kind"
 import { formatPrice } from "@/lib/utils"
 import { trackStoreEvent } from "@/lib/store-analytics"
 import type { Pack, Product } from "@/types/api"
@@ -137,7 +138,7 @@ export default function PacksPage() {
       try {
         setLoading(true)
         setError(null)
-        const data = await api.getPacks()
+        const data = (await api.getPacks()).filter(isActiveBundlePack)
         const packProductIds = Array.from(
           new Set(data.flatMap((pack) => pack.components?.map((component) => component.product_id) ?? [])),
         )

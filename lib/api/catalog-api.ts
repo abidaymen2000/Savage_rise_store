@@ -2,12 +2,30 @@ import {
   CatalogService,
   type BundleComponent,
   type CategoryRead,
+  type PaginatedResponse_ProductListItem_,
   type ProductListItem,
+  type ProductKind,
   type ProductStorefrontDetail,
   type ProductVariantRead,
 } from "./generated"
 import { withApiErrors } from "./api-error"
 import type { Category, Pack, PackComponent, PackProductSummary, Product, ProductImage, SearchFilters, SizeStock, Variant } from "@/types/api"
+
+export type CatalogProductPage = {
+  items: Product[]
+  total: number
+  page: number
+  page_size: number
+  pages: number
+  has_next?: boolean
+  has_prev?: boolean
+}
+
+export type CatalogProductQuery = {
+  q?: string | null
+  productKind?: ProductKind | null
+  categoryId?: string | null
+}
 
 function toNumber(value: unknown, fallback = 0) {
   const number = typeof value === "number" ? value : Number(value)
@@ -222,11 +240,31 @@ function productToPack(product: Product, componentProducts: Product[] = []): Pac
 }
 
 export const catalogApi = {
-  async getProducts(skip = 0, limit = 10): Promise<Product[]> {
+  async getProductsPage(skip = 0, limit = 10, query: CatalogProductQuery = {}): Promise<CatalogProductPage> {
     const page = Math.floor(skip / limit) + 1
-    const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({ page, pageSize: limit }))
+    const response: PaginatedResponse_ProductListItem_ = await withApiErrors(
+      CatalogService.listProductsCatalogProductsGet({
+        page,
+        pageSize: limit,
+        q: query.q,
+        productKind: query.productKind,
+        categoryId: query.categoryId,
+      }),
+    )
     const details = await Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
-    return details
+    return {
+      items: details,
+      total: response.total,
+      page: response.page,
+      page_size: response.page_size,
+      pages: response.pages,
+      has_next: response.has_next,
+      has_prev: response.has_prev,
+    }
+  },
+
+  async getProducts(skip = 0, limit = 10, query: CatalogProductQuery = {}): Promise<Product[]> {
+    return (await this.getProductsPage(skip, limit, query)).items
   },
 
   async getProduct(slugOrId: string): Promise<Product> {
@@ -241,14 +279,10 @@ export const catalogApi = {
   },
 
   async searchProducts(filters: SearchFilters, skip = 0, limit = 10): Promise<Product[]> {
-    const page = Math.floor(skip / limit) + 1
-    const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({
-      page,
-      pageSize: limit,
+    return (await this.getProductsPage(skip, limit, {
       q: filters.text,
       productKind: filters.sort === "packs" ? "bundle" : undefined,
-    }))
-    return Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
+    })).items
   },
 
   async getCategories(): Promise<Category[]> {

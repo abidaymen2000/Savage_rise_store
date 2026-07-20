@@ -13,27 +13,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import DesktopNavigation from "@/components/store-navigation/desktop-navigation"
+import MobileNavigation from "@/components/store-navigation/mobile-navigation"
 import Cart from "./Cart"
 import AuthModal from "./AuthModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
-import type { Category } from "@/types/api"
+import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
+import type { StoreNavigationPublicItem } from "@/lib/api/generated"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
+  const [headerItems, setHeaderItems] = useState<StoreNavigationPublicItem[]>([])
+  const [mobileItems, setMobileItems] = useState<StoreNavigationPublicItem[]>([])
   const { user, isAuthenticated, logout } = useAuth()
   const [wishlistCount, setWishlistCount] = useState(0)
   const pathname = usePathname()
 
   const closeMobileMenu = () => setIsMenuOpen(false)
 
-  const fetchCategories = useCallback(async () => {
+  const fetchNavigation = useCallback(async () => {
     try {
-      const data = await api.getCategories()
-      setCategories(data)
+      const [headerResponse, mobileResponse] = await Promise.all([
+        api.listStoreNavigationMenus(["header"], "desktop"),
+        api.listStoreNavigationMenus(["mobile"], "mobile"),
+      ])
+      const headerMenu = headerResponse.menus?.find((menu) => menu.code === "header")
+      const mobileMenu = mobileResponse.menus?.find((menu) => menu.code === "mobile")
+      const nextHeaderItems = filterNavigationItemsBySurface(headerMenu?.items, "desktop")
+      const nextMobileItems = filterNavigationItemsBySurface(mobileMenu?.items, "mobile")
+
+      setHeaderItems(nextHeaderItems)
+      setMobileItems(nextMobileItems.length > 0 ? nextMobileItems : filterNavigationItemsBySurface(headerMenu?.items, "mobile"))
     } catch (error) {
+      console.error("Unable to load store navigation", error)
+      setHeaderItems([])
+      setMobileItems([])
     }
   }, [])
 
@@ -51,8 +67,8 @@ export default function Header() {
   }, [isAuthenticated])
 
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
+    fetchNavigation()
+  }, [fetchNavigation])
 
   useEffect(() => {
     fetchWishlistCount()
@@ -61,6 +77,15 @@ export default function Header() {
   useEffect(() => {
     closeMobileMenu()
   }, [pathname])
+
+  useEffect(() => {
+    if (!isMenuOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isMenuOpen])
 
   const handleMobileLogout = () => {
     closeMobileMenu()
@@ -86,41 +111,7 @@ export default function Header() {
               SAVAGE RISE
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="text-white hover:text-gold transition-colors">
-                  Collections
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-black border-gray-800">
-                  <DropdownMenuItem asChild>
-                    <Link href="/products" className="text-white hover:text-gold">
-                      All products
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-gray-700" />
-                  {categories.map((category) => (
-                    <DropdownMenuItem key={category.id} asChild>
-                      <Link href={`/categories/${category.name}`} className="text-white hover:text-gold">
-                        {category.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Link href="/about" className="text-white hover:text-gold transition-colors">
-                About
-              </Link>
-              <Link href="/packs" className="text-white hover:text-gold transition-colors">
-                Packs
-              </Link>
-              <Link href="/vlog" className="text-white hover:text-gold transition-colors">
-                Chapters
-              </Link>
-              <Link href="/contact" className="text-white hover:text-gold transition-colors">
-                Contact
-              </Link>
-            </nav>
+            <DesktopNavigation items={headerItems} />
 
             <div className="flex shrink-0 items-center gap-2 md:gap-4">
               <div className="hidden md:flex items-center space-x-4">
@@ -206,65 +197,7 @@ export default function Header() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">Savage Rise</p>
                   <p className="mt-1 text-sm text-white/65">Explore the collection</p>
                 </div>
-                <Link
-                  href="/products"
-                  className="group flex items-center justify-between rounded-lg border border-gold/45 bg-gradient-to-r from-gold/20 via-gold/10 to-transparent px-4 py-4 font-semibold text-gold shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_30px_rgba(0,0,0,0.28)] transition-colors hover:bg-gold hover:text-black"
-                  onClick={closeMobileMenu}
-                >
-                  <span>All products</span>
-                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-                {categories.length > 0 && (
-                  <p className="mt-2 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
-                    Collections
-                  </p>
-                )}
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/categories/${category.name}`}
-                    className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
-                    onClick={closeMobileMenu}
-                  >
-                    <span>{category.name}</span>
-                    <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                ))}
-                <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
-                  Maison
-                </p>
-                <Link
-                  href="/about"
-                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
-                  onClick={closeMobileMenu}
-                >
-                  <span>About</span>
-                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link
-                  href="/packs"
-                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
-                  onClick={closeMobileMenu}
-                >
-                  <span>Packs</span>
-                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link
-                  href="/vlog"
-                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
-                  onClick={closeMobileMenu}
-                >
-                  <span>Chapters</span>
-                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link
-                  href="/contact"
-                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
-                  onClick={closeMobileMenu}
-                >
-                  <span>Contact</span>
-                  <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
-                </Link>
+                <MobileNavigation items={mobileItems} onNavigate={closeMobileMenu} />
 
                 <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
                   Account
