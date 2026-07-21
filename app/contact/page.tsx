@@ -4,12 +4,14 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Mail, Phone, MapPin, XCircle } from 'lucide-react'
+import { Mail, MessageCircle, Phone, XCircle } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { api } from '@/lib/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { trackMetaPixelEvent } from '@/lib/meta-pixel'
 import { trackEvent } from '@/lib/store-analytics'
+import { useStoreConfig } from '@/contexts/StoreConfigContext'
+import { getValidSocialLinks } from '@/lib/store-config-shared'
 
 type Notification = {
   type: "success" | "error"
@@ -19,6 +21,8 @@ type Notification = {
 
 export default function ContactPage() {
   const [notification, setNotification] = useState<Notification | null>(null)
+  const { config } = useStoreConfig()
+  const whatsapp = getValidSocialLinks(config.social_links).find((social) => social.platform === "whatsapp")
 
     const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -156,16 +160,39 @@ export default function ContactPage() {
                 <Mail className="h-6 w-6 text-gold" />
                 <div>
                   <p className="font-semibold">Email</p>
-                  <p className="text-gray-300">Savage.rise.tn@gmail.com</p>
+                  {config.contact_email ? (
+                    <a href={`mailto:${config.contact_email}`} className="text-gray-300 hover:text-gold">
+                      {config.contact_email}
+                    </a>
+                  ) : (
+                    <p className="text-gray-500">Not available</p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <Phone className="h-6 w-6 text-gold" />
                 <div>
                   <p className="font-semibold">Phone</p>
-                  <p className="text-gray-300">+216 21 461 637</p>
+                  {config.contact_phone ? (
+                    <a href={`tel:${config.contact_phone}`} className="text-gray-300 hover:text-gold">
+                      {config.contact_phone}
+                    </a>
+                  ) : (
+                    <p className="text-gray-500">Not available</p>
+                  )}
                 </div>
               </div>
+              {whatsapp && (
+                <div className="flex items-center gap-4">
+                  <MessageCircle className="h-6 w-6 text-gold" />
+                  <div>
+                    <p className="font-semibold">WhatsApp</p>
+                    <a href={whatsapp.url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-gold">
+                      Message us
+                    </a>
+                  </div>
+                </div>
+              )}
               {/* <div className="flex items-center gap-4">
                 <MapPin className="h-6 w-6 text-gold" />
                 <div>

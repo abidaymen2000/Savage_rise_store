@@ -28,6 +28,8 @@ import type { ShippingInfo, ApplyResponse, Order, LoyaltyBalance, LoyaltyQuote, 
 import { getCartItemMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
+import { useStoreConfig } from "@/contexts/StoreConfigContext"
+import { isFeatureEnabled } from "@/lib/store-config-shared"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
@@ -37,6 +39,8 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { state: cartState, clearCart, refreshCartProducts } = useCart()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { config } = useStoreConfig()
+  const loyaltyFeatureEnabled = isFeatureEnabled(config, "loyalty", true)
 
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showEmailVerification, setShowEmailVerification] = useState(false)
@@ -105,9 +109,9 @@ export default function CheckoutPage() {
   const promoDiscount = promoResult?.valid ? promoResult.discount_value ?? 0 : 0
   const subtotal = cartState.total
   const afterPromoDiscount = Math.max(0, subtotal - promoDiscount)
-  const loyaltyDiscount = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.discount_value : 0
-  const loyaltyPointsUsed = isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
-  const estimatedPointsEarned = isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
+  const loyaltyDiscount = loyaltyFeatureEnabled && isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.discount_value : 0
+  const loyaltyPointsUsed = loyaltyFeatureEnabled && isAuthenticated && useLoyaltyPoints && loyaltyQuote ? loyaltyQuote.usable_points : 0
+  const estimatedPointsEarned = loyaltyFeatureEnabled && isAuthenticated && loyaltyQuote ? loyaltyQuote.estimated_points_earned : 0
   const afterDiscount = Math.max(0, afterPromoDiscount - loyaltyDiscount)
   const baseAnalyticsContext = useMemo(
     () => getAnalyticsContext({ includeCheckoutId: cartState.itemCount > 0 }),
@@ -198,7 +202,7 @@ export default function CheckoutPage() {
   }, [isAuthenticated])
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !loyaltyFeatureEnabled) {
       setLoyaltyBalance(null)
       setLoyaltyQuote(null)
       setUseLoyaltyPoints(false)
@@ -230,7 +234,7 @@ export default function CheckoutPage() {
     return () => {
       isMounted = false
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, loyaltyFeatureEnabled])
 
   // Si le panier change (quantités), on revalide le code
   useEffect(() => {
@@ -520,7 +524,7 @@ export default function CheckoutPage() {
   }, [cartState.itemCount, cartState.items, cartState.packItems, pixelContentIds, pixelContents, subtotal])
 
   useEffect(() => {
-    if (!isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {
+    if (!loyaltyFeatureEnabled || !isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {
       setLoyaltyQuote(null)
       return
     }
@@ -546,6 +550,7 @@ export default function CheckoutPage() {
     return () => clearTimeout(timeout)
   }, [
     isAuthenticated,
+    loyaltyFeatureEnabled,
     loyaltyBalance?.settings?.is_active,
     afterPromoDiscount,
     useLoyaltyPoints,
@@ -620,7 +625,7 @@ export default function CheckoutPage() {
           <p className="text-gray-400 mb-4">
             Your order has been created successfully. Redirecting to your confirmation page...
           </p>
-          {isAuthenticated && createdOrder && (
+          {loyaltyFeatureEnabled && isAuthenticated && createdOrder && (
             <div className="mb-4 rounded-md border border-gold/25 bg-gold/10 p-3 text-sm text-gold">
               {createdOrder.loyalty_points_used ? (
                 <p>{createdOrder.loyalty_points_used} loyalty points used on this order.</p>
@@ -652,7 +657,7 @@ export default function CheckoutPage() {
           <Alert className="mb-8 border-gold/40 bg-gold/10">
             <AlertDescription className="text-gold">
               You are checking out as a guest. Sign in if you want to use a promo code and track orders from your profile.
-              Connected customers can also earn and redeem loyalty points.
+              {loyaltyFeatureEnabled ? " Connected customers can also earn and redeem loyalty points." : ""}
             </AlertDescription>
           </Alert>
         )}
@@ -868,7 +873,7 @@ export default function CheckoutPage() {
                   </Alert>
                 )}
 
-                {isAuthenticated && (
+                {loyaltyFeatureEnabled && isAuthenticated && (
                   <div className="rounded-md border border-gold/25 bg-gold/5 p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
@@ -959,7 +964,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {isAuthenticated && displayLoyaltyDiscount > 0 && (
+                {loyaltyFeatureEnabled && isAuthenticated && displayLoyaltyDiscount > 0 && (
                   <div className="flex justify-between text-gold">
                     <div className="flex items-center gap-2">
                       <Coins className="h-4 w-4" />

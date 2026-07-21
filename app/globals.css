@@ -4,6 +4,9 @@
 
 :root {
   --gold: #d4af37;
+  --store-primary: #d4af37;
+  --store-secondary: #111827;
+  --store-accent: #ffffff;
 }
 
 @layer base {

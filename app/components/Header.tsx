@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronRight, Menu, X, User, Search, Heart } from "lucide-react"
@@ -20,6 +21,8 @@ import AuthModal from "./AuthModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
+import { useStoreConfig } from "@/contexts/StoreConfigContext"
+import { getStoreDisplayName, isFeatureEnabled } from "@/lib/store-config-shared"
 import type { StoreNavigationPublicItem } from "@/lib/api/generated"
 
 export default function Header() {
@@ -28,8 +31,13 @@ export default function Header() {
   const [headerItems, setHeaderItems] = useState<StoreNavigationPublicItem[]>([])
   const [mobileItems, setMobileItems] = useState<StoreNavigationPublicItem[]>([])
   const { user, isAuthenticated, logout } = useAuth()
+  const { config } = useStoreConfig()
   const [wishlistCount, setWishlistCount] = useState(0)
   const pathname = usePathname()
+  const storeName = getStoreDisplayName(config)
+  const logoUrl = config.logo_url || undefined
+  const logoAlt = config.branding?.logo_alt || storeName
+  const wishlistEnabled = isFeatureEnabled(config, "wishlist", true)
 
   const closeMobileMenu = () => setIsMenuOpen(false)
 
@@ -54,7 +62,7 @@ export default function Header() {
   }, [])
 
   const fetchWishlistCount = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !wishlistEnabled) {
       setWishlistCount(0)
       return
     }
@@ -64,7 +72,7 @@ export default function Header() {
     } catch (error) {
       setWishlistCount(0)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, wishlistEnabled])
 
   useEffect(() => {
     fetchNavigation()
@@ -108,7 +116,13 @@ export default function Header() {
               className="min-w-0 flex-1 truncate whitespace-nowrap text-lg font-playfair font-bold text-gold sm:text-2xl md:flex-none"
               onClick={closeMobileMenu}
             >
-              SAVAGE RISE
+              <span className="flex h-10 min-w-0 items-center">
+                {logoUrl ? (
+                  <Image src={logoUrl} alt={logoAlt} width={140} height={40} className="h-10 w-auto object-contain" unoptimized priority />
+                ) : (
+                  <span className="truncate">{storeName}</span>
+                )}
+              </span>
             </Link>
 
             <DesktopNavigation items={headerItems} />
@@ -119,7 +133,7 @@ export default function Header() {
                   <Search className="h-5 w-5" />
                 </Button>
 
-                {isAuthenticated && (
+                {isAuthenticated && wishlistEnabled && (
                   <Link href="/profile?tab=wishlist">
                     <Button variant="ghost" size="icon" className="text-white hover:text-gold relative">
                       <Heart className="h-5 w-5" />
@@ -151,11 +165,13 @@ export default function Header() {
                           My Orders
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile?tab=wishlist" className="text-white hover:text-gold">
-                          My Wishlist
-                        </Link>
-                      </DropdownMenuItem>
+                      {wishlistEnabled && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile?tab=wishlist" className="text-white hover:text-gold">
+                            My Wishlist
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator className="bg-gray-700" />
                       <DropdownMenuItem onClick={logout} className="text-red-400 hover:text-red-300">
                         Log out
@@ -194,7 +210,7 @@ export default function Header() {
             <div className="md:hidden fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-gold/30 bg-[#050505]/95 px-4 py-5 shadow-2xl shadow-black/70 backdrop-blur-md">
               <nav className="mx-auto flex w-full max-w-screen-sm flex-col gap-3 pb-4">
                 <div className="mb-1 border-b border-gold/20 pb-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">Savage Rise</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">{storeName}</p>
                   <p className="mt-1 text-sm text-white/65">Explore the collection</p>
                 </div>
                 <MobileNavigation items={mobileItems} onNavigate={closeMobileMenu} />
@@ -202,7 +218,7 @@ export default function Header() {
                 <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
                   Account
                 </p>
-                {isAuthenticated && (
+                {isAuthenticated && wishlistEnabled && (
                   <Link
                     href="/profile?tab=wishlist"
                     className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"

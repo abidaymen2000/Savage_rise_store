@@ -35,6 +35,8 @@ import {
   getPaymentStatusLabel,
 } from "@/lib/order-status"
 import { trackEvent } from "@/lib/store-analytics"
+import { useStoreConfig } from "@/contexts/StoreConfigContext"
+import { isFeatureEnabled } from "@/lib/store-config-shared"
 
 type Tab = "orders" | "wishlist" | "reviews" | "loyalty" | "settings"
 type WishlistWithProduct = WishlistItem & { product?: Product }
@@ -45,6 +47,10 @@ function ProfileContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, isAuthenticated, logout, isLoading } = useAuth()
+  const { config } = useStoreConfig()
+  const wishlistEnabled = isFeatureEnabled(config, "wishlist", true)
+  const reviewsEnabled = isFeatureEnabled(config, "reviews", true)
+  const loyaltyEnabled = isFeatureEnabled(config, "loyalty", true)
 
   const [orders, setOrders] = useState<Order[]>([])
   const [wishlist, setWishlist] = useState<WishlistWithProduct[]>([])
@@ -67,13 +73,19 @@ function ProfileContent() {
   const [productNames, setProductNames] = useState<Record<string, string>>({})
 
   // onglet depuis l'URL ou "orders" par défaut
-  const urlTab = (searchParams.get("tab") as Tab) ?? "orders"
+  const normalizeTab = useCallback((tab: Tab): Tab => {
+    if (tab === "wishlist" && !wishlistEnabled) return "orders"
+    if (tab === "reviews" && !reviewsEnabled) return "orders"
+    if (tab === "loyalty" && !loyaltyEnabled) return "orders"
+    return tab
+  }, [loyaltyEnabled, reviewsEnabled, wishlistEnabled])
+  const urlTab = normalizeTab((searchParams.get("tab") as Tab) ?? "orders")
   const [activeTab, setActiveTab] = useState<Tab>(urlTab)
 
   // si l'URL change (ex: /profile?tab=wishlist), on met à jour l'état
   useEffect(() => {
-    setActiveTab(urlTab)
-  }, [urlTab])
+    setActiveTab(normalizeTab(urlTab))
+  }, [normalizeTab, urlTab])
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -84,11 +96,11 @@ function ProfileContent() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchOrders()
-      fetchWishlist()
-      fetchReviews()
-      fetchLoyalty()
+      if (wishlistEnabled) fetchWishlist()
+      if (reviewsEnabled) fetchReviews()
+      if (loyaltyEnabled) fetchLoyalty()
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, loyaltyEnabled, reviewsEnabled, wishlistEnabled])
 
   function openEdit(r: Review) {
     setEditing(r)
@@ -280,18 +292,24 @@ function ProfileContent() {
               <Package className="h-4 w-4 mr-2" />
               Orders
             </TabsTrigger>
-            <TabsTrigger value="wishlist" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-              <Heart className="h-4 w-4 mr-2" />
-              Wishlist
-            </TabsTrigger>
-            <TabsTrigger value="reviews" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-              <Star className="h-4 w-4 mr-2" />
-              Reviews
-            </TabsTrigger>
-            <TabsTrigger value="loyalty" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-              <Coins className="h-4 w-4 mr-2" />
-              Points
-            </TabsTrigger>
+            {wishlistEnabled && (
+              <TabsTrigger value="wishlist" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                <Heart className="h-4 w-4 mr-2" />
+                Wishlist
+              </TabsTrigger>
+            )}
+            {reviewsEnabled && (
+              <TabsTrigger value="reviews" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                <Star className="h-4 w-4 mr-2" />
+                Reviews
+              </TabsTrigger>
+            )}
+            {loyaltyEnabled && (
+              <TabsTrigger value="loyalty" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                <Coins className="h-4 w-4 mr-2" />
+                Points
+              </TabsTrigger>
+            )}
             <TabsTrigger value="settings" className="data-[state=active]:bg-gold data-[state=active]:text-black">
               <Settings className="h-4 w-4 mr-2" />
               Settings
@@ -341,10 +359,10 @@ function ProfileContent() {
                             </Badge>
                             {/* Total incluant la livraison */}
                             <p className="text-gold font-semibold mt-1">
-                              {formatPrice(computeGrandTotal(order))}
+                              {formatPrice(computeGrandTotal(order), config)}
                             </p>
                             <p className="text-xs text-gray-400">
-                              Shipping: {order.shipping_amount === 0 ? "Free" : formatPrice(order.shipping_amount ?? 0)}
+                              Shipping: {order.shipping_amount === 0 ? "Free" : formatPrice(order.shipping_amount ?? 0, config)}
                               {order.shipping_rate_name ? ` - ${order.shipping_rate_name}` : ""}
                             </p>
                             <p className="text-xs text-gray-500">
@@ -393,7 +411,7 @@ function ProfileContent() {
           </TabsContent>
 
           {/* Wishlist Tab */}
-          <TabsContent value="wishlist">
+          {wishlistEnabled && <TabsContent value="wishlist">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white">My Wishlist</CardTitle>
@@ -452,10 +470,10 @@ function ProfileContent() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
 
           {/* Reviews Tab */}
-          <TabsContent value="reviews">
+          {reviewsEnabled && <TabsContent value="reviews">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white">My Reviews</CardTitle>
@@ -566,10 +584,10 @@ function ProfileContent() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </TabsContent>
+          </TabsContent>}
 
           {/* Loyalty Tab */}
-          <TabsContent value="loyalty">
+          {loyaltyEnabled && <TabsContent value="loyalty">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
@@ -592,7 +610,7 @@ function ProfileContent() {
                       </div>
                       <div className="rounded-lg border border-gray-700 bg-black/30 p-4">
                         <p className="text-sm text-gray-400">Points value</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">{formatPrice(loyalty.value_balance)}</p>
+                        <p className="mt-2 text-2xl font-semibold text-white">{formatPrice(loyalty.value_balance, config)}</p>
                       </div>
                       <div className="rounded-lg border border-gray-700 bg-black/30 p-4">
                         <p className="text-sm text-gray-400">Earn rate</p>
@@ -672,7 +690,7 @@ function ProfileContent() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
 
           {/* Settings Tab */}
           <TabsContent value="settings">

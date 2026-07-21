@@ -16,7 +16,6 @@ import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { findRelatedPack } from "@/lib/pack-offers"
 import {
   formatPrice,
-  getAvailableColors,
   getFirstProductImage,
   getProductImageAlt,
   isProductInStock,
@@ -33,6 +32,21 @@ function getPackSavings(pack: Pack) {
 function getDiscountLabel(pack: Pack) {
   const savings = getPackSavings(pack)
   return savings > 0 ? `${formatPrice(savings)} off` : null
+}
+
+function getProductColorOptions(product: Product): Array<{ label: string; swatch: string }> {
+  const seen = new Set<string>()
+  return (product.variants ?? []).reduce<Array<{ label: string; swatch: string }>>((options, variant) => {
+    const label = variant.option_values?.color ?? variant.color
+    const key = label.trim().toLowerCase()
+    if (!label || seen.has(key)) return options
+    seen.add(key)
+    options.push({
+      label,
+      swatch: getColorSwatch(variant.color_code ?? label),
+    })
+    return options
+  }, [])
 }
 
 function ProductVariantMedia({
@@ -52,11 +66,12 @@ function ProductVariantMedia({
           if (!image?.url) return null
           return {
             color: variant.color,
+            swatch: getColorSwatch(variant.color_code ?? variant.color),
             url: image.url,
             alt: image.alt_text || `${product.name} - ${variant.color}`,
           }
         })
-        .filter((item): item is { color: string; url: string; alt: string } => Boolean(item)) ?? []
+        .filter((item): item is { color: string; swatch: string; url: string; alt: string } => Boolean(item)) ?? []
 
     const uniqueSlides = variantSlides.filter(
       (slide, index, list) => list.findIndex((item) => item.url === slide.url) === index,
@@ -64,7 +79,7 @@ function ProductVariantMedia({
 
     return uniqueSlides.length > 0
       ? uniqueSlides
-      : [{ color: "Default", url: getFirstProductImage(product), alt }]
+      : [{ color: "Default", swatch: getColorSwatch("Default"), url: getFirstProductImage(product), alt }]
   }, [alt, product])
 
   const [activeIndex, setActiveIndex] = useState(0)
@@ -120,7 +135,7 @@ function ProductVariantMedia({
                 className={`h-4 w-4 rounded-full border transition-transform ${
                   index === activeIndex ? "scale-110 border-gold" : "border-white/40"
                 }`}
-                style={{ backgroundColor: getColorSwatch(slide.color) }}
+                style={{ backgroundColor: slide.swatch }}
               />
             ))}
           </div>
@@ -390,7 +405,7 @@ export default function FeaturedProducts() {
             {products.map((product) => {
               const productInStock = isProductInStock(product)
               const imageAlt = getProductImageAlt(product)
-              const colors = getAvailableColors(product)
+              const colors = getProductColorOptions(product)
               const relatedPack = findRelatedPack(product.id, packs)
 
               return (
@@ -443,10 +458,10 @@ export default function FeaturedProducts() {
                           <div className="flex flex-wrap justify-end gap-1.5">
                             {colors.slice(0, 5).map((color) => (
                               <span
-                                key={color}
-                                title={color}
+                                key={color.label}
+                                title={color.label}
                                 className="h-5 w-5 rounded-full border border-white/30"
-                                style={{ backgroundColor: getColorSwatch(color) }}
+                                style={{ backgroundColor: color.swatch }}
                               />
                             ))}
                             {colors.length > 5 && <span className="text-xs text-gray-400">+{colors.length - 5}</span>}

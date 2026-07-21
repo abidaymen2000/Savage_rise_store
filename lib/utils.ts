@@ -2,6 +2,8 @@ import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { Product } from "@/types/api"
 import { getAvailableStock, productHasPurchasableVariant } from "@/lib/inventory"
+import { formatStorePrice } from "@/lib/store-config-shared"
+import type { PublicStoreConfig } from "@/lib/api/generated"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -66,6 +68,6 @@ export function sortProductsByStockStatus(products: Product[]): Product[] {
   return [...products].sort((a, b) => Number(isProductInStock(b)) - Number(isProductInStock(a)))
 }
 
-export function formatPrice(price: number): string {
-  return `${Number(price || 0).toFixed(2)} TND`
+export function formatPrice(price: number, config?: Pick<PublicStoreConfig, "locale" | "default_currency"> | null): string {
+  return formatStorePrice(price, config)
 }

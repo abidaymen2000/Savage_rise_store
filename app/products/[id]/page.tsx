@@ -32,11 +32,17 @@ import ProductReviewSection from "@/components/ProductReviewSection"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
+import { useStoreConfig } from "@/contexts/StoreConfigContext"
+import { isFeatureEnabled } from "@/lib/store-config-shared"
 
 export default function ProductDetailPage() {
   const params = useParams()
   const productId = params.id as string
   const { isAuthenticated } = useAuth()
+  const { config } = useStoreConfig()
+  const packsEnabled = isFeatureEnabled(config, "packs", true)
+  const wishlistEnabled = isFeatureEnabled(config, "wishlist", true)
+  const reviewsEnabled = isFeatureEnabled(config, "reviews", true)
 
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,7 +63,7 @@ export default function ProductDetailPage() {
       setError(null)
       const [data, packsData] = await Promise.all([
         api.getProduct(productId),
-        api.getPacks(0, 50).catch(() => [] as Pack[]),
+        packsEnabled ? api.getPacks(0, 50).catch(() => [] as Pack[]) : Promise.resolve([] as Pack[]),
       ])
       setProduct(data)
 
@@ -99,7 +105,7 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [productId])
+  }, [packsEnabled, productId])
 
   useEffect(() => {
     if (productId) {
@@ -373,7 +379,7 @@ export default function ProductDetailPage() {
             <div>
               <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-2">{product.name}</h1>
               <p className="text-xl text-gray-400 mb-4">{product.full_name}</p>
-              <p className="text-3xl font-bold text-gold">{formatPrice(product.price)}</p>
+              <p className="text-3xl font-bold text-gold">{formatPrice(product.price, config)}</p>
             </div>
 
             {/* Stock Status */}
@@ -492,12 +498,12 @@ export default function ProductDetailPage() {
                 className="w-full flex-1 bg-gold px-4 py-3 text-black hover:bg-gold/90 font-semibold whitespace-normal text-center leading-snug"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
-                Buy this item only - {formatPrice(product.price * quantity)}
+                Buy this item only - {formatPrice(product.price * quantity, config)}
               </Button>
-              <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />
+              {wishlistEnabled && <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />}
             </div>
 
-            {relatedPack && companionComponents.length > 0 && (
+            {packsEnabled && relatedPack && companionComponents.length > 0 && (
               <div className="rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Complete the look</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
@@ -566,13 +572,13 @@ export default function ProductDetailPage() {
                   <p className="mt-2 text-sm text-gray-300">Buy it separately or complete the set and save instantly.</p>
                   <div className="mt-4 flex flex-wrap items-end gap-4">
                     <div>
-                      <p className="text-sm text-gray-500 line-through">
-                        {formatPrice((relatedPack.original_price ?? product.price) * quantity)}
-                      </p>
-                      <p className="text-3xl font-bold text-gold">{formatPrice(getPackPrice(relatedPack) * quantity)}</p>
+                        <p className="text-sm text-gray-500 line-through">
+                          {formatPrice((relatedPack.original_price ?? product.price) * quantity, config)}
+                        </p>
+                      <p className="text-3xl font-bold text-gold">{formatPrice(getPackPrice(relatedPack) * quantity, config)}</p>
                     </div>
                     <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-300">
-                      Save {formatPrice(getPackSavingsLabel(relatedPack) * quantity)}
+                      Save {formatPrice(getPackSavingsLabel(relatedPack) * quantity, config)}
                     </p>
                   </div>
                   <p className="mt-3 text-sm text-gray-400">Same-color set. Choose each item&apos;s size separately.</p>
@@ -583,7 +589,7 @@ export default function ProductDetailPage() {
                   disabled={!canAddCurrentSelection || !completeLookReady}
                   className="mt-5 w-full bg-white text-black hover:bg-gold"
                 >
-                  Get the complete set - {formatPrice(getPackPrice(relatedPack) * quantity)}
+                  Get the complete set - {formatPrice(getPackPrice(relatedPack) * quantity, config)}
                 </Button>
               </div>
             )}
@@ -646,7 +652,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Product Review Section */}
-            <ProductReviewSection productId={productId} />
+            {reviewsEnabled && <ProductReviewSection productId={productId} />}
           </div>
         </div>
       </div>
