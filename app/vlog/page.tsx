@@ -446,8 +446,8 @@ function ChapterSection({
                   />
                 ))
               : [1, 2, 3].map((dropNumber) => (
-                  <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-zinc-950 p-5">
-                    <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900">
+                  <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-zinc-950 p-5 theme-aware-card">
+                    <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900 theme-aware-secondary">
                       <Clock className="h-8 w-8 text-gold" />
                     </div>
                     <span className="rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
@@ -460,7 +460,7 @@ function ChapterSection({
           </div>
 
           {shortFilm && (
-            <article className="overflow-hidden rounded-md border border-gold/30 bg-zinc-950">
+            <article className="overflow-hidden rounded-md border border-gold/30 bg-zinc-950 theme-aware-card">
               <div className="grid gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
                 <div className="relative aspect-video bg-zinc-900">
                   {shortFilm.video_url ? (
@@ -613,7 +613,7 @@ export default function VlogPage() {
             />
           ))
         ) : (
-          <div className="rounded-md border border-white/10 bg-zinc-950 p-6 sm:p-8">
+          <div className="rounded-md border border-white/10 bg-zinc-950 p-6 sm:p-8 theme-aware-card">
             <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center">
               <div>
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gold text-black">
@@ -627,8 +627,8 @@ export default function VlogPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[1, 2, 3].map((dropNumber) => (
-                  <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-black p-4">
-                    <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900">
+                  <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-black p-4 theme-aware-card">
+                    <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900 theme-aware-secondary">
                       <Clock className="h-8 w-8 text-gold" />
                     </div>
                     <p className="text-sm font-semibold text-gold">Drop {String(dropNumber).padStart(2, "0")}</p>

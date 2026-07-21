@@ -348,7 +348,7 @@ export default function PackDetailPage() {
                       })
                     }}
                     disabled={!product}
-                    className="group flex w-full gap-3 rounded-md border border-white/10 bg-gray-900 p-3 text-left transition hover:border-gold/60 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group flex w-full gap-3 rounded-md border border-white/10 bg-gray-900 p-3 text-left transition hover:border-gold/60 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 theme-aware-card"
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-black">
                       <Image
@@ -395,13 +395,13 @@ export default function PackDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-gray-900 p-4">
+            <div className="rounded-lg border border-white/10 bg-gray-900 p-4 theme-aware-pack-card">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold text-white">Choose sizes</p>
                   <p className="text-sm text-gray-400">Use one size when it exists for every product, or configure each item.</p>
                 </div>
-                <div className="grid grid-cols-2 rounded-md border border-white/10 bg-black p-1 text-sm">
+                <div className="grid grid-cols-2 rounded-md border border-white/10 bg-black p-1 text-sm theme-aware-card">
                   <button
                     type="button"
                     onClick={() => {

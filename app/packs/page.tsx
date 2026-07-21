@@ -38,7 +38,7 @@ function PackCard({ pack, productLookup }: { pack: Pack; productLookup: Record<s
   return (
     <Link
       href={`/packs/${pack.id}`}
-      className="group overflow-hidden rounded-2xl border border-gold/20 bg-black transition-colors hover:border-gold/70"
+      className="group overflow-hidden rounded-2xl border border-gold/20 bg-black transition-colors hover:border-gold/70 theme-aware-pack-card"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div
@@ -75,14 +75,14 @@ function PackCard({ pack, productLookup }: { pack: Pack; productLookup: Record<s
           )}
         </div>
 
-        <div className="flex flex-col justify-between gap-5 p-6">
+        <div className="flex flex-col justify-between gap-5 p-6 theme-aware-panel">
           <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-gold">The set offer</p>
             <h2 className="text-2xl font-semibold transition-colors group-hover:text-gold">{pack.title}</h2>
             {pack.description && <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">{pack.description}</p>}
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-300">
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Choose each item&apos;s size separately</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Same-color set</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 theme-aware-card">Choose each item&apos;s size separately</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 theme-aware-card">Same-color set</span>
             </div>
             {colorOptions.length > 0 && (
               <div className="mt-5 flex flex-wrap gap-2">

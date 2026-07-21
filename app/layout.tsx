@@ -9,6 +9,7 @@ import Footer from "./components/Footer"
 import { CartProvider } from "@/contexts/CartContext"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { StoreConfigProvider } from "@/contexts/StoreConfigContext"
+import { ThemeProvider } from "@/components/theme-provider"
 import EntranceWrapper from "./components/EntranceWrapper"
 import MetaPixel from "./components/MetaPixel"
 import StoreAnalytics from "./components/StoreAnalytics"
@@ -119,27 +120,29 @@ export default async function RootLayout({
   const isPublicUnavailable = config.status === "maintenance" || config.status === "inactive"
 
   return (
-    <html lang={config.locale} className={`${playfair.variable} ${inter.variable}`}>
+    <html lang={config.locale} className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-inter bg-black text-white" style={getBrandingCssVariables(config)}>
         <MetaPixel />
         <Suspense fallback={null}>
           <StoreAnalytics />
         </Suspense>
-        <StoreConfigProvider value={storeConfig}>
-          {isPublicUnavailable ? (
-            <StoreStatusPage statusConfig={storeConfig} />
-          ) : (
-            <AuthProvider>
-              <CartProvider>
-                <EntranceWrapper>
-                  <Header />
-                  {children}
-                  <Footer />
-                </EntranceWrapper>
-              </CartProvider>
-            </AuthProvider>
-          )}
-        </StoreConfigProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <StoreConfigProvider value={storeConfig}>
+            {isPublicUnavailable ? (
+              <StoreStatusPage statusConfig={storeConfig} />
+            ) : (
+              <AuthProvider>
+                <CartProvider>
+                  <EntranceWrapper>
+                    <Header />
+                    {children}
+                    <Footer />
+                  </EntranceWrapper>
+                </CartProvider>
+              </AuthProvider>
+            )}
+          </StoreConfigProvider>
+        </ThemeProvider>
         <Toaster /> {/* Add Toaster here */}
       </body>
     </html>

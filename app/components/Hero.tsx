@@ -229,19 +229,19 @@ export default function Hero() {
                 alt={slide.title}
                 className={
                   hasActiveDrop
-                    ? "h-full w-full scale-[1.04] object-cover blur-[6px] brightness-[0.72]"
-                    : "h-full w-full object-cover"
+                    ? "h-full w-full scale-[1.05] object-cover blur-[7px] brightness-[0.68]"
+                    : "h-full w-full scale-[1.03] object-cover blur-[3px] brightness-[0.76]"
                 }
               />
             )}
-            <div className={hasActiveDrop ? "absolute inset-0 bg-black/30" : "absolute inset-0 bg-black/40"} />
+            <div className={slide.type === "video" ? (hasActiveDrop ? "absolute inset-0 bg-black/30" : "absolute inset-0 bg-black/40") : "absolute inset-0 bg-black/48"} />
             {hasActiveDrop && (
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.08),rgba(0,0,0,0.58))]" />
             )}
           </div>
         ))}
 
-        <div className="relative z-10 h-full flex items-center justify-center text-center">
+        <div className="relative z-10 h-full flex items-center justify-center text-center text-[rgba(255,255,255,0.96)]">
           <div className="max-w-5xl px-4">
             <div
               className={
@@ -256,8 +256,8 @@ export default function Hero() {
               <h1
                 className={
                   hasActiveDrop
-                    ? "mb-6 text-4xl font-playfair font-bold leading-tight text-white [text-shadow:0_10px_30px_rgba(0,0,0,0.55)] md:text-7xl"
-                    : "text-5xl md:text-7xl font-playfair font-bold mb-6 leading-tight"
+                    ? "mb-6 text-4xl font-playfair font-bold leading-tight text-[rgba(255,255,255,0.98)] [text-shadow:0_10px_30px_rgba(0,0,0,0.55)] md:text-7xl"
+                    : "text-5xl md:text-7xl font-playfair font-bold mb-6 leading-tight text-[rgba(255,255,255,0.98)] [text-shadow:0_10px_30px_rgba(0,0,0,0.52)]"
                 }
               >
                 {heroTitle}
@@ -265,8 +265,8 @@ export default function Hero() {
               <p
                 className={
                   hasActiveDrop
-                    ? "mx-auto mb-8 max-w-3xl text-lg font-light text-gray-100 [text-shadow:0_8px_24px_rgba(0,0,0,0.45)] md:text-2xl"
-                    : "text-xl md:text-2xl text-gray-300 mb-8 font-light"
+                    ? "mx-auto mb-8 max-w-3xl text-lg font-light text-[rgba(255,255,255,0.92)] [text-shadow:0_8px_24px_rgba(0,0,0,0.45)] md:text-2xl"
+                    : "text-xl md:text-2xl text-[rgba(255,255,255,0.9)] mb-8 font-light [text-shadow:0_8px_24px_rgba(0,0,0,0.45)]"
                 }
               >
                 {heroDescription}

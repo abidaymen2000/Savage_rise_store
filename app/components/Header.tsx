@@ -18,6 +18,7 @@ import DesktopNavigation from "@/components/store-navigation/desktop-navigation"
 import MobileNavigation from "@/components/store-navigation/mobile-navigation"
 import Cart from "./Cart"
 import AuthModal from "./AuthModal"
+import ThemeToggle from "./ThemeToggle"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
@@ -107,7 +108,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 z-50 w-full border-b border-gold/20 bg-black/90 backdrop-blur-md">
+      <header className="fixed top-0 z-50 w-full border-b border-gold/20 bg-black/90 backdrop-blur-md theme-aware-header">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between gap-3">
             {/* Logo */}
@@ -132,6 +133,8 @@ export default function Header() {
                 <Button variant="ghost" size="icon" className="text-white hover:text-gold">
                   <Search className="h-5 w-5" />
                 </Button>
+
+                <ThemeToggle />
 
                 {isAuthenticated && wishlistEnabled && (
                   <Link href="/profile?tab=wishlist">
@@ -214,6 +217,8 @@ export default function Header() {
                   <p className="mt-1 text-sm text-white/65">Explore the collection</p>
                 </div>
                 <MobileNavigation items={mobileItems} onNavigate={closeMobileMenu} />
+
+                <ThemeToggle mobile />
 
                 <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">
                   Account

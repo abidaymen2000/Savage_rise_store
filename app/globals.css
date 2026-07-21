@@ -6,15 +6,152 @@
   --gold: #d4af37;
   --store-primary: #d4af37;
   --store-secondary: #111827;
-  --store-accent: #ffffff;
+  --store-accent: #d4af37;
+  --store-background: #f5f1e8;
+  --store-surface: #fffdf8;
+  --store-surface-secondary: #ede7dc;
+  --store-text-primary: #111111;
+  --store-text-secondary: #625e57;
+  --store-border: #d8d0c3;
+  --store-accent-hover: #b99423;
+  --store-success: #148a50;
+  --background: #f5f1e8;
+  --surface: #fffdf8;
+  --surface-secondary: #ede7dc;
+  --foreground: #111111;
+  --muted-foreground: #625e57;
+  --border: #d8d0c3;
+  --accent: var(--store-accent);
+  --accent-hover: #b99423;
+  --success: #148a50;
+  color-scheme: light;
+}
+
+.dark {
+  --store-background: #000000;
+  --store-surface: #050505;
+  --store-surface-secondary: #111827;
+  --store-text-primary: #ffffff;
+  --store-text-secondary: #9ca3af;
+  --store-border: rgba(255, 255, 255, 0.1);
+  --store-accent-hover: #e5c75f;
+  --store-success: #22c55e;
+  --background: #000000;
+  --surface: #050505;
+  --surface-secondary: #111827;
+  --foreground: #ffffff;
+  --muted-foreground: #9ca3af;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: var(--store-accent);
+  --accent-hover: #e5c75f;
+  --success: #22c55e;
+  color-scheme: dark;
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--background);
+    color: var(--foreground);
+  }
+}
+
+@layer components {
+  :root:not(.dark) body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  :root:not(.dark) .bg-black,
+  :root:not(.dark) .bg-\[\#050505\],
+  :root:not(.dark) .bg-gray-950,
+  :root:not(.dark) .bg-gray-900 {
+    background-color: var(--surface) !important;
+  }
+
+  :root:not(.dark) .bg-gray-800,
+  :root:not(.dark) .bg-white\/\[0\.03\],
+  :root:not(.dark) .bg-white\/5,
+  :root:not(.dark) .bg-white\/10 {
+    background-color: var(--surface-secondary) !important;
+  }
+
+  :root:not(.dark) .text-white,
+  :root:not(.dark) .text-gray-200,
+  :root:not(.dark) .text-gray-300 {
+    color: var(--foreground) !important;
+  }
+
+  :root:not(.dark) .text-gray-400,
+  :root:not(.dark) .text-gray-500 {
+    color: var(--muted-foreground) !important;
+  }
+
+  :root:not(.dark) .border-gray-800,
+  :root:not(.dark) .border-gray-700,
+  :root:not(.dark) .border-white\/10,
+  :root:not(.dark) .border-white\/15,
+  :root:not(.dark) .border-white\/20 {
+    border-color: var(--border) !important;
+  }
+
+  :root:not(.dark) .bg-gold {
+    background-color: var(--accent) !important;
+  }
+
+  :root:not(.dark) .text-gold {
+    color: var(--accent) !important;
+  }
+
+  :root:not(.dark) .border-gold {
+    border-color: var(--accent) !important;
+  }
+
+  :root:not(.dark) input,
+  :root:not(.dark) textarea,
+  :root:not(.dark) select {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
+  }
+
+  :root:not(.dark) input::placeholder,
+  :root:not(.dark) textarea::placeholder {
+    color: #77716a !important;
+  }
+
+  :root:not(.dark) .theme-aware-header {
+    background-color: color-mix(in srgb, var(--surface) 94%, transparent) !important;
+    border-bottom-color: color-mix(in srgb, var(--accent) 35%, transparent) !important;
+    color: var(--foreground);
+  }
+
+  :root:not(.dark) .theme-aware-panel,
+  :root:not(.dark) .theme-aware-card {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
+  }
+
+  :root:not(.dark) .theme-aware-secondary {
+    background-color: var(--surface-secondary) !important;
+  }
+
+  :root:not(.dark) .theme-aware-button-secondary {
+    border-color: var(--foreground) !important;
+    color: var(--foreground) !important;
+  }
+
+  :root:not(.dark) .theme-aware-button-secondary:hover {
+    background-color: var(--foreground) !important;
+    color: #ffffff !important;
+  }
+
+  :root:not(.dark) .theme-aware-pack-card {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
   }
 }
 

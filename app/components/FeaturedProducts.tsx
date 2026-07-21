@@ -180,7 +180,7 @@ function ActivePackCard({ pack, productLookup }: { pack: Pack; productLookup: Re
     pack.original_price > pack.pack_price
 
   return (
-    <article className="group overflow-hidden rounded-lg border border-gold/20 bg-black transition-colors hover:border-gold/70">
+    <article className="group overflow-hidden rounded-lg border border-gold/20 bg-black transition-colors hover:border-gold/70 theme-aware-pack-card">
       <div className="grid min-h-[340px] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <Link href={`/packs/${pack.id}`} className="relative block min-h-[280px] overflow-hidden bg-gray-900 sm:min-h-[340px]">
           <div className={`absolute inset-0 grid ${visualItems.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
@@ -205,7 +205,7 @@ function ActivePackCard({ pack, productLookup }: { pack: Pack; productLookup: Re
           )}
         </Link>
 
-        <div className="flex flex-col justify-between gap-8 p-5 sm:p-8 lg:p-10">
+        <div className="flex flex-col justify-between gap-8 p-5 sm:p-8 lg:p-10 theme-aware-panel">
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-gold px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-black">
