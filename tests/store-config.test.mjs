@@ -98,7 +98,7 @@ test("layout metadata, status page and branding are driven by PublicStoreConfig"
 test("header, footer and contact consume dynamic store config", () => {
   const header = read("app/components/Header.tsx")
   const footer = read("app/components/Footer.tsx")
-  const contact = read("app/contact/page.tsx")
+  const contact = read("components/store-pages/contact-page-client.tsx")
 
   assert.match(header, /useStoreConfig/)
   assert.match(header, /logo_url/)

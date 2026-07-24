@@ -2,10 +2,14 @@ import {
   ContactService,
   DropCountdownService,
   HeaderVideoService,
+  StorefrontPagesService,
   StorefrontVlogService,
   type DropCountdownOut,
   type DropNotificationStatus,
   type HeaderVideoConfig,
+  type StorePagePublicOut,
+  type StorePageSummaryOut,
+  type StorePageType,
   type VlogChapterWithEpisodesOut,
   type VlogCommentOut,
   type VlogEpisodeLikeOut,
@@ -48,6 +52,14 @@ export const cmsApi = {
 
   async getVlogPage(): Promise<VlogPage> {
     return (await withApiErrors(StorefrontVlogService.readStorefrontVlogStorefrontVlogGet())) as VlogPageOut as VlogPage
+  },
+
+  async getStorePage(slug: string): Promise<StorePagePublicOut> {
+    return withApiErrors(StorefrontPagesService.storefrontGetStorePage({ slug }))
+  },
+
+  async listStorePages(params: { keys?: string | null; slugs?: string | null; pageType?: StorePageType | null } = {}): Promise<StorePageSummaryOut[]> {
+    return withApiErrors(StorefrontPagesService.storefrontListStorePages(params))
   },
 
   async getVlogChapter(slug: string): Promise<VlogChapter> {
@@ -93,4 +105,3 @@ export const cmsApi = {
     await withApiErrors(ContactService.submitContactContactPost({ requestBody: data }))
   },
 }
-
