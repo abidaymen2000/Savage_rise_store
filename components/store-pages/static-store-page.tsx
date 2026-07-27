@@ -4,18 +4,31 @@ import { StorePageShell } from "@/components/store-pages/store-page-renderer"
 import { getPublishedStorePage } from "@/lib/store-pages/get-store-page"
 import { getStaticStorePage } from "@/lib/store-pages/static-pages"
 
+const SITE_NAME = "Savage Rise"
+const SITE_URL = "https://savagerise.com"
+
 export async function generateStorePageMetadata(slug: string): Promise<Metadata> {
   const result = await getPublishedStorePage(slug)
-  const page = result?.page ?? getStaticStorePage(slug)
+  const fallbackPage = getStaticStorePage(slug)
+  const page = result?.page ?? fallbackPage
+  const seo = page?.seo
+  const fallbackDescription = fallbackPage?.seo?.description
+  const description = seo?.description || page?.subtitle || fallbackDescription || undefined
+  const canonical = seo?.canonical_url || `${SITE_URL}/${page?.slug || slug}`
+  const noIndex = seo?.no_index === true
+
   return {
-    title: page?.seo?.title || page?.title || "Savage Rise",
-    description: page?.seo?.description || page?.subtitle || undefined,
-    robots: page?.seo?.no_index ? { index: false, follow: false } : undefined,
-    alternates: page?.seo?.canonical_url ? { canonical: page.seo.canonical_url } : undefined,
+    title: seo?.title || (page?.title ? `${page.title} | ${SITE_NAME}` : SITE_NAME),
+    description,
+    alternates: { canonical },
+    robots: { index: !noIndex, follow: !noIndex },
     openGraph: {
-      title: page?.seo?.og_title || page?.seo?.title || page?.title,
-      description: page?.seo?.og_description || page?.seo?.description || page?.subtitle || undefined,
-      images: page?.seo?.og_image_url ? [{ url: page.seo.og_image_url }] : undefined,
+      title: seo?.og_title || seo?.title || page?.title || SITE_NAME,
+      description: seo?.og_description || seo?.description || page?.subtitle || fallbackDescription || undefined,
+      images: seo?.og_image_url ? [{ url: seo.og_image_url }] : undefined,
+      url: canonical,
+      type: "website",
+      siteName: SITE_NAME,
     },
   }
 }
