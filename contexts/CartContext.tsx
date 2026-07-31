@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect, useState } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
-import { getAvailableStock, getVariantSize } from "@/lib/inventory"
+import { getSelectableQuantityLimit, getVariantSize } from "@/lib/inventory"
 import { getProductCartKey, matchesCartItem, resolveVariantItemId } from "@/lib/cart-identity"
 import { getMetaContentId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -108,7 +108,7 @@ function calculateCart(items: CartItem[], packItems: CartPackItem[]) {
 }
 
 function getMaxCartQuantity(variant: Variant, size: string) {
-  return getAvailableStock(getVariantSize(variant, size))
+  return getSelectableQuantityLimit(getVariantSize(variant, size))
 }
 
 function cartReducer(state: CartState, action: CartAction): CartState {

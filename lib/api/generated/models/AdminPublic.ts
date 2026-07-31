@@ -8,7 +8,10 @@ export type AdminPublic = {
     full_name?: (string | null);
     is_active?: boolean;
     is_superadmin: boolean;
+    role?: (string | null);
+    company?: (Record<string, any> | null);
     permissions?: Array<string>;
+    modules?: Array<string>;
     capabilities?: Record<string, boolean>;
     available_permissions?: Array<Record<string, any>>;
     nav_items?: Array<Record<string, any>>;

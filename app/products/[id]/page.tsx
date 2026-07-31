@@ -14,7 +14,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import type { Pack, Product, Variant } from "@/types/api"
-import { getAvailableStock, getVariantSize, isSizePurchasable } from "@/lib/inventory"
+import { getAvailableStock, getProductVariantForSelection, getSelectableQuantityLimit, getVariantSize, isSizePurchasable, isSizeTracked } from "@/lib/inventory"
 import { getMetaContentId, getVariantSizeByName } from "@/lib/meta-content"
 import {
   buildPackSelections,
@@ -67,19 +67,14 @@ export default function ProductDetailPage() {
       ])
       setProduct(data)
 
-      // Set default color and variant if available
       if (data.variants && data.variants.length > 0) {
-        const firstVariant = data.variants[0]
+        const firstVariant =
+          data.variants.find((variant) => variant.sizes.some((size) => isSizePurchasable(size))) ??
+          data.variants[0]
+        const firstSize = firstVariant.sizes.find((size) => isSizePurchasable(size)) ?? firstVariant.sizes[0]
         setSelectedColor(firstVariant.color)
         setCurrentVariant(firstVariant)
-
-        // Set default size if available
-        if (firstVariant.sizes && firstVariant.sizes.length > 0) {
-          const firstAvailableSize = firstVariant.sizes.find((size) => isSizePurchasable(size))
-          if (firstAvailableSize) {
-            setSelectedSize(firstAvailableSize.size)
-          }
-        }
+        setSelectedSize(firstSize?.size ?? "")
       }
 
       const nextRelatedPack = findRelatedPack(productId, packsData)
@@ -175,20 +170,24 @@ export default function ProductDetailPage() {
     })
   }, [product, currentVariant, selectedSize])
 
-  // Update current variant when color changes
   useEffect(() => {
-    if (product && selectedColor) {
-      const variant = product.variants.find((v) => v.color === selectedColor)
-      setCurrentVariant(variant || null)
-      setSelectedImageIndex(0) // Reset image index when changing variant
+    if (!product || !selectedColor) return
+    const variantsForColor = product.variants.filter((variant) => variant.color === selectedColor)
+    const sizesForColor = variantsForColor.flatMap((variant) => variant.sizes)
+    if (sizesForColor.length === 0) return
+    if (sizesForColor.some((size) => size.size === selectedSize)) return
+    const firstAvailableSize = sizesForColor.find((size) => isSizePurchasable(size))
+    setSelectedSize((firstAvailableSize ?? sizesForColor[0])?.size ?? "")
+  }, [product, selectedColor, selectedSize])
 
-      // Reset size selection when changing color
-      if (variant && variant.sizes.length > 0) {
-        const firstAvailableSize = variant.sizes.find((size) => isSizePurchasable(size))
-        setSelectedSize(firstAvailableSize ? firstAvailableSize.size : "")
-      }
+  useEffect(() => {
+    if (!product || !selectedColor) {
+      setCurrentVariant(null)
+      return
     }
-  }, [product, selectedColor])
+    setCurrentVariant(getProductVariantForSelection(product, selectedColor, selectedSize))
+    setSelectedImageIndex(0)
+  }, [product, selectedColor, selectedSize])
 
   useEffect(() => {
     if (!product || !relatedPack) return
@@ -266,14 +265,16 @@ export default function ProductDetailPage() {
 
   const productInStock = product ? isProductInStock(product) : false
   const availableColors = product ? getAvailableColors(product) : []
-  const availableSizes = product && productInStock ? getAvailableSizes(product, selectedColor) : []
+  const availableSizes = product ? getAvailableSizes(product, selectedColor) : []
   const currentStock =
     productInStock && product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
   const selectedVariantSize = getVariantSize(currentVariant, selectedSize)
+  const selectedSizeTracked = isSizeTracked(selectedVariantSize)
+  const quantityLimit = getSelectableQuantityLimit(selectedVariantSize)
+  const currentSelectionInStock = Boolean(selectedVariantSize && isSizePurchasable(selectedVariantSize))
   const canAddCurrentSelection =
-    Boolean(productInStock && currentVariant && selectedSize) &&
-    getAvailableStock(selectedVariantSize) > 0 &&
-    quantity <= getAvailableStock(selectedVariantSize)
+    Boolean(productInStock && currentVariant && selectedSize && currentSelectionInStock) &&
+    quantity <= quantityLimit
   const companionComponents = product ? findCompanionComponents(relatedPack, product.id) : []
   const completeLookReady =
     companionComponents.length > 0 &&
@@ -284,6 +285,10 @@ export default function ProductDetailPage() {
       const selectedCompanionSize = relatedPackSizes[component.product_id]
       return Boolean(color && selectedCompanionSize)
     })
+
+  useEffect(() => {
+    if (quantity > quantityLimit) setQuantity(1)
+  }, [quantity, quantityLimit])
 
   // Get current images to display
   const currentImages = currentVariant?.images || []
@@ -384,15 +389,12 @@ export default function ProductDetailPage() {
 
             {/* Stock Status */}
             <div>
-              {productInStock ? (
-                <Badge className="bg-green-600 text-white">In stock</Badge>
+              {currentSelectionInStock ? (
+                <Badge className="bg-green-600 text-white">
+                  {selectedSizeTracked ? `En stock — ${currentStock} disponibles` : "Disponible"}
+                </Badge>
               ) : (
-                <Badge className="bg-red-600 text-white">Out of stock</Badge>
-              )}
-              {productInStock && selectedSize && currentStock > 0 && (
-                <span className="ml-2 text-sm text-gray-400">
-                  ({currentStock} available)
-                </span>
+                <Badge className="bg-red-600 text-white">Hors stock</Badge>
               )}
             </div>
 
@@ -458,11 +460,14 @@ export default function ProductDetailPage() {
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900 border-gray-700">
                     {availableSizes.map((size) => {
-                      const stock = getStockForSize(product, selectedColor, size)
+                      const optionVariant = getProductVariantForSelection(product, selectedColor, size)
+                      const optionSize = getVariantSize(optionVariant, size)
+                      const purchasable = isSizePurchasable(optionSize)
+                      const stock = getAvailableStock(optionSize)
                       return (
-                        <SelectItem key={size} value={size} className="text-white" disabled={stock === 0}>
+                        <SelectItem key={size} value={size} className="text-white" disabled={!purchasable}>
                           {size}{" "}
-                          {stock === 0 ? "(Out of stock)" : stock < 5 ? `(${stock} left)` : ""}
+                          {!purchasable ? "(Hors stock)" : isSizeTracked(optionSize) && stock < 5 ? `(${stock} disponibles)` : ""}
                         </SelectItem>
                       )
                     })}
@@ -472,15 +477,15 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity */}
-            {productInStock && (
+            {selectedVariantSize && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Quantity</h3>
-              <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))}>
+              <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))} disabled={quantityLimit === 0}>
                 <SelectTrigger className="w-24 bg-gray-900 border-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-900 border-gray-700">
-                  {Array.from({ length: Math.min(currentStock, 5) }, (_, i) => i + 1).map((num) => (
+                  {Array.from({ length: quantityLimit }, (_, i) => i + 1).map((num) => (
                     <SelectItem key={num} value={num.toString()} className="text-white">
                       {num}
                     </SelectItem>

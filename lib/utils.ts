@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { Product } from "@/types/api"
-import { getAvailableStock, productHasPurchasableVariant } from "@/lib/inventory"
+import { getAvailableStock, getProductVariantForSelection, productHasPurchasableVariant } from "@/lib/inventory"
 import { formatStorePrice } from "@/lib/store-config-shared"
 import type { PublicStoreConfig } from "@/lib/api/generated"
 
@@ -53,7 +53,7 @@ export function getAvailableSizes(product: Product, selectedColor?: string): str
 }
 
 export function getStockForSize(product: Product, color: string, size: string): number {
-  const variant = product.variants?.find((item) => item.color === color)
+  const variant = getProductVariantForSelection(product, color, size)
   const sizeStock = variant?.sizes?.find((item) => item.size === size)
   return getAvailableStock(sizeStock)
 }

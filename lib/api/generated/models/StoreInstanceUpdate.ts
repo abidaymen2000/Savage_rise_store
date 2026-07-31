@@ -5,6 +5,8 @@
 import type { StoreBranding } from './StoreBranding';
 import type { StoreCatalogSettings } from './StoreCatalogSettings';
 import type { StoreCommerceSettings } from './StoreCommerceSettings';
+import type { StoreFooterSettings } from './StoreFooterSettings';
+import type { StorePhysicalLocation } from './StorePhysicalLocation';
 export type StoreInstanceUpdate = {
     name?: (string | null);
     slug?: (string | null);
@@ -24,6 +26,8 @@ export type StoreInstanceUpdate = {
     catalog_settings?: (StoreCatalogSettings | null);
     feature_flags?: (Record<string, boolean> | null);
     social_links?: (Record<string, string> | null);
+    footer?: (StoreFooterSettings | null);
+    physical_stores?: (Array<StorePhysicalLocation> | null);
     expected_version?: (number | null);
 };
 

@@ -1,5 +1,5 @@
 import type { Product, SizeStock, Variant } from "@/types/api"
-import { getVariantSize } from "@/lib/inventory"
+import { getVariantSize, isSizePurchasable } from "@/lib/inventory"
 
 export function getVariantSizeByName(variant: Variant | null | undefined, selectedSize: string | null | undefined) {
   return getVariantSize(variant, selectedSize)
@@ -17,9 +17,9 @@ export function getCartItemMetaContentId(item: { product: Product; selectedVaria
 export function getFirstAvailableVariantSelection(product: Product | null | undefined) {
   if (product?.product_kind === "bundle") {
     const variant = product.variants?.[0] ?? null
-    return variant ? { variant, color: variant.color, size: variant.sizes?.[0] ?? { size: "", stock_available: 999 } } : null
+    return variant ? { variant, color: variant.color, size: variant.sizes?.[0] ?? { size: "" } } : null
   }
-  const variant = product?.variants?.find((item) => item.sizes?.some((size) => (size.stock_available ?? size.stock ?? 0) > 0)) ?? product?.variants?.[0] ?? null
-  const size = variant?.sizes?.find((item) => (item.stock_available ?? item.stock ?? 0) > 0) ?? variant?.sizes?.[0] ?? null
+  const variant = product?.variants?.find((item) => item.sizes?.some(isSizePurchasable)) ?? product?.variants?.[0] ?? null
+  const size = variant?.sizes?.find(isSizePurchasable) ?? variant?.sizes?.[0] ?? null
   return variant && size ? { variant, color: variant.color, size } : null
 }

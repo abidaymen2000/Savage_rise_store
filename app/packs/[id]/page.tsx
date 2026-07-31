@@ -12,8 +12,8 @@ import { api } from "@/lib/api"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { getBundleColorOptions, getBundlePreviewItems, getComponentImageForColor } from "@/lib/bundle-media"
 import { getColorSwatch } from "@/lib/color-swatches"
-import { getVariantSize, isSizePurchasable } from "@/lib/inventory"
-import { formatPrice, getStockForSize, isProductInStock } from "@/lib/utils"
+import { getProductVariantForSelection, getSelectableQuantityLimit, getVariantSize, isSizePurchasable } from "@/lib/inventory"
+import { formatPrice, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -49,8 +49,8 @@ function getColorOptions(product?: Product | null) {
 
 function getSizeOptions(product: Product | null | undefined, color: string) {
   if (!product || !isProductInStock(product)) return []
-  const variant = product.variants?.find((item) => item.color === color)
-  return variant?.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size) ?? []
+  const variants = product.variants?.filter((item) => item.color === color) ?? []
+  return Array.from(new Set(variants.flatMap((variant) => variant.sizes.filter((size) => isSizePurchasable(size)).map((size) => size.size))))
 }
 
 function getComponentQty(component: PackComponent) {
@@ -174,7 +174,7 @@ export default function PackDetailPage() {
     })
   }, [pack, products])
 
-  const components = pack?.components ?? []
+  const components = useMemo(() => pack?.components ?? [], [pack])
   const colorOptions = useMemo(() => (pack ? getBundleColorOptions(pack, products) : []), [pack, products])
   const previewItems = useMemo(
     () => (pack ? getBundlePreviewItems(pack, products, selectedColor || colorOptions[0]) : []),
@@ -252,14 +252,15 @@ export default function PackDetailPage() {
       const selection = selections[component.id]
       const size = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
       if (!product || !selection?.color || !size || !isProductInStock(product)) return false
-      return getStockForSize(product, selection.color, size) >= getComponentQty(component)
+      const variant = getProductVariantForSelection(product, selection.color, size)
+      return getSelectableQuantityLimit(getVariantSize(variant, size)) >= getComponentQty(component)
     })
 
   const packOrderItems: PackOrderComponent[] = components.map((component) => {
     const product = products[component.product_id]
     const selection = selections[component.id] ?? { color: component.color ?? "", size: component.size ?? "" }
     const size = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
-    const variant = product?.variants?.find((item) => item.color === selection.color)
+    const variant = getProductVariantForSelection(product, selection.color, size)
     const variantSize = getVariantSize(variant, size)
     return {
       component_id: component.id,

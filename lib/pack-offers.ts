@@ -1,5 +1,5 @@
 import type { CartItem, Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
-import { getVariantSize, isSizePurchasable } from "@/lib/inventory"
+import { getProductVariantForSelection, getVariantSize, isSizePurchasable } from "@/lib/inventory"
 
 function getPackComponents(pack: Pack | null | undefined) {
   return pack?.components ?? []
@@ -48,8 +48,10 @@ export function getProductImageForColor(product: Product | null | undefined, col
 }
 
 export function getAvailableSizesForColor(product: Product | null | undefined, color: string | null | undefined) {
-  const variant = getProductVariantByColor(product, color)
-  return variant?.sizes?.filter((size) => isSizePurchasable(size)).map((size) => size.size) ?? []
+  if (!product || !color) return []
+  return Array.from(new Set(product.variants
+    .filter((variant) => variant.color === color)
+    .flatMap((variant) => variant.sizes?.filter((size) => isSizePurchasable(size)).map((size) => size.size) ?? [])))
 }
 
 function resolveColor(product: Product | undefined, component: PackComponent, preferredColor?: string | null, overrideColor?: string | null) {
@@ -82,7 +84,7 @@ export function buildPackSelections(
     const override = options?.overrides?.[component.product_id]
     const color = resolveColor(product, component, options?.preferredColor, override?.color)
     const size = resolveSize(product, component, color, options?.preferredSize, override?.size)
-    const variant = getProductVariantByColor(product, color)
+    const variant = getProductVariantForSelection(product, color, size)
     const variantSize = getVariantSize(variant, size)
     const unitPrice = product?.price ?? component.product.price
     if (!color || !size || unitPrice === undefined || unitPrice === null) return null
@@ -115,4 +117,3 @@ export function findCartUpgradeCandidate(items: CartItem[], packItems: { pack: P
   }
   return null
 }
-

@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CatalogLegacyMediaItem } from './CatalogLegacyMediaItem';
+import type { ProductVariantPublicInventory } from './ProductVariantPublicInventory';
 import type { TrackingMethod } from './TrackingMethod';
 import type { VariantStatus } from './VariantStatus';
 export type ProductVariantRead = {
@@ -32,6 +33,7 @@ export type ProductVariantRead = {
     position?: number;
     product_id: string;
     option_signature: string;
+    inventory?: (ProductVariantPublicInventory | null);
     archived_at?: (string | null);
 };
 

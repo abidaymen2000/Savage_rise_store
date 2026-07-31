@@ -5,6 +5,8 @@
 import type { StoreBranding } from './StoreBranding';
 import type { StoreCatalogSettings } from './StoreCatalogSettings';
 import type { StoreCommerceSettings } from './StoreCommerceSettings';
+import type { StoreFooterSettings } from './StoreFooterSettings';
+import type { StorePhysicalLocation } from './StorePhysicalLocation';
 export type PublicStoreConfig = {
     name: string;
     slug: string;
@@ -23,5 +25,7 @@ export type PublicStoreConfig = {
     catalog_settings?: StoreCatalogSettings;
     feature_flags?: Record<string, boolean>;
     social_links?: Record<string, string>;
+    footer?: StoreFooterSettings;
+    physical_stores?: Array<StorePhysicalLocation>;
 };
 

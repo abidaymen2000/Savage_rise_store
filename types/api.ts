@@ -9,10 +9,12 @@ export interface ProductImage {
 
 export interface SizeStock {
   size: string
+  track_inventory?: boolean
   stock_on_hand?: number
   stock_reserved?: number
   stock_available?: number
   stock?: number
+  in_stock?: boolean
   sku?: string | null
   status?: string | null
   variant_item_id?: string | null
@@ -24,6 +26,7 @@ export interface VariantItem {
   variant_id?: string | null
   sku?: string | null
   size: string
+  track_inventory?: boolean
   price?: number | null
   stock_on_hand?: number
   stock_reserved?: number
@@ -46,6 +49,13 @@ export interface Variant {
   images: ProductImage[]
   meta_content_id?: string | null
   option_values?: Record<string, string>
+  inventory?: {
+    track_inventory: boolean
+    stock_on_hand: number
+    stock_reserved: number
+    stock_available: number
+    in_stock: boolean
+  } | null
 }
 
 export interface Product {

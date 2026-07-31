@@ -13,7 +13,7 @@ import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import AuthModal from "@/app/components/AuthModal"
 import { api } from "@/lib/api"
-import { getAvailableStock, getVariantSize } from "@/lib/inventory"
+import { getSelectableQuantityLimit, getVariantSize } from "@/lib/inventory"
 import {
   buildPackSelections,
   findCartUpgradeCandidate,
@@ -116,7 +116,7 @@ export default function Cart() {
   }
 
   const getItemMaxQuantity = (item: (typeof state.items)[0]) =>
-    getAvailableStock(getVariantSize(item.selectedVariant, item.selectedSize))
+    getSelectableQuantityLimit(getVariantSize(item.selectedVariant, item.selectedSize))
 
   const alreadyUsed = !!promo && !promo.valid && promo.reason === "per_user_limit_reached"
   const loginRequired = !!promo && !promo.valid && promo.reason === "login_required"

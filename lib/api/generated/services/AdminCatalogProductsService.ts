@@ -36,9 +36,23 @@ export class AdminCatalogProductsService {
     public static listProductsAdminCatalogProductsGet({
         page = 1,
         pageSize = 20,
+        q,
+        status = 'all',
+        productKind,
+        categoryId,
+        trackInventory,
+        sortBy = 'updated_at',
+        sortDir = 'desc',
     }: {
         page?: number,
         pageSize?: number,
+        q?: (string | null),
+        status?: string,
+        productKind?: (string | null),
+        categoryId?: (string | null),
+        trackInventory?: (boolean | null),
+        sortBy?: string,
+        sortDir?: string,
     }): CancelablePromise<PaginatedResponse_ProductListItem_> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -46,6 +60,13 @@ export class AdminCatalogProductsService {
             query: {
                 'page': page,
                 'page_size': pageSize,
+                'q': q,
+                'status': status,
+                'product_kind': productKind,
+                'category_id': categoryId,
+                'track_inventory': trackInventory,
+                'sort_by': sortBy,
+                'sort_dir': sortDir,
             },
             errors: {
                 422: `Validation Error`,
@@ -369,10 +390,29 @@ export class AdminCatalogProductsService {
      * @returns CatalogMediaUploadAuth Successful Response
      * @throws ApiError
      */
-    public static adminCatalogGetMediaUploadAuth(): CancelablePromise<CatalogMediaUploadAuth> {
+    public static adminCatalogGetMediaUploadAuth({
+        section,
+        categorySlug,
+        productName,
+        productId,
+    }: {
+        section?: (string | null),
+        categorySlug?: (string | null),
+        productName?: (string | null),
+        productId?: (string | null),
+    }): CancelablePromise<CatalogMediaUploadAuth> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/admin/catalog/media/upload-auth',
+            query: {
+                'section': section,
+                'category_slug': categorySlug,
+                'product_name': productName,
+                'product_id': productId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
     /**

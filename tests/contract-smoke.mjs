@@ -47,6 +47,99 @@ test("inventory helper uses stock_available only", () => {
   assert.equal(inventory.isSizePurchasable({ size: "XS", stock_available: 0 }), false)
 })
 
+test("catalog detail maps public inventory per exact option_values variant", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(String(url).endsWith("/catalog/products/savage-hoodie"), true)
+    return new Response(
+      JSON.stringify({
+        id: "prod_hoodie",
+        version: 1,
+        name: "Savage Hoodie",
+        slug: "savage-hoodie",
+        product_kind: "physical",
+        category_ids: [],
+        attribute_values: {},
+        default_currency: "TND",
+        status: "active",
+        media: [],
+        variants: [
+          {
+            id: "var_black_xs",
+            version: 1,
+            title: "Black / XS",
+            option_values: { color: "Black", size: "XS" },
+            attribute_values: { stock_available: 998 },
+            base_price: "120",
+            currency: "TND",
+            status: "active",
+            product_id: "prod_hoodie",
+            option_signature: "color:black|size:xs",
+            media: [],
+            inventory: { track_inventory: true, stock_on_hand: 3, stock_reserved: 1, stock_available: 2, in_stock: true },
+          },
+          {
+            id: "var_black_m",
+            version: 1,
+            title: "Black / M",
+            option_values: { color: "Black", size: "M" },
+            attribute_values: {},
+            base_price: "120",
+            currency: "TND",
+            status: "active",
+            product_id: "prod_hoodie",
+            option_signature: "color:black|size:m",
+            media: [],
+            inventory: { track_inventory: true, stock_on_hand: 4, stock_reserved: 1, stock_available: 3, in_stock: true },
+          },
+          {
+            id: "var_black_l",
+            version: 1,
+            title: "Black / L",
+            option_values: { color: "Black", size: "L" },
+            attribute_values: {},
+            base_price: "120",
+            currency: "TND",
+            status: "active",
+            product_id: "prod_hoodie",
+            option_signature: "color:black|size:l",
+            media: [],
+            inventory: { track_inventory: true, stock_on_hand: 0, stock_reserved: 0, stock_available: 0, in_stock: false },
+          },
+          {
+            id: "var_digital",
+            version: 1,
+            title: "Digital",
+            option_values: { color: "Digital", size: "Default" },
+            attribute_values: {},
+            base_price: "120",
+            currency: "TND",
+            status: "active",
+            product_id: "prod_hoodie",
+            option_signature: "color:digital|size:default",
+            media: [],
+            inventory: { track_inventory: false, stock_on_hand: 0, stock_reserved: 0, stock_available: 0, in_stock: true },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )
+  }
+
+  const product = await api.getProduct("savage-hoodie")
+  const blackXs = inventory.getProductVariantForSelection(product, "Black", "XS")
+  const blackM = inventory.getProductVariantForSelection(product, "Black", "M")
+  const blackL = inventory.getProductVariantForSelection(product, "Black", "L")
+  const digital = inventory.getProductVariantForSelection(product, "Digital", "Default")
+
+  assert.equal(inventory.getAvailableStock(inventory.getVariantSize(blackXs, "XS")), 2)
+  assert.equal(inventory.getAvailableStock(inventory.getVariantSize(blackM, "M")), 3)
+  assert.equal(inventory.isSizePurchasable(inventory.getVariantSize(blackL, "L")), false)
+  assert.equal(inventory.getSelectableQuantityLimit(inventory.getVariantSize(blackL, "L")), 0)
+  assert.equal(inventory.isSizePurchasable(inventory.getVariantSize(digital, "Default")), true)
+  assert.equal(inventory.getAvailableStock(inventory.getVariantSize(digital, "Default")), 0)
+  assert.equal(JSON.stringify(product).includes("998"), false)
+})
+
 test("checkout idempotency key is stable until cleared", () => {
   const storage = new Map()
   globalThis.window = {
@@ -85,10 +178,10 @@ test("checkout idempotency key is stable until cleared", () => {
   Object.defineProperty(globalThis, "crypto", {
     configurable: true,
     value: {
-      randomUUID: () => "uuid-999",
+      randomUUID: () => "uuid-new",
     },
   })
-  assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-b"), "uuid-999")
+  assert.equal(idempotency.getOrCreateCheckoutIdempotencyKey("fingerprint-b"), "uuid-new")
   assert.equal(idempotency.getStoredCheckoutFingerprint(), "fingerprint-b")
 })
 

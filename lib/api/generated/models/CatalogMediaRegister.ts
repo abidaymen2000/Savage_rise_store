@@ -4,6 +4,7 @@
 /* eslint-disable */
 export type CatalogMediaRegister = {
     fileId: string;
+    productId?: (string | null);
     name?: (string | null);
     url: string;
     thumbnailUrl?: (string | null);

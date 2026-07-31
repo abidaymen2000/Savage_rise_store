@@ -66,16 +66,30 @@ function hasDisplayableOptionValues(variant: ProductVariantRead) {
   return entries.length > 0 && entries.some(([key, value]) => !isDefaultOption(key) && !isDefaultOption(value))
 }
 
+function legacySizeInStock(size: SizeStock) {
+  if (size.track_inventory === false) return size.in_stock !== false
+  return (size.stock_available ?? size.stock ?? 0) > 0
+}
+
 function variantToLegacy(variant: ProductVariantRead, productPrice: number, productKind?: string): Variant {
   const entries = optionEntries(variant)
   const bundleWithoutOptions = productKind === "bundle" && !hasDisplayableOptionValues(variant)
   const first = bundleWithoutOptions ? "" : entries[0]?.[1] ?? variant.title
   const second = bundleWithoutOptions ? "" : entries[1]?.[1] ?? "default"
-  const stockAvailable = toNumber(variant.attribute_values?.stock_available ?? variant.attribute_values?.stock ?? variant.attribute_values?.inventory, 999)
+  const inventory = variant.inventory ?? null
+  const trackInventory = inventory?.track_inventory ?? variant.track_inventory ?? true
+  const stockOnHand = inventory?.stock_on_hand ?? 0
+  const stockReserved = inventory?.stock_reserved ?? 0
+  const stockAvailable = trackInventory ? Math.max(toNumber(inventory?.stock_available, stockOnHand - stockReserved), 0) : 0
+  const inStock = inventory?.in_stock ?? (trackInventory ? stockAvailable > 0 : variant.status !== "inactive" && variant.status !== "archived")
   const size: SizeStock | null = bundleWithoutOptions ? null : {
     size: second,
+    track_inventory: trackInventory,
+    stock_on_hand: stockOnHand,
+    stock_reserved: stockReserved,
     stock_available: stockAvailable,
-    stock: stockAvailable,
+    stock: trackInventory ? stockAvailable : undefined,
+    in_stock: inStock,
     sku: variant.sku ?? null,
     status: variant.status ?? null,
     variant_item_id: variant.id,
@@ -96,15 +110,24 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
       variant_id: variant.id,
       sku: variant.sku ?? null,
       size: second,
+      track_inventory: trackInventory,
       price: variantPrice,
       stock_available: stockAvailable,
-      stock_on_hand: stockAvailable,
-      in_stock: stockAvailable > 0 && variant.status !== "inactive" && variant.status !== "archived",
+      stock_on_hand: stockOnHand,
+      stock_reserved: stockReserved,
+      in_stock: inStock,
       status: variant.status ?? null,
     }],
     images: mediaToImages(variant.media),
     meta_content_id: variant.id,
     option_values: variant.option_values ?? {},
+    inventory: inventory ? {
+      track_inventory: trackInventory,
+      stock_on_hand: stockOnHand,
+      stock_reserved: stockReserved,
+      stock_available: stockAvailable,
+      in_stock: inStock,
+    } : null,
     sku: variant.sku ?? null,
     price: variantPrice,
     compare_at_price: compareAtPrice,
@@ -118,7 +141,7 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   const compareAtPrice = toNumber(firstVariant?.compare_at_price, 0) || null
   const variants = (detail.variants ?? []).map((variant) => variantToLegacy(variant, price, detail.product_kind))
   const images = productMedia.length > 0 ? productMedia : variants.flatMap((variant) => variant.images)
-  const inStock = detail.product_kind === "bundle" ? detail.status === "active" : variants.length === 0 || variants.some((variant) => variant.sizes.some((size) => (size.stock_available ?? size.stock ?? 0) > 0))
+  const inStock = detail.product_kind === "bundle" ? detail.status === "active" : variants.length === 0 || variants.some((variant) => variant.sizes.some(legacySizeInStock))
 
   return {
     id: detail.id,
