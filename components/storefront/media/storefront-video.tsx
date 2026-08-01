@@ -8,7 +8,6 @@ type StorefrontVideoProps = {
   media: StorefrontMediaType
   className?: string
   imageClassName?: string
-  containPortraitVideoOnDesktop?: boolean
   priority?: boolean
 }
 
@@ -16,11 +15,9 @@ export default function StorefrontVideo({
   media,
   className = "",
   imageClassName = "object-cover",
-  containPortraitVideoOnDesktop = false,
   priority = false,
 }: StorefrontVideoProps) {
   const [failed, setFailed] = useState(false)
-  const [videoOrientation, setVideoOrientation] = useState<"portrait" | "landscape" | null>(null)
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
   const wrapperPosition = /\b(absolute|fixed|sticky)\b/.test(className) ? "" : "relative"
   const poster = media.poster
@@ -30,9 +27,9 @@ export default function StorefrontVideo({
     return () => window.clearTimeout(timeout)
   }, [priority])
 
-  if (failed || !media.src || !shouldLoadVideo) {
+  if (failed || !media.src) {
     return (
-      <div className={`${wrapperPosition} overflow-hidden bg-stone-950 ${className}`}>
+      <div className={`${wrapperPosition} h-full w-full overflow-hidden bg-stone-950 ${className}`} data-hero-media>
         <Image
           src={poster || "/placeholder.svg"}
           alt={media.alt}
@@ -40,20 +37,16 @@ export default function StorefrontVideo({
           sizes="100vw"
           priority={priority}
           loading={priority ? "eager" : "lazy"}
-          className={imageClassName}
+          className={`${imageClassName} object-cover`}
         />
       </div>
     )
   }
 
-  const shouldContainOnDesktop =
-    containPortraitVideoOnDesktop && (videoOrientation === null || videoOrientation === "portrait")
-  const videoClassName = `${imageClassName} ${
-    shouldContainOnDesktop ? "md:object-contain md:object-[50%_50%]" : "md:object-cover md:object-[50%_50%]"
-  }`
+  const objectPosition = media.objectPosition?.trim() || "50% 50%"
 
   return (
-    <div className={`${wrapperPosition} overflow-hidden bg-black ${className}`}>
+    <div className={`${wrapperPosition} h-full w-full overflow-hidden bg-black ${className}`} data-hero-media>
       {poster && (
         <Image
           src={poster}
@@ -62,25 +55,25 @@ export default function StorefrontVideo({
           sizes="100vw"
           priority={priority}
           loading={priority ? "eager" : "lazy"}
-          className={imageClassName}
+          className={`${imageClassName} object-cover transition-opacity duration-500 ${shouldLoadVideo ? "opacity-0" : "opacity-100"}`}
+          style={{ objectPosition }}
         />
       )}
-      <video
-        src={media.src}
-        poster={poster}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload={priority ? "metadata" : "none"}
-        aria-label={media.alt}
-        onError={() => setFailed(true)}
-        onLoadedMetadata={(event) => {
-          const element = event.currentTarget
-          setVideoOrientation(element.videoWidth > element.videoHeight ? "landscape" : "portrait")
-        }}
-        className={`absolute inset-0 h-full w-full ${videoClassName}`}
-      />
+      {shouldLoadVideo && (
+        <video
+          src={media.src}
+          poster={poster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload={priority ? "metadata" : "none"}
+          aria-label={media.alt}
+          onError={() => setFailed(true)}
+          className="absolute inset-0 block h-full w-full object-cover opacity-100 transition-opacity duration-500"
+          style={{ objectPosition }}
+        />
+      )}
     </div>
   )
 }

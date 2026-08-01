@@ -6,7 +6,6 @@ type StorefrontMediaProps = {
   media: StorefrontMediaType
   className?: string
   imageClassName?: string
-  containPortraitVideoOnDesktop?: boolean
   priority?: boolean
   sizes?: string
 }
@@ -15,7 +14,6 @@ export default function StorefrontMedia({
   media,
   className = "",
   imageClassName = "object-cover",
-  containPortraitVideoOnDesktop = false,
   priority = false,
   sizes = "100vw",
 }: StorefrontMediaProps) {
@@ -27,7 +25,6 @@ export default function StorefrontMedia({
         media={media}
         className={className}
         imageClassName={imageClassName}
-        containPortraitVideoOnDesktop={containPortraitVideoOnDesktop}
         priority={priority}
       />
     )

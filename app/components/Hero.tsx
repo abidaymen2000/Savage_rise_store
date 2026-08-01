@@ -80,7 +80,7 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
     ? activeDrop.cta_url.startsWith("/") ? activeDrop.cta_url : `/${activeDrop.cta_url}`
     : content.hero.primaryCta.href
   const media = activeSlide
-    ? { type: activeSlide.type, src: activeSlide.src, poster: activeSlide.poster, alt: String(heroTitle) }
+    ? { type: activeSlide.type, src: activeSlide.src, poster: activeSlide.poster, alt: String(heroTitle), objectPosition: activeSlide.objectPosition }
     : content.hero.media
   const isHeroVideo = Boolean(slide && slide.type === "video") || media.type === "video"
   const heroPrice = content.hero.price?.trim()
@@ -100,9 +100,8 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
         media={media}
         priority
         sizes="100vw"
-        className="absolute inset-0"
+        className="absolute inset-0 h-full w-full overflow-hidden"
         imageClassName={heroMediaClassName}
-        containPortraitVideoOnDesktop
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/25" />
       <div className="relative z-10 flex min-h-[calc(100svh-7rem)] items-end px-4 pb-10 sm:px-6 md:min-h-[calc(100dvh-7rem)] md:items-center md:pb-0">

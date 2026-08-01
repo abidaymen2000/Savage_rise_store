@@ -84,3 +84,15 @@ test("hero image background is softened while video behavior remains separate", 
   assert.match(hero, /blur-\[7px\] brightness-\[0\.68\]/)
   assert.match(hero, /text-\[rgba\(255,255,255,0\.98\)\]/)
 })
+
+test("hero video and poster share the full media rectangle", () => {
+  const hero = read("app/components/Hero.tsx")
+  const video = read("components/storefront/media/storefront-video.tsx")
+
+  assert.match(hero, /className="absolute inset-0 h-full w-full overflow-hidden"/)
+  assert.match(video, /data-hero-media/)
+  assert.match(video, /className="absolute inset-0 block h-full w-full object-cover/)
+  assert.match(video, /style=\{\{ objectPosition \}\}/)
+  assert.doesNotMatch(video, /object-contain/)
+  assert.doesNotMatch(video, /aspect-\[9\/16\]|aspect-video|max-w-|w-auto|w-fit|mx-auto/)
+})

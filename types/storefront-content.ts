@@ -8,6 +8,7 @@ export type StorefrontMedia = {
   type: "image" | "video"
   src: string
   poster?: string
+  objectPosition?: string | null
   alt: string
 }
 
