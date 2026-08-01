@@ -6,6 +6,26 @@ export const API_BASE_URL =
     ? "http://localhost:8000"
     : "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com")
 
+const SERVER_STOREFRONT_DOMAIN =
+  process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN ??
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://savagerise.com"
+
+function getServerStorefrontHeaders(): Record<string, string> {
+  if (typeof window !== "undefined") return {}
+  try {
+    const url = new URL(SERVER_STOREFRONT_DOMAIN)
+    return {
+      Origin: url.origin,
+      "X-Store-Domain": url.hostname,
+    }
+  } catch {
+    return {
+      "X-Store-Domain": SERVER_STOREFRONT_DOMAIN.replace(/^https?:\/\//, "").split("/")[0],
+    }
+  }
+}
+
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null
   return localStorage.getItem("savage_rise_token")
@@ -15,7 +35,7 @@ export function configureApiClient() {
   OpenAPI.BASE = API_BASE_URL
   OpenAPI.HEADERS = async () => {
     const token = getAuthToken()
-    const headers: Record<string, string> = {}
+    const headers: Record<string, string> = getServerStorefrontHeaders()
     if (token) headers.Authorization = `Bearer ${token}`
     return headers
   }
