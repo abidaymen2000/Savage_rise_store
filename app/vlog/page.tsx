@@ -16,11 +16,11 @@ import { trackEvent } from "@/lib/store-analytics"
 
 const fallbackVlog: VlogPage = {
   settings: {
-    title: "Savage Rise Chapters",
-    subtitle: "Every 3 drops tell one story",
+    title: "FAZA & Drops",
+    subtitle: "Born in Tunisia. Made to rise.",
     description:
-      "Each chapter unfolds through three drops, three films, and one final short movie that connects the full story.",
-    hero_video_url: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/vlog/concept/drop_nDMB4trDtU.mp4",
+      "Les Drops Savage Rise ouvrent des chapitres. FAZA transforme une situation tunisienne en piece, film et energie visuelle.",
+    hero_video_url: null,
     is_active: true,
   },
   chapters: [],

@@ -9,3 +9,4 @@ export type ProductVariantPublicInventory = {
     stock_available?: number;
     in_stock?: boolean;
 };
+

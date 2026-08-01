@@ -422,7 +422,7 @@ export default function Cart() {
         )}
 
         <div className="flex justify-between gap-4 text-sm">
-          <span className="text-gray-400">Shipping</span>
+          <span className="text-gray-400">Livraison</span>
           <span className="text-right">To calculate</span>
         </div>
 
@@ -533,8 +533,8 @@ export default function Cart() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.product.name}</h3>
-                              <p className="text-xs text-gray-400">Color: {item.selectedVariant.color}</p>
-                              <p className="text-xs text-gray-400">Size: {item.selectedSize}</p>
+                              <p className="text-xs text-gray-400">Couleur : {item.selectedVariant.color}</p>
+                              <p className="text-xs text-gray-400">Taille : {item.selectedSize}</p>
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
                               <p className="text-right text-base font-semibold text-gold sm:text-lg">

@@ -650,7 +650,7 @@ export default function CheckoutPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Continue shopping
           </Link>
-          <h1 className="text-3xl font-playfair font-bold">Checkout</h1>
+          <h1 className="text-3xl font-playfair font-bold">Commande</h1>
         </div>
 
         {!isAuthenticated && (
@@ -686,7 +686,7 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-white">{item.product.name}</h3>
                       <p className="text-sm text-gray-400">
-                        {item.selectedVariant.color} • {item.selectedSize} • Qty: {item.quantity}
+                        {item.selectedVariant.color} • {item.selectedSize} • Qté : {item.quantity}
                       </p>
                       <p className="text-gold font-semibold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
                     </div>
@@ -713,7 +713,7 @@ export default function CheckoutPage() {
                         <div className="mt-1 space-y-0.5">
                           {item.selections.map((selection) => (
                             <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
-                              {selection.color} • {selection.size} • Qty: {(selection.qty ?? 1) * item.quantity}
+                              {selection.color} • {selection.size} • Qté : {(selection.qty ?? 1) * item.quantity}
                             </p>
                           ))}
                         </div>
@@ -728,7 +728,7 @@ export default function CheckoutPage() {
             {/* Shipping Form */}
             <Card className="bg-gray-900 border-gray-800 mt-6">
               <CardHeader>
-                <CardTitle className="text-white">Shipping information</CardTitle>
+                <CardTitle className="text-white">Informations de livraison</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -757,7 +757,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone *</Label>
+                  <Label htmlFor="phone">Téléphone *</Label>
                   <Input
                     id="phone"
                     value={shippingInfo.phone}
@@ -769,7 +769,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line1">Address *</Label>
+                  <Label htmlFor="address_line1">Adresse *</Label>
                   <Input
                     id="address_line1"
                     value={shippingInfo.address_line1}
@@ -780,7 +780,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line2">Address details</Label>
+                  <Label htmlFor="address_line2">Note facultative</Label>
                   <Input
                     id="address_line2"
                     value={shippingInfo.address_line2 || ""}
@@ -975,7 +975,7 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Shipping</span>
+                  <span className="text-gray-400">Livraison</span>
                   <span className="text-white">
                     {quoteLoading
                       ? "Validating..."
@@ -1031,7 +1031,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <CreditCard className="h-4 w-4" />
-                    <span>Cash on delivery</span>
+                    <span>Paiement à la livraison</span>
                   </div>
                 </div>
 
@@ -1046,7 +1046,7 @@ export default function CheckoutPage() {
                       Processing...
                     </>
                   ) : (
-                    `Confirm order • ${total.toFixed(2)} TND`
+                    `Confirmer ma commande • ${total.toFixed(2)} TND`
                   )}
                 </Button>
 

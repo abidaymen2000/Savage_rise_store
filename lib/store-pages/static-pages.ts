@@ -27,7 +27,7 @@ export const STATIC_STORE_PAGES: Record<string, StorePagePublicOut> = {
         title: "ABOUT SAVAGE RISE",
         subtitle:
           "Savage Rise is more than a clothing brand. It is the expression of bold style, raw elegance, and a clear identity. Designed for those who accept no compromise between quality, aesthetics, and individuality, every piece balances urban modernity with timeless refinement.\n\nCrafted with precision, our collection reflects a deep commitment to craftsmanship, premium materials, and minimalist design. Step into the Savage Rise universe, where luxury meets attitude.",
-        image_url: "https://ik.imagekit.io/deuxug3j0/store-savage-rise/logo-blanc.png?updatedAt=1754345640975",
+        image_url: "/placeholder-logo.png",
         image_alt: "Savage Rise Atelier",
       },
       {

@@ -311,7 +311,7 @@ export default function ProductDetailPage() {
           <div className="flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading product...</p>
+              <p className="text-gray-400">Chargement du produit...</p>
             </div>
           </div>
         </div>
@@ -324,9 +324,9 @@ export default function ProductDetailPage() {
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <p className="text-red-400 mb-4">Error: {error || "Product not found"}</p>
+            <p className="text-red-400 mb-4">{error || "Produit introuvable"}</p>
             <Link href="/products">
-              <Button className="bg-gold text-black hover:bg-gold/90">Back to products</Button>
+              <Button className="bg-gold text-black hover:bg-gold/90">Retour boutique</Button>
             </Link>
           </div>
         </div>
@@ -341,19 +341,19 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-2 mb-8">
           <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to products
+            Retour boutique
           </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images */}
           <div className="space-y-4">
-            <div className="aspect-square relative overflow-hidden rounded-lg bg-gray-900">
+            <div className="aspect-[4/5] relative overflow-hidden rounded-none bg-gray-900">
               <Image
                 src={displayImages[selectedImageIndex]?.url || "/placeholder.svg?height=600&width=600"}
                 alt={displayImages[selectedImageIndex]?.alt_text || product.name}
                 fill
-                className="object-cover"
+                className="object-contain"
               />
             </div>
 
@@ -363,7 +363,7 @@ export default function ProductDetailPage() {
                   <button
                     key={image.id || index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`aspect-square relative overflow-hidden rounded-lg ${
+                    className={`aspect-square relative overflow-hidden rounded-none border border-white/10 ${
                       selectedImageIndex === index ? "ring-2 ring-gold" : ""
                     }`}
                   >
@@ -371,7 +371,7 @@ export default function ProductDetailPage() {
                       src={image.url || "/placeholder.svg"}
                       alt={image.alt_text || `${product.name} ${index + 1}`}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </button>
                 ))}
@@ -409,7 +409,7 @@ export default function ProductDetailPage() {
             {/* Color Selection */}
             {availableColors.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold mb-3">Color</h3>
+                <h3 className="text-lg font-semibold mb-3">Couleur</h3>
                 <Select
                   value={selectedColor}
                   onValueChange={(color) => {
@@ -440,46 +440,55 @@ export default function ProductDetailPage() {
             {/* Size Selection */}
             {availableSizes.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold mb-3">Size</h3>
-                <Select
-                  value={selectedSize}
-                  onValueChange={(size) => {
-                    setSelectedSize(size)
-                    trackStoreEvent("size_selected", {
-                      product_id: product.id,
-                      metadata: {
-                        size,
-                        color: selectedColor,
-                        product_name: product.name,
-                      },
-                    })
-                  }}
-                >
-                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                    <SelectValue placeholder="Choisir une taille" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 border-gray-700">
-                    {availableSizes.map((size) => {
-                      const optionVariant = getProductVariantForSelection(product, selectedColor, size)
-                      const optionSize = getVariantSize(optionVariant, size)
-                      const purchasable = isSizePurchasable(optionSize)
-                      const stock = getAvailableStock(optionSize)
-                      return (
-                        <SelectItem key={size} value={size} className="text-white" disabled={!purchasable}>
-                          {size}{" "}
-                          {!purchasable ? "(Hors stock)" : isSizeTracked(optionSize) && stock < 5 ? `(${stock} disponibles)` : ""}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold">Taille</h3>
+                  <Link href="/size-guide" className="text-sm font-semibold text-gold hover:text-white">Guide des tailles</Link>
+                </div>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                  {availableSizes.map((size) => {
+                    const optionVariant = getProductVariantForSelection(product, selectedColor, size)
+                    const optionSize = getVariantSize(optionVariant, size)
+                    const purchasable = isSizePurchasable(optionSize)
+                    const stock = getAvailableStock(optionSize)
+                    const selected = selectedSize === size
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        disabled={!purchasable}
+                        onClick={() => {
+                          setSelectedSize(size)
+                          trackStoreEvent("size_selected", {
+                            product_id: product.id,
+                            metadata: {
+                              size,
+                              color: selectedColor,
+                              product_name: product.name,
+                            },
+                          })
+                        }}
+                        className={`min-h-11 border px-3 py-2 text-sm font-semibold transition-colors ${
+                          selected
+                            ? "border-gold bg-gold text-black"
+                            : purchasable
+                              ? "border-white/20 bg-black text-white hover:border-white"
+                              : "cursor-not-allowed border-white/10 bg-white/5 text-white/35 line-through"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        {size}
+                        {!purchasable ? <span className="sr-only"> epuise</span> : isSizeTracked(optionSize) && stock < 5 ? <span className="sr-only"> stock limite</span> : null}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             )}
 
             {/* Quantity */}
             {selectedVariantSize && (
             <div>
-              <h3 className="text-lg font-semibold mb-3">Quantity</h3>
+              <h3 className="text-lg font-semibold mb-3">Quantite</h3>
               <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))} disabled={quantityLimit === 0}>
                 <SelectTrigger className="w-24 bg-gray-900 border-gray-700 text-white">
                   <SelectValue />
@@ -503,21 +512,21 @@ export default function ProductDetailPage() {
                 className="w-full flex-1 bg-gold px-4 py-3 text-black hover:bg-gold/90 font-semibold whitespace-normal text-center leading-snug"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
-                Buy this item only - {formatPrice(product.price * quantity, config)}
+                {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? "Epuise" : "Choisir une taille"}
               </Button>
               {wishlistEnabled && <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />}
             </div>
 
             {packsEnabled && relatedPack && companionComponents.length > 0 && (
               <div className="rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Complete the look</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Completer le look</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
                   <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-900">
                     <Image
                       src={displayImages[0]?.url || "/placeholder.svg"}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </div>
                   <div className="text-center text-2xl font-semibold text-gold">+</div>
@@ -536,13 +545,13 @@ export default function ProductDetailPage() {
                             src={getProductImageForColor(companionProduct, companionColor)}
                             alt={companionProduct.name}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                           />
                         </div>
                         <div>
                           <p className="font-semibold text-white">{companionProduct.name}</p>
                           <p className="text-sm text-gray-400">
-                            {sameColorAvailable ? `Matching color: ${selectedColor}` : `Set color: ${companionColor}`}
+                            {sameColorAvailable ? `Couleur coordonnee : ${selectedColor}` : `Couleur du set : ${companionColor}`}
                           </p>
                         </div>
                         {companionSizes.length > 0 && !component.size && (
@@ -574,7 +583,7 @@ export default function ProductDetailPage() {
 
                 <div className="mt-5 rounded-xl border border-white/10 bg-black/50 p-4">
                   <p className="text-sm uppercase tracking-[0.18em] text-gray-500">{relatedPack.title}</p>
-                  <p className="mt-2 text-sm text-gray-300">Buy it separately or complete the set and save instantly.</p>
+                          <p className="mt-2 text-sm text-gray-300">Commande la piece seule ou complete le set lorsque le pack est disponible.</p>
                   <div className="mt-4 flex flex-wrap items-end gap-4">
                     <div>
                         <p className="text-sm text-gray-500 line-through">
@@ -583,10 +592,10 @@ export default function ProductDetailPage() {
                       <p className="text-3xl font-bold text-gold">{formatPrice(getPackPrice(relatedPack) * quantity, config)}</p>
                     </div>
                     <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-300">
-                      Save {formatPrice(getPackSavingsLabel(relatedPack) * quantity, config)}
+                      Economise {formatPrice(getPackSavingsLabel(relatedPack) * quantity, config)}
                     </p>
                   </div>
-                  <p className="mt-3 text-sm text-gray-400">Same-color set. Choose each item&apos;s size separately.</p>
+                  <p className="mt-3 text-sm text-gray-400">Set coordonne. Choisis la taille de chaque piece separement.</p>
                 </div>
 
                 <Button
@@ -594,7 +603,7 @@ export default function ProductDetailPage() {
                   disabled={!canAddCurrentSelection || !completeLookReady}
                   className="mt-5 w-full bg-white text-black hover:bg-gold"
                 >
-                  Get the complete set - {formatPrice(getPackPrice(relatedPack) * quantity, config)}
+                  Ajouter le pack - {formatPrice(getPackPrice(relatedPack) * quantity, config)}
                 </Button>
               </div>
             )}
@@ -603,18 +612,18 @@ export default function ProductDetailPage() {
             <Separator className="bg-gray-700" />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Product details</h3>
+              <h3 className="text-lg font-semibold">Details produit</h3>
 
               {product.fabric && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Fabric:</span>
+                  <span className="text-gray-400">Matiere :</span>
                   <span>{product.fabric}</span>
                 </div>
               )}
 
               {product.composition && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Composition:</span>
+                  <span className="text-gray-400">Composition :</span>
                   <span>
                     {Object.entries(product.composition)
                       .map(([material, percentage]) => `${material} ${percentage}%`)
@@ -625,7 +634,7 @@ export default function ProductDetailPage() {
 
               {product.care_instructions && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Care:</span>
+                  <span className="text-gray-400">Entretien :</span>
                   <span>{product.care_instructions}</span>
                 </div>
               )}
@@ -644,15 +653,15 @@ export default function ProductDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" />
-                <span>Free shipping from 300 TND</span>
+                <span>Livraison dans toute la Tunisie</span>
               </div>
               <div className="flex items-center gap-3">
                 <RotateCcw className="h-5 w-5 text-gold" />
-                <span>Free returns within 7 days</span>
+                <span>Echange de taille disponible selon disponibilite</span>
               </div>
               <div className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-gold" />
-                <span>2-year quality guarantee</span>
+                <span>Paiement a la livraison</span>
               </div>
             </div>
 

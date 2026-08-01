@@ -30,7 +30,7 @@ export default function About() {
           </div>
           <div className="relative">
             <Image
-              src="https://ik.imagekit.io/deuxug3j0/store-savage-rise/logo-blanc.png?updatedAt=1754345640975"
+              src="/placeholder-logo.png"
               alt="Savage Rise Atelier"
               width={500}
               height={600}
