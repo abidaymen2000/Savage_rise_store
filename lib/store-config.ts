@@ -10,7 +10,7 @@ import {
 const loadApiStoreConfig = unstable_cache(
   async () => api.getStoreConfig(),
   ["storefront-config"],
-  { revalidate: STORE_CONFIG_REVALIDATE_SECONDS },
+  { revalidate: STORE_CONFIG_REVALIDATE_SECONDS, tags: ["storefront-config"] },
 )
 
 let hasLoggedStoreConfigFailure = false

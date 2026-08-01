@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -23,12 +24,15 @@ import {
 } from "@/lib/pack-offers"
 import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
-import ProductReviewSection from "@/components/ProductReviewSection"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
 import { isFeatureEnabled } from "@/lib/store-config-shared"
+
+const ProductReviewSection = dynamic(() => import("@/components/ProductReviewSection"), {
+  loading: () => null,
+})
 
 type ProductDetailClientProps = {
   product: Product

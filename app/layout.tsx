@@ -1,6 +1,7 @@
 import type React from "react"
 import { Suspense } from "react"
 import type { Metadata } from "next"
+import { unstable_cache } from "next/cache"
 import { Playfair_Display, Inter } from 'next/font/google'
 import Image from "next/image"
 import "./globals.css"
@@ -14,7 +15,9 @@ import EntranceWrapper from "./components/EntranceWrapper"
 import MetaPixel from "./components/MetaPixel"
 import StoreAnalytics from "./components/StoreAnalytics"
 import { Toaster } from "@/components/ui/toaster" // Import Toaster
+import { api } from "@/lib/api"
 import { getStoreConfig } from "@/lib/store-config"
+import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
 import {
   getBrandingCssVariables,
   getStoreDisplayName,
@@ -22,6 +25,7 @@ import {
   normalizeDomain,
   normalizeUrl,
 } from "@/lib/store-config-shared"
+import type { StoreNavigationPublicItem } from "@/lib/api/generated"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -110,12 +114,42 @@ function StoreStatusPage({ statusConfig }: { statusConfig: Awaited<ReturnType<ty
   )
 }
 
+const getServerNavigation = unstable_cache(async (): Promise<{
+  headerItems: StoreNavigationPublicItem[]
+  mobileItems: StoreNavigationPublicItem[]
+}> => {
+  try {
+    const [headerResponse, mobileResponse] = await Promise.all([
+      api.listStoreNavigationMenus(["header"], "desktop"),
+      api.listStoreNavigationMenus(["mobile"], "mobile"),
+    ])
+    const headerMenu = headerResponse.menus?.find((menu) => menu.code === "header")
+    const mobileMenu = mobileResponse.menus?.find((menu) => menu.code === "mobile")
+    const headerItems = filterNavigationItemsBySurface(headerMenu?.items, "desktop")
+    const mobileItems = filterNavigationItemsBySurface(mobileMenu?.items, "mobile")
+    const headerMobileItems = filterNavigationItemsBySurface(headerMenu?.items, "mobile")
+
+    return {
+      headerItems,
+      mobileItems: mobileItems.length > 0 ? mobileItems : headerMobileItems,
+    }
+  } catch {
+    return {
+      headerItems: [],
+      mobileItems: [],
+    }
+  }
+}, ["storefront-navigation"], { revalidate: 60, tags: ["storefront-navigation"] })
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const storeConfig = await getStoreConfig()
+  const [storeConfig, navigation] = await Promise.all([
+    getStoreConfig(),
+    getServerNavigation(),
+  ])
   const { config } = storeConfig
   const isPublicUnavailable = config.status === "maintenance" || config.status === "inactive"
 
@@ -134,7 +168,7 @@ export default async function RootLayout({
               <AuthProvider>
                 <CartProvider>
                   <EntranceWrapper>
-                    <Header />
+                    <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} />
                     {children}
                     <Footer />
                   </EntranceWrapper>

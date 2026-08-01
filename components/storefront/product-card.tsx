@@ -38,7 +38,6 @@ export default function ProductCard({ product, compact = false, priority = false
           fill
           sizes="(min-width: 1536px) 300px, (min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw"
           className="object-contain transition-transform duration-500 group-hover:scale-[1.025]"
-          unoptimized={images.first.startsWith("http")}
           priority={priority}
         />
         {images.second && (
@@ -48,7 +47,6 @@ export default function ProductCard({ product, compact = false, priority = false
             fill
             sizes="(min-width: 1536px) 300px, (min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw"
             className="hidden object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:block"
-            unoptimized={images.second.startsWith("http")}
           />
         )}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">

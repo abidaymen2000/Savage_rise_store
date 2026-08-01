@@ -1,21 +1,13 @@
-"use client"
-
-import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ProductCard from "@/components/storefront/product-card"
 import StorefrontMedia from "@/components/storefront/media/storefront-media"
-import { api } from "@/lib/api"
 import { getActiveBundles, getFeaturedPhysicalProducts } from "@/lib/home-products"
 import { getStorefrontContent } from "@/lib/storefront/content"
 import { getCategoryImageUrl, getVisibleCategoryFeatures } from "@/lib/storefront/catalog"
 import { sortProductsByStockStatus } from "@/lib/utils"
 import type { Category, Pack, Product } from "@/types/api"
-
-function ProductSkeleton() {
-  return <div className="aspect-[3/4] animate-pulse bg-stone-900" />
-}
 
 function ActivePackCard({ pack }: { pack: Pack }) {
   return (
@@ -33,39 +25,21 @@ function ActivePackCard({ pack }: { pack: Pack }) {
   )
 }
 
-export default function FeaturedProducts() {
+export default function FeaturedProducts({
+  products,
+  packs,
+  storeCategories,
+}: {
+  products: Product[]
+  packs: Pack[]
+  storeCategories: Category[]
+}) {
   const content = getStorefrontContent()
-  const [products, setProducts] = useState<Product[]>([])
-  const [packs, setPacks] = useState<Pack[]>([])
-  const [storeCategories, setStoreCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchProducts = useCallback(async () => {
-    try {
-      const [productsData, packsData, categoriesData] = await Promise.all([
-        api.getProducts(0, 12),
-        api.getPacks(0, 3).catch(() => [] as Pack[]),
-        api.getCategories().catch(() => [] as Category[]),
-      ])
-      const activeBundles = getActiveBundles(packsData)
-      setProducts(sortProductsByStockStatus(getFeaturedPhysicalProducts(productsData, activeBundles)))
-      setPacks(activeBundles)
-      setStoreCategories(categoriesData)
-    } catch {
-      setProducts([])
-      setPacks([])
-      setStoreCategories([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
-
-  const productsAndPacks = useMemo<Product[]>(() => {
-    const packProducts = packs.map((pack) => ({
+  const activeBundles = getActiveBundles(packs)
+  const featuredProducts = sortProductsByStockStatus(getFeaturedPhysicalProducts(products, activeBundles))
+  const productsAndPacks: Product[] = [
+    ...featuredProducts,
+    ...activeBundles.map((pack) => ({
       id: pack.id,
       style_id: pack.id,
       name: pack.title,
@@ -79,28 +53,24 @@ export default function FeaturedProducts() {
       images: pack.image_url ? [{ id: pack.id, url: pack.image_url, alt_text: pack.title }] : [],
       slug: pack.id,
       product_kind: "bundle",
-    })) as Product[]
-    return [...products, ...packProducts]
-  }, [packs, products])
-
+    } as Product)),
+  ]
   const categories = getVisibleCategoryFeatures(productsAndPacks, content.categoryFeatures).slice(0, 3)
-  const categoryImageByFeatureKey = useMemo(() => {
-    return categories.reduce<Record<string, string>>((images, feature) => {
-      const matchers = [feature.key, feature.label, ...feature.matchers].map((value) => value.toLowerCase())
-      const matchingCategory = storeCategories.find((category) => {
-        const values = [category.id, category.name, category.slug].filter(Boolean).map((value) => String(value).toLowerCase())
-        return values.some((value) => matchers.some((matcher) => value.includes(matcher) || matcher.includes(value)))
-      })
-      const imageUrl = getCategoryImageUrl(matchingCategory)
-      if (imageUrl) images[feature.key] = imageUrl
-      return images
-    }, {})
-  }, [categories, storeCategories])
+  const categoryImageByFeatureKey = categories.reduce<Record<string, string>>((images, feature) => {
+    const matchers = [feature.key, feature.label, ...feature.matchers].map((value) => value.toLowerCase())
+    const matchingCategory = storeCategories.find((category) => {
+      const values = [category.id, category.name, category.slug].filter(Boolean).map((value) => String(value).toLowerCase())
+      return values.some((value) => matchers.some((matcher) => value.includes(matcher) || matcher.includes(value)))
+    })
+    const imageUrl = getCategoryImageUrl(matchingCategory)
+    if (imageUrl) images[feature.key] = imageUrl
+    return images
+  }, {})
 
   return (
     <div className="bg-[#050504] text-white">
       <section className="border-y border-stone-800 bg-[#0b0b0a] px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-300 sm:text-xs">
-        {content.announcement.join(" · ")}
+        {content.announcement.join(" - ")}
       </section>
 
       {categories.length > 0 && (
@@ -144,14 +114,10 @@ export default function FeaturedProducts() {
             <Link href="/products">Voir la boutique</Link>
           </Button>
         </div>
-        {loading ? (
+        {featuredProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 4 }, (_, index) => <ProductSkeleton key={index} />)}
-          </div>
-        ) : products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-            {products.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {featuredProducts.slice(0, 4).map((product, index) => (
+              <ProductCard key={product.id} product={product} priority={index < 2} />
             ))}
           </div>
         ) : (
@@ -159,14 +125,14 @@ export default function FeaturedProducts() {
         )}
       </section>
 
-      {packs.length > 0 && (
+      {activeBundles.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
           <div className="mb-7">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#D4AF37]">Drops</p>
             <h2 className="mt-2 font-playfair text-3xl text-white sm:text-4xl">Packs actifs</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            {packs.slice(0, 3).map((pack) => (
+            {activeBundles.slice(0, 3).map((pack) => (
               <ActivePackCard key={pack.id} pack={pack} />
             ))}
           </div>
@@ -192,14 +158,14 @@ export default function FeaturedProducts() {
         </div>
       </section>
 
-      {products.length >= 2 && (
+      {featuredProducts.length >= 2 && (
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
           <div className="mb-7">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#D4AF37]">Silhouette</p>
             <h2 className="mt-2 font-playfair text-3xl text-white sm:text-4xl">Complete the look</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {products.slice(0, 3).map((product) => (
+            {featuredProducts.slice(0, 3).map((product) => (
               <ProductCard key={product.id} product={product} compact />
             ))}
           </div>

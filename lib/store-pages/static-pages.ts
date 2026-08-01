@@ -27,7 +27,7 @@ export const STATIC_STORE_PAGES: Record<string, StorePagePublicOut> = {
         title: "ABOUT SAVAGE RISE",
         subtitle:
           "Savage Rise is more than a clothing brand. It is the expression of bold style, raw elegance, and a clear identity. Designed for those who accept no compromise between quality, aesthetics, and individuality, every piece balances urban modernity with timeless refinement.\n\nCrafted with precision, our collection reflects a deep commitment to craftsmanship, premium materials, and minimalist design. Step into the Savage Rise universe, where luxury meets attitude.",
-        image_url: "/placeholder-logo.png",
+        image_url: "https://ik.imagekit.io/deuxug3j0/savage-rise/store/hero/images/IMG_3937_-_Copie_jgdlNm0is.jpg?updatedAt=1785601921649",
         image_alt: "Savage Rise Atelier",
       },
       {
@@ -38,7 +38,7 @@ export const STATIC_STORE_PAGES: Record<string, StorePagePublicOut> = {
         title: "Brand facts",
         items: [
           { title: "2025", description: "FONDATION" },
-          { title: "50+", description: "ARTISANS" },
+          { title: "Pieces", description: "DROPS LIMITES" },
           { title: "3", description: "PAYS" },
         ],
       },

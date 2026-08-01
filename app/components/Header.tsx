@@ -21,7 +21,6 @@ import AuthModal from "./AuthModal"
 import ThemeToggle from "./ThemeToggle"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
-import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
 import { getStoreDisplayName, isFeatureEnabled } from "@/lib/store-config-shared"
 import { getStorefrontContent } from "@/lib/storefront/content"
@@ -62,11 +61,17 @@ const fallbackMobileItems: StoreNavigationPublicItem[] = [
   navItem("contact", "Contact", "/contact", 8),
 ]
 
-export default function Header() {
+export default function Header({
+  initialHeaderItems,
+  initialMobileItems,
+}: {
+  initialHeaderItems?: StoreNavigationPublicItem[]
+  initialMobileItems?: StoreNavigationPublicItem[]
+}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [headerItems, setHeaderItems] = useState<StoreNavigationPublicItem[]>(fallbackHeaderItems)
-  const [mobileItems, setMobileItems] = useState<StoreNavigationPublicItem[]>(fallbackMobileItems)
+  const headerItems = initialHeaderItems && initialHeaderItems.length > 0 ? initialHeaderItems : fallbackHeaderItems
+  const mobileItems = initialMobileItems && initialMobileItems.length > 0 ? initialMobileItems : fallbackMobileItems
   const [wishlistCount, setWishlistCount] = useState(0)
   const { user, isAuthenticated, logout } = useAuth()
   const { config } = useStoreConfig()
@@ -80,26 +85,6 @@ export default function Header() {
 
   const closeMobileMenu = () => setIsMenuOpen(false)
 
-  const fetchNavigation = useCallback(async () => {
-    try {
-      const [headerResponse, mobileResponse] = await Promise.all([
-        api.listStoreNavigationMenus(["header"], "desktop"),
-        api.listStoreNavigationMenus(["mobile"], "mobile"),
-      ])
-      const headerMenu = headerResponse.menus?.find((menu) => menu.code === "header")
-      const mobileMenu = mobileResponse.menus?.find((menu) => menu.code === "mobile")
-      const nextHeaderItems = filterNavigationItemsBySurface(headerMenu?.items, "desktop")
-      const nextMobileItems = filterNavigationItemsBySurface(mobileMenu?.items, "mobile")
-      const headerMobileItems = filterNavigationItemsBySurface(headerMenu?.items, "mobile")
-
-      setHeaderItems(nextHeaderItems.length > 0 ? nextHeaderItems : fallbackHeaderItems)
-      setMobileItems(nextMobileItems.length > 0 ? nextMobileItems : headerMobileItems.length > 0 ? headerMobileItems : fallbackMobileItems)
-    } catch {
-      setHeaderItems(fallbackHeaderItems)
-      setMobileItems(fallbackMobileItems)
-    }
-  }, [])
-
   const fetchWishlistCount = useCallback(async () => {
     if (!isAuthenticated || !wishlistEnabled) {
       setWishlistCount(0)
@@ -111,10 +96,6 @@ export default function Header() {
       setWishlistCount(0)
     }
   }, [isAuthenticated, wishlistEnabled])
-
-  useEffect(() => {
-    fetchNavigation()
-  }, [fetchNavigation])
 
   useEffect(() => {
     fetchWishlistCount()

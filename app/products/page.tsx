@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { unstable_cache } from "next/cache"
 import ProductCard from "@/components/storefront/product-card"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
@@ -14,6 +15,14 @@ export const revalidate = 60
 type SearchParams = Record<string, string | string[] | undefined>
 
 const PAGE_SIZE = 24
+
+const getProductsPageData = unstable_cache(async (q: string) => {
+  const [productsData] = await Promise.all([
+    api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: q || null }),
+    api.getCategories().catch(() => []),
+  ])
+  return productsData
+}, ["storefront-products-page"], { revalidate: 60, tags: ["store-products"] })
 
 function getParam(searchParams: SearchParams, key: string, fallback = "") {
   const value = searchParams[key]
@@ -73,10 +82,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const filters = parseFilters(searchParams)
   const content = getStorefrontContent()
 
-  const [productsData] = await Promise.all([
-    api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: filters.q || null }),
-    api.getCategories().catch(() => []),
-  ])
+  const productsData = await getProductsPageData(filters.q)
 
   const products = productsData.filter(isShopProduct)
   const filteredProducts = filterProducts(products, filters)

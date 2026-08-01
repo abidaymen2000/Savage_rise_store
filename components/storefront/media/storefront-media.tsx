@@ -1,8 +1,6 @@
-"use client"
-
-import { useState } from "react"
 import Image from "next/image"
 import type { StorefrontMedia as StorefrontMediaType } from "@/types/storefront-content"
+import StorefrontVideo from "./storefront-video"
 
 type StorefrontMediaProps = {
   media: StorefrontMediaType
@@ -21,52 +19,30 @@ export default function StorefrontMedia({
   priority = false,
   sizes = "100vw",
 }: StorefrontMediaProps) {
-  const [failed, setFailed] = useState(false)
-  const [videoOrientation, setVideoOrientation] = useState<"portrait" | "landscape" | null>(null)
-  const fallbackSrc = media.poster || "/placeholder.svg"
-  const src = failed ? fallbackSrc : media.src
   const wrapperPosition = /\b(absolute|fixed|sticky)\b/.test(className) ? "" : "relative"
 
-  if (media.type === "video" && !failed) {
-    const shouldContainOnDesktop =
-      containPortraitVideoOnDesktop && (videoOrientation === null || videoOrientation === "portrait")
-    const videoClassName = `${imageClassName} ${
-      shouldContainOnDesktop ? "md:object-contain md:object-[50%_50%]" : "md:object-cover md:object-[50%_50%]"
-    }`
-
+  if (media.type === "video") {
     return (
-      <div className={`${wrapperPosition} overflow-hidden bg-black ${className}`}>
-        <video
-          src={media.src}
-          poster={media.poster}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload={priority ? "auto" : "metadata"}
-          aria-label={media.alt}
-          onError={() => setFailed(true)}
-          onLoadedMetadata={(event) => {
-            const element = event.currentTarget
-            setVideoOrientation(element.videoWidth > element.videoHeight ? "landscape" : "portrait")
-          }}
-          className={`absolute inset-0 h-full w-full ${videoClassName}`}
-        />
-      </div>
+      <StorefrontVideo
+        media={media}
+        className={className}
+        imageClassName={imageClassName}
+        containPortraitVideoOnDesktop={containPortraitVideoOnDesktop}
+        priority={priority}
+      />
     )
   }
 
   return (
     <div className={`${wrapperPosition} overflow-hidden bg-stone-950 ${className}`}>
       <Image
-        src={src}
+        src={media.src}
         alt={media.alt}
         fill
         sizes={sizes}
         priority={priority}
+        loading={priority ? "eager" : "lazy"}
         className={imageClassName}
-        onError={() => setFailed(true)}
-        unoptimized={src.startsWith("http")}
       />
     </div>
   )

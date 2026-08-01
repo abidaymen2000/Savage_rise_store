@@ -1,7 +1,7 @@
 import type { StorefrontContent } from "@/types/storefront-content"
 
-const editorialImage = "/placeholder.jpg"
-const productImage = "/placeholder-logo.png"
+const editorialImage = "https://ik.imagekit.io/deuxug3j0/savage-rise/store/hero/images/IMG_3937_-_Copie_jgdlNm0is.jpg?updatedAt=1785601921649"
+const productImage = "https://ik.imagekit.io/deuxug3j0/savage-rise/catalogue/oversize/faza-001-moujet-har/IMG_3966_Rojgk07XJ.jpg"
 
 export const storefrontFallbackContent: StorefrontContent = {
   announcement: ["Livraison dans toute la Tunisie", "Paiement a la livraison", "Echange de taille disponible"],
@@ -60,6 +60,7 @@ export const storefrontFallbackContent: StorefrontContent = {
     media: {
       type: "video",
       src: "https://ik.imagekit.io/deuxug3j0/static/Sequence%2007.mp4",
+      poster: editorialImage,
       alt: "Vidéo du concept FAZA Savage Rise",
     },
   },
