@@ -438,6 +438,8 @@ export interface Category {
   description?: string | null
   created_at: string
   updated_at: string
+  slug?: string
+  image?: unknown
 }
 
 export interface HeaderVideoAsset {

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { getActiveBundles, getFeaturedPhysicalProducts } from "@/lib/home-products"
+import { getCategoryImageUrl } from "@/lib/storefront/catalog"
 
 const physicalProduct = (id, name = id) => ({
   id,
@@ -60,4 +61,12 @@ test("does not duplicate a product id across homepage sections", () => {
 
   assert.equal(new Set(visibleIds).size, visibleIds.length)
   assert.deepEqual(visibleIds, ["drop-2-pack", "tee", "pants"])
+})
+
+test("category image helper supports API media object formats", () => {
+  assert.equal(getCategoryImageUrl({ image: { url: "https://cdn.example.com/tshirts.jpg" } }), "https://cdn.example.com/tshirts.jpg")
+  assert.equal(getCategoryImageUrl({ image: { file_url: "https://cdn.example.com/pants.jpg" } }), "https://cdn.example.com/pants.jpg")
+  assert.equal(getCategoryImageUrl({ image: { src: "https://cdn.example.com/packs.jpg" } }), "https://cdn.example.com/packs.jpg")
+  assert.equal(getCategoryImageUrl({ image: { url: "" } }), null)
+  assert.equal(getCategoryImageUrl({ image: null }), null)
 })

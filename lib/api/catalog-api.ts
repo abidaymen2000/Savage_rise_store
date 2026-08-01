@@ -189,6 +189,7 @@ function categoryToLegacy(category: CategoryRead): Category {
     created_at: category.created_at ?? "",
     updated_at: category.updated_at ?? "",
     slug: category.slug,
+    image: category.image ?? null,
   } as Category
 }
 

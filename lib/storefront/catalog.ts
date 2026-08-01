@@ -18,3 +18,27 @@ export function getVisibleCategoryFeatures(products: Product[], features: Storef
       : products.some((product) => productMatchesCategoryFeature(product, feature)),
   )
 }
+
+function isValidCategoryImageUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false
+  const url = value.trim()
+  if (!url) return false
+  if (url.startsWith("/")) return true
+
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
+export function getCategoryImageUrl(category: { image?: unknown } | null | undefined) {
+  const image = category?.image
+  if (isValidCategoryImageUrl(image)) return image.trim()
+  if (!image || typeof image !== "object" || Array.isArray(image)) return null
+
+  const imageRecord = image as { url?: unknown; file_url?: unknown; src?: unknown }
+  const url = imageRecord.url ?? imageRecord.file_url ?? imageRecord.src
+  return isValidCategoryImageUrl(url) ? url.trim() : null
+}

@@ -25,6 +25,7 @@ export default function StorefrontMedia({
   const [videoOrientation, setVideoOrientation] = useState<"portrait" | "landscape" | null>(null)
   const fallbackSrc = media.poster || "/placeholder.svg"
   const src = failed ? fallbackSrc : media.src
+  const wrapperPosition = /\b(absolute|fixed|sticky)\b/.test(className) ? "" : "relative"
 
   if (media.type === "video" && !failed) {
     const shouldContainOnDesktop =
@@ -34,7 +35,7 @@ export default function StorefrontMedia({
     }`
 
     return (
-      <div className={`relative overflow-hidden bg-black ${className}`}>
+      <div className={`${wrapperPosition} overflow-hidden bg-black ${className}`}>
         <video
           src={media.src}
           poster={media.poster}
@@ -56,7 +57,7 @@ export default function StorefrontMedia({
   }
 
   return (
-    <div className={`relative overflow-hidden bg-stone-950 ${className}`}>
+    <div className={`${wrapperPosition} overflow-hidden bg-stone-950 ${className}`}>
       <Image
         src={src}
         alt={media.alt}

@@ -9,9 +9,9 @@ import StorefrontMedia from "@/components/storefront/media/storefront-media"
 import { api } from "@/lib/api"
 import { getActiveBundles, getFeaturedPhysicalProducts } from "@/lib/home-products"
 import { getStorefrontContent } from "@/lib/storefront/content"
-import { getVisibleCategoryFeatures } from "@/lib/storefront/catalog"
+import { getCategoryImageUrl, getVisibleCategoryFeatures } from "@/lib/storefront/catalog"
 import { sortProductsByStockStatus } from "@/lib/utils"
-import type { Pack, Product } from "@/types/api"
+import type { Category, Pack, Product } from "@/types/api"
 
 function ProductSkeleton() {
   return <div className="aspect-[3/4] animate-pulse bg-stone-900" />
@@ -37,20 +37,24 @@ export default function FeaturedProducts() {
   const content = getStorefrontContent()
   const [products, setProducts] = useState<Product[]>([])
   const [packs, setPacks] = useState<Pack[]>([])
+  const [storeCategories, setStoreCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchProducts = useCallback(async () => {
     try {
-      const [productsData, packsData] = await Promise.all([
+      const [productsData, packsData, categoriesData] = await Promise.all([
         api.getProducts(0, 12),
         api.getPacks(0, 3).catch(() => [] as Pack[]),
+        api.getCategories().catch(() => [] as Category[]),
       ])
       const activeBundles = getActiveBundles(packsData)
       setProducts(sortProductsByStockStatus(getFeaturedPhysicalProducts(productsData, activeBundles)))
       setPacks(activeBundles)
+      setStoreCategories(categoriesData)
     } catch {
       setProducts([])
       setPacks([])
+      setStoreCategories([])
     } finally {
       setLoading(false)
     }
@@ -80,6 +84,18 @@ export default function FeaturedProducts() {
   }, [packs, products])
 
   const categories = getVisibleCategoryFeatures(productsAndPacks, content.categoryFeatures).slice(0, 3)
+  const categoryImageByFeatureKey = useMemo(() => {
+    return categories.reduce<Record<string, string>>((images, feature) => {
+      const matchers = [feature.key, feature.label, ...feature.matchers].map((value) => value.toLowerCase())
+      const matchingCategory = storeCategories.find((category) => {
+        const values = [category.id, category.name, category.slug].filter(Boolean).map((value) => String(value).toLowerCase())
+        return values.some((value) => matchers.some((matcher) => value.includes(matcher) || matcher.includes(value)))
+      })
+      const imageUrl = getCategoryImageUrl(matchingCategory)
+      if (imageUrl) images[feature.key] = imageUrl
+      return images
+    }, {})
+  }, [categories, storeCategories])
 
   return (
     <div className="bg-[#050504] text-white">
@@ -102,7 +118,7 @@ export default function FeaturedProducts() {
             {categories.map((category) => (
               <Link key={category.key} href={category.href} className="group relative block aspect-[4/5] overflow-hidden bg-stone-950 md:aspect-[5/6]">
                 <StorefrontMedia
-                  media={{ type: "image", src: category.image, alt: category.alt }}
+                  media={{ type: "image", src: categoryImageByFeatureKey[category.key] ?? category.image, alt: category.alt }}
                   sizes="(min-width: 768px) 33vw, 100vw"
                   className="absolute inset-0"
                   imageClassName="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
