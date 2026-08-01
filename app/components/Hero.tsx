@@ -18,9 +18,18 @@ type HeroSlide = {
   type: "video" | "image"
   src: string
   poster?: string
+  objectPosition?: string | null
   title?: string | null
   subtitle?: string | null
   description?: string | null
+}
+
+function normalizeText(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ""
+}
+
+function getHeroObjectPosition(value: string | null | undefined) {
+  return value?.trim() || "50% 50%"
 }
 
 function getRemainingSeconds(drop: DropCountdown | null) {
@@ -46,6 +55,7 @@ export default function Hero() {
   const [notificationStatus, setNotificationStatus] = useState<DropNotificationStatus | null>(null)
   const [isNotificationLoading, setIsNotificationLoading] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [heroVideoFailed, setHeroVideoFailed] = useState(false)
   const { isAuthenticated } = useAuth()
 
   useEffect(() => {
@@ -111,6 +121,12 @@ export default function Hero() {
     return () => window.clearInterval(timer)
   }, [slides.length])
 
+  const activeSlide = slides[currentSlide]
+
+  useEffect(() => {
+    setHeroVideoFailed(false)
+  }, [activeSlide?.src])
+
   useEffect(() => {
     if (!isAuthenticated || !drop?.email_enabled) {
       setNotificationStatus(null)
@@ -119,7 +135,6 @@ export default function Hero() {
     api.getDropNotificationStatus().then(setNotificationStatus).catch(() => setNotificationStatus(null))
   }, [drop?.email_enabled, isAuthenticated])
 
-  const activeSlide = slides[currentSlide]
   const slide = activeSlide
   const hasActiveDrop = Boolean(drop?.is_active)
   const isDropReleased = Boolean(drop?.is_released || (drop && remaining <= 0))
@@ -134,6 +149,12 @@ export default function Hero() {
     ? { type: activeSlide.type, src: activeSlide.src, poster: activeSlide.poster, alt: String(heroTitle) }
     : content.hero.media
   const isHeroVideo = Boolean(slide && slide.type === "video")
+  const heroObjectPosition = getHeroObjectPosition(activeSlide?.objectPosition)
+  const heroPrice = content.hero.price?.trim()
+  const showHeroPrice = Boolean(heroPrice && !normalizeText(heroDescription).includes(normalizeText(heroPrice)))
+  const fallbackVideoPoster = isHeroVideo && media.poster
+    ? { type: "image" as const, src: media.poster, alt: media.alt }
+    : content.hero.media
   const heroMediaClassName =
     isHeroVideo
       ? "object-cover object-[50%_50%]"
@@ -167,15 +188,30 @@ export default function Hero() {
 
   return (
     <>
-      <section className="relative min-h-[calc(100svh-2.5rem)] overflow-hidden bg-black pt-28 text-white md:min-h-[calc(100dvh-2.5rem)]">
-        <StorefrontMedia
-          media={media}
-          priority
-          sizes="100vw"
-          className="absolute inset-0"
-          imageClassName={heroMediaClassName}
-          containPortraitVideoOnDesktop={isHeroVideo}
-        />
+      <section className="relative isolate min-h-[calc(100svh-2.5rem)] w-full overflow-hidden bg-black pt-28 text-white md:min-h-[calc(100dvh-2.5rem)]">
+        {isHeroVideo && !heroVideoFailed ? (
+          <video
+            src={media.src}
+            poster={media.poster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-label={media.alt}
+            onError={() => setHeroVideoFailed(true)}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: heroObjectPosition }}
+          />
+        ) : (
+          <StorefrontMedia
+            media={heroVideoFailed ? fallbackVideoPoster : media}
+            priority
+            sizes="100vw"
+            className="absolute inset-0"
+            imageClassName={heroMediaClassName}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/25" />
         <div className="relative z-10 flex min-h-[calc(100svh-7rem)] items-end px-4 pb-10 sm:px-6 md:min-h-[calc(100dvh-7rem)] md:items-center md:pb-0">
           <div className="mx-auto flex w-full max-w-7xl flex-col items-start gap-6">
@@ -183,7 +219,7 @@ export default function Hero() {
             <div className="max-w-3xl">
               <h1 className="font-playfair text-5xl font-semibold leading-[0.95] text-[rgba(255,255,255,0.98)] sm:text-6xl lg:text-8xl">{heroTitle}</h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-stone-100 sm:text-lg">{heroDescription}</p>
-              {content.hero.price && <p className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-stone-300">{content.hero.price}</p>}
+              {showHeroPrice && <p className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-stone-300">{heroPrice}</p>}
             </div>
             <div className="flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
               <Button asChild className="h-12 rounded-none bg-white px-6 text-xs font-semibold uppercase tracking-[0.16em] text-black hover:bg-[#D4AF37]">
