@@ -58,9 +58,9 @@ export const storefrontFallbackContent: StorefrontContent = {
     primaryCta: { label: "Decouvrir FAZA", href: "/vlog" },
     secondaryCta: { label: "Voir la boutique", href: "/products" },
     media: {
-      type: "image",
-      src: editorialImage,
-      alt: "Univers editorial FAZA Savage Rise",
+      type: "video",
+      src: "https://ik.imagekit.io/deuxug3j0/static/Sequence%2007.mp4",
+      alt: "Vidéo du concept FAZA Savage Rise",
     },
   },
   lookbook: {
