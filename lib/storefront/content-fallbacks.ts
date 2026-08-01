@@ -1,7 +1,7 @@
 import type { StorefrontContent } from "@/types/storefront-content"
 
-const editorialImage = "https://ik.imagekit.io/deuxug3j0/savage-rise/faza/faza-001-editorial.jpg"
-const productImage = "https://ik.imagekit.io/deuxug3j0/savage-rise/faza/faza-001-product.jpg"
+const editorialImage = "/placeholder.jpg"
+const productImage = "/placeholder-logo.png"
 
 export const storefrontFallbackContent: StorefrontContent = {
   announcement: ["Livraison dans toute la Tunisie", "Paiement a la livraison", "Echange de taille disponible"],

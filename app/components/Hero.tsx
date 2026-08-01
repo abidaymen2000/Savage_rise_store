@@ -12,6 +12,8 @@ import AuthModal from "./AuthModal"
 import type { DropCountdown, DropNotificationStatus } from "@/types/api"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
+const DROP_COUNTDOWN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_DROP_COUNTDOWN === "true"
+
 type HeroSlide = {
   type: "video" | "image"
   src: string
@@ -82,6 +84,7 @@ export default function Hero() {
   }, [])
 
   useEffect(() => {
+    if (!DROP_COUNTDOWN_ENABLED) return
     let mounted = true
     api
       .getDropCountdown()
