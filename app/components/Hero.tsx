@@ -133,6 +133,15 @@ export default function Hero() {
   const media = activeSlide
     ? { type: activeSlide.type, src: activeSlide.src, poster: activeSlide.poster, alt: String(heroTitle) }
     : content.hero.media
+  const isHeroVideo = Boolean(slide && slide.type === "video")
+  const heroMediaClassName =
+    isHeroVideo
+      ? "object-cover object-[50%_50%]"
+      : `object-cover object-center ${
+          hasActiveDrop
+            ? "blur-[7px] brightness-[0.68]"
+            : "blur-[3px] brightness-[0.76]"
+        }`
 
   const toggleDropNotification = useCallback(async () => {
     if (!drop?.email_enabled || isDropReleased) return
@@ -164,13 +173,8 @@ export default function Hero() {
           priority
           sizes="100vw"
           className="absolute inset-0"
-          imageClassName={`object-cover object-center ${
-            slide && slide.type === "video"
-              ? ""
-              : hasActiveDrop
-                ? "blur-[7px] brightness-[0.68]"
-                : "blur-[3px] brightness-[0.76]"
-          }`}
+          imageClassName={heroMediaClassName}
+          containPortraitVideoOnDesktop={isHeroVideo}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/25" />
         <div className="relative z-10 flex min-h-[calc(100svh-7rem)] items-end px-4 pb-10 sm:px-6 md:min-h-[calc(100dvh-7rem)] md:items-center md:pb-0">

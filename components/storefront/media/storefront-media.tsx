@@ -8,6 +8,7 @@ type StorefrontMediaProps = {
   media: StorefrontMediaType
   className?: string
   imageClassName?: string
+  containPortraitVideoOnDesktop?: boolean
   priority?: boolean
   sizes?: string
 }
@@ -16,15 +17,24 @@ export default function StorefrontMedia({
   media,
   className = "",
   imageClassName = "object-cover",
+  containPortraitVideoOnDesktop = false,
   priority = false,
   sizes = "100vw",
 }: StorefrontMediaProps) {
   const [failed, setFailed] = useState(false)
-  const src = failed ? "/placeholder.svg" : media.src
+  const [videoOrientation, setVideoOrientation] = useState<"portrait" | "landscape" | null>(null)
+  const fallbackSrc = media.poster || "/placeholder.svg"
+  const src = failed ? fallbackSrc : media.src
 
   if (media.type === "video" && !failed) {
+    const shouldContainOnDesktop =
+      containPortraitVideoOnDesktop && (videoOrientation === null || videoOrientation === "portrait")
+    const videoClassName = `${imageClassName} ${
+      shouldContainOnDesktop ? "md:object-contain md:object-[50%_50%]" : "md:object-cover md:object-[50%_50%]"
+    }`
+
     return (
-      <div className={`relative overflow-hidden bg-stone-950 ${className}`}>
+      <div className={`relative overflow-hidden bg-black ${className}`}>
         <video
           src={media.src}
           poster={media.poster}
@@ -35,7 +45,11 @@ export default function StorefrontMedia({
           preload={priority ? "auto" : "metadata"}
           aria-label={media.alt}
           onError={() => setFailed(true)}
-          className={`h-full w-full ${imageClassName}`}
+          onLoadedMetadata={(event) => {
+            const element = event.currentTarget
+            setVideoOrientation(element.videoWidth > element.videoHeight ? "landscape" : "portrait")
+          }}
+          className={`absolute inset-0 h-full w-full ${videoClassName}`}
         />
       </div>
     )
