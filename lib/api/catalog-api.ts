@@ -151,6 +151,8 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
     sku: firstVariant?.sku ?? null,
     description: detail.description ?? null,
     categories: detail.category_ids ?? [],
+    primary_category_id: detail.primary_category_id ?? null,
+    category_ids: detail.category_ids ?? [],
     price,
     compare_at_price: compareAtPrice,
     in_stock: inStock,
@@ -173,6 +175,8 @@ function listItemToProduct(item: ProductListItem): Product {
     full_name: item.name,
     sku: null,
     categories: item.primary_category_id ? [item.primary_category_id] : [],
+    primary_category_id: item.primary_category_id ?? null,
+    category_ids: item.primary_category_id ? [item.primary_category_id] : [],
     price: 0,
     in_stock: item.status === "active",
     variants: [],
@@ -189,6 +193,9 @@ function categoryToLegacy(category: CategoryRead): Category {
     created_at: category.created_at ?? "",
     updated_at: category.updated_at ?? "",
     slug: category.slug,
+    parent_id: category.parent_id ?? null,
+    path: category.path ?? null,
+    status: category.status ?? null,
     image: category.image ?? null,
   } as Category
 }

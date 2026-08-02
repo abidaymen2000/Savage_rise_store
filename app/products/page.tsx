@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { SHOP_PRODUCT_KIND, isShopProduct } from "@/lib/product-kind"
 import { getStorefrontContent } from "@/lib/storefront/content"
-import { productMatchesCategoryFeature } from "@/lib/storefront/catalog"
+import { getCategoryAndDescendantIds, productMatchesCategoryIds, resolveCategoryFilter } from "@/lib/storefront/catalog"
 import { getAvailableColors, getAvailableSizes, sortProductsByStockStatus } from "@/lib/utils"
 import ProductsControls, { type ProductsFilterState } from "./products-controls"
 import type { Product } from "@/types/api"
@@ -16,12 +16,36 @@ type SearchParams = Record<string, string | string[] | undefined>
 
 const PAGE_SIZE = 24
 
-const getProductsPageData = unstable_cache(async (q: string) => {
-  const [productsData] = await Promise.all([
-    api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: q || null }),
-    api.getCategories().catch(() => []),
-  ])
-  return productsData
+const getProductsPageData = unstable_cache(async (q: string, categoryFilter: string) => {
+  const categories = await api.getCategories().catch(() => [])
+  const resolvedCategory = categoryFilter === "all" ? null : resolveCategoryFilter(categories, categoryFilter)
+  const resolvedCategoryIds = resolvedCategory ? getCategoryAndDescendantIds(categories, resolvedCategory.id) : []
+  const productBatches = categoryFilter !== "all" && !resolvedCategory
+    ? []
+    : resolvedCategoryIds.length > 0
+    ? await Promise.all(resolvedCategoryIds.map((categoryId) => api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: q || null, categoryId })))
+    : [await api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: q || null })]
+  const productsById = new Map(productBatches.flat().map((product) => [product.id, product]))
+  const products = Array.from(productsById.values())
+
+  if (categoryFilter !== "all") {
+    console.log("[products/category-filter]", {
+      receivedSlug: categoryFilter,
+      resolvedId: resolvedCategory?.id ?? null,
+      resolvedSlug: resolvedCategory?.slug ?? null,
+      resolvedCategoryIds,
+      returnedProducts: products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        primary_category_id: product.primary_category_id ?? null,
+        category_ids: product.category_ids ?? product.categories ?? [],
+        in_stock: product.in_stock,
+      })),
+    })
+  }
+
+  return { products, resolvedCategoryIds }
 }, ["storefront-products-page"], { revalidate: 60, tags: ["store-products"] })
 
 function getParam(searchParams: SearchParams, key: string, fallback = "") {
@@ -43,13 +67,11 @@ function parseFilters(searchParams: SearchParams): ProductsFilterState {
   }
 }
 
-function filterProducts(products: Product[], filters: ProductsFilterState) {
-  const content = getStorefrontContent()
-  const activeCategory = content.categoryFeatures.find((feature) => feature.key === filters.category)
+function filterProducts(products: Product[], filters: ProductsFilterState, categoryIds: string[] = []) {
   const query = filters.q.trim().toLowerCase()
   const filtered = products.filter((product) => {
     if (query && ![product.name, product.full_name, product.description].filter(Boolean).join(" ").toLowerCase().includes(query)) return false
-    if (activeCategory && !productMatchesCategoryFeature(product, activeCategory)) return false
+    if (!productMatchesCategoryIds(product, categoryIds)) return false
     if (filters.color !== "all" && !getAvailableColors(product).some((item) => item.toLowerCase() === filters.color.toLowerCase())) return false
     if (filters.size !== "all" && !getAvailableSizes(product).some((item) => item.toLowerCase() === filters.size.toLowerCase())) return false
     if (filters.availability === "available" && !product.in_stock) return false
@@ -82,10 +104,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const filters = parseFilters(searchParams)
   const content = getStorefrontContent()
 
-  const productsData = await getProductsPageData(filters.q)
+  const productsData = await getProductsPageData(filters.q, filters.category)
 
-  const products = productsData.filter(isShopProduct)
-  const filteredProducts = filterProducts(products, filters)
+  const products = productsData.products.filter(isShopProduct)
+  const filteredProducts = filterProducts(products, filters, productsData.resolvedCategoryIds)
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
   const currentPage = Math.min(filters.page, totalPages)
   const visibleProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)

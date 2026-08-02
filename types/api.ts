@@ -90,6 +90,8 @@ export interface Product {
   alternative_marking?: string | null
   care_instructions?: string | null
   categories: string[]
+  primary_category_id?: string | null
+  category_ids?: string[]
   price: number
   compare_at_price?: number | null
   in_stock: boolean
@@ -439,6 +441,9 @@ export interface Category {
   created_at: string
   updated_at: string
   slug?: string
+  parent_id?: string | null
+  path?: string | null
+  status?: string | null
   image?: unknown
 }
 
