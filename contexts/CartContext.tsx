@@ -5,7 +5,7 @@ import { createContext, useContext, useReducer, useEffect, useState } from "reac
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
 import { getSelectableQuantityLimit, getVariantSize } from "@/lib/inventory"
 import { getProductCartKey, matchesCartItem, resolveVariantItemId } from "@/lib/cart-identity"
-import { getMetaContentId } from "@/lib/meta-content"
+import { buildMetaCartItemContent, buildMetaPackSelectionContent } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 import type { AnalyticsItem } from "@/types/api"
@@ -290,13 +290,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    const metaContentId = getMetaContentId({
-      product,
-      variant,
-      selectedSize: size,
-    })
-
     const items = [buildProductAnalyticsItem(product, variant, size, quantity)]
+    const pixelContent = buildMetaCartItemContent({
+      product,
+      selectedVariant: variant,
+      quantity,
+    })
 
     const analyticsEvent = trackStoreEvent("add_to_cart", {
       product_id: product.id,
@@ -313,22 +312,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       },
     })
 
-    trackMetaPixelEvent("AddToCart", {
-      content_ids: metaContentId ? [metaContentId] : [product.id],
-      content_name: product.name,
-      content_type: "product",
-      contents: [
-        {
-          id: metaContentId ?? product.id,
-          quantity,
-          item_price: product.price,
-        },
-      ],
-      currency: "TND",
-      value: product.price * quantity,
-    }, {
-      eventID: analyticsEvent.eventId ?? undefined,
-    })
+    if (pixelContent) {
+      trackMetaPixelEvent("AddToCart", {
+        content_ids: [pixelContent.id],
+        content_name: product.name,
+        content_type: "product",
+        contents: [pixelContent],
+        currency: "TND",
+        value: product.price * quantity,
+      }, {
+        eventID: analyticsEvent.eventId ?? undefined,
+      })
+    }
     dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
     openCart()
   }
@@ -354,21 +349,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         quantity,
       },
     })
+    const pixelContents = selections
+      .map((selection) => buildMetaPackSelectionContent(selection, quantity))
+      .filter((content): content is NonNullable<typeof content> => Boolean(content))
 
-    trackMetaPixelEvent("AddToCart", {
-      content_ids: [pack.id],
-      content_name: pack.title,
-      content_type: "product_group",
-      contents: selections.map((selection) => ({
-        id: selection.product_id,
-        quantity: (selection.qty ?? 1) * quantity,
-        item_price: selection.unit_price,
-      })),
-      currency: "TND",
-      value,
-    }, {
-      eventID: analyticsEvent.eventId ?? undefined,
-    })
+    if (pixelContents.length === selections.length) {
+      trackMetaPixelEvent("AddToCart", {
+        content_ids: pixelContents.map((content) => content.id),
+        content_name: pack.title,
+        content_type: "product",
+        contents: pixelContents,
+        currency: "TND",
+        value,
+      }, {
+        eventID: analyticsEvent.eventId ?? undefined,
+      })
+    }
     dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
     openCart()
   }

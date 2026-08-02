@@ -12,7 +12,7 @@ import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product, Variant } from "@/types/api"
 import { getAvailableStock, getProductVariantForSelection, getSelectableQuantityLimit, getVariantSize, isSizePurchasable, isSizeTracked } from "@/lib/inventory"
-import { getMetaContentId, getVariantSizeByName } from "@/lib/meta-content"
+import { buildMetaProductContent, metaProductId } from "@/lib/meta-content"
 import {
   buildPackSelections,
   findCompanionComponents,
@@ -79,17 +79,6 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
   useEffect(() => {
     if (!product) return
-    if (product.variants.length > 0) {
-      if (!currentVariant) return
-      if (currentVariant.sizes.length > 0 && !selectedSize) return
-    }
-    const selectedVariantSize = getVariantSizeByName(currentVariant, selectedSize)
-    const metaContentId = getMetaContentId({
-      product,
-      variant: currentVariant,
-      size: selectedVariantSize,
-      selectedSize,
-    })
     const pageViewId = getCurrentPageViewId()
     const analyticsEvent = trackStoreEvent("product_viewed", {
       product_id: product.id,
@@ -122,15 +111,11 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
     if (!analyticsEvent.eventId) return
 
     trackMetaPixelEvent("ViewContent", {
-      content_ids: metaContentId ? [metaContentId] : [product.id],
+      content_ids: [metaProductId(product.id)],
       content_name: product.name,
-      content_type: "product",
+      content_type: "product_group",
       contents: [
-        {
-          id: metaContentId ?? product.id,
-          quantity: 1,
-          item_price: product.price,
-        },
+        buildMetaProductContent(product),
       ],
       currency: "TND",
       value: product.price,

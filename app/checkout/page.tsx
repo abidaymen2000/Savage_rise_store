@@ -25,7 +25,7 @@ import EmailVerificationModal from "@/app/components/EmailVerificationModal"
 import Image from "next/image"
 import Link from "next/link"
 import type { ShippingInfo, ApplyResponse, Order, LoyaltyBalance, LoyaltyQuote, OrderQuoteOut } from "@/types/api"
-import { getCartItemMetaContentId } from "@/lib/meta-content"
+import { buildMetaCartItemContent, buildMetaPackSelectionContent } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
@@ -384,15 +384,17 @@ export default function CheckoutPage() {
     try {
       const order = await api.createOrder(finalOrderPayload, idempotencyKey)
 
-      trackPurchasePixelOnce({
-        orderId: order.id,
-        metaEventId,
-        value: order.total_amount ?? orderQuote.total_amount,
-        currency: orderQuote.currency ?? "TND",
-        content_ids: pixelContentIds,
-        contents: pixelContents,
-        num_items: cartState.itemCount,
-      })
+      if (pixelContents.length === expectedPixelContentCount) {
+        trackPurchasePixelOnce({
+          orderId: order.id,
+          metaEventId,
+          value: order.total_amount ?? orderQuote.total_amount,
+          currency: orderQuote.currency ?? "TND",
+          content_ids: pixelContentIds,
+          contents: pixelContents,
+          num_items: cartState.itemCount,
+        })
+      }
       setCreatedOrder(order)
       setSuccess(true)
       setCheckoutStatus("success")
@@ -453,23 +455,23 @@ export default function CheckoutPage() {
 
   const pixelContents = useMemo(
     () => [
-      ...cartState.items.map((item) => ({
-        id: getCartItemMetaContentId(item) ?? item.product.id,
-        quantity: item.quantity,
-        item_price: item.product.price,
-      })),
+      ...cartState.items
+        .map((item) => buildMetaCartItemContent(item))
+        .filter((content): content is NonNullable<typeof content> => Boolean(content)),
       ...cartState.packItems.flatMap((item) =>
-        item.selections.map((selection) => ({
-          id: selection.product_id,
-          quantity: (selection.qty ?? 1) * item.quantity,
-          item_price: selection.unit_price,
-        })),
+        item.selections
+          .map((selection) => buildMetaPackSelectionContent(selection, item.quantity))
+          .filter((content): content is NonNullable<typeof content> => Boolean(content)),
       ),
     ],
     [cartState.items, cartState.packItems],
   )
 
   const pixelContentIds = useMemo(() => pixelContents.map((item) => String(item.id)), [pixelContents])
+  const expectedPixelContentCount = useMemo(
+    () => cartState.items.length + cartState.packItems.reduce((sum, item) => sum + item.selections.length, 0),
+    [cartState.items.length, cartState.packItems],
+  )
 
   useEffect(() => {
     if (cartState.itemCount === 0) return
@@ -512,8 +514,11 @@ export default function CheckoutPage() {
 
     if (!analyticsEvent.eventId) return
 
+    if (pixelContents.length !== expectedPixelContentCount) return
+
     trackMetaPixelEvent("InitiateCheckout", {
       content_ids: pixelContentIds,
+      content_type: "product",
       contents: pixelContents,
       currency: "TND",
       num_items: cartState.itemCount,
@@ -521,7 +526,7 @@ export default function CheckoutPage() {
     }, {
       eventID: analyticsEvent.eventId,
     })
-  }, [cartState.itemCount, cartState.items, cartState.packItems, pixelContentIds, pixelContents, subtotal])
+  }, [cartState.itemCount, cartState.items, cartState.packItems, expectedPixelContentCount, pixelContentIds, pixelContents, subtotal])
 
   useEffect(() => {
     if (!loyaltyFeatureEnabled || !isAuthenticated || !loyaltyBalance?.settings?.is_active || cartState.itemCount === 0) {

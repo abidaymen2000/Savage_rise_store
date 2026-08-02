@@ -16,6 +16,7 @@ import { getProductVariantForSelection, getSelectableQuantityLimit, getVariantSi
 import { formatPrice, isProductInStock } from "@/lib/utils"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, PackComponent, PackOrderComponent, Product } from "@/types/api"
+import { metaProductId } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 
@@ -164,7 +165,7 @@ export default function PackDetailPage() {
     if (!analyticsEvent.eventId) return
 
     trackMetaPixelEvent("ViewContent", {
-      content_ids: [pack.id],
+      content_ids: [metaProductId(pack.id)],
       content_name: pack.title,
       content_type: "product_group",
       currency: "TND",
