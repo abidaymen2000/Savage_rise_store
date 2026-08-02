@@ -33,8 +33,8 @@ export const api = {
   ...loyaltyApi,
   ...storeNavigationApi,
 
-  async trackAnalyticsEvent(payload: Parameters<typeof analyticsApi.trackEvent>[0]): Promise<void> {
-    await analyticsApi.trackEvent(payload)
+  async trackAnalyticsEvent(payload: Parameters<typeof analyticsApi.trackEvent>[0]): ReturnType<typeof analyticsApi.trackEvent> {
+    return analyticsApi.trackEvent(payload)
   },
 
   async checkHealth(): Promise<HealthStatus> {

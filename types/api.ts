@@ -855,6 +855,7 @@ export interface StoreAnalyticsEventPayload {
   variant_id?: string | null
   order_id?: string | null
   event_category?: string | null
+  page_url?: string | null
   page_path?: string | null
   page_title?: string | null
   action_target?: string | null
@@ -863,6 +864,9 @@ export interface StoreAnalyticsEventPayload {
   value?: number | null
   revenue?: number | null
   event_time?: string | null
+  context?: Record<string, unknown>
+  attribution?: Record<string, unknown>
+  items?: unknown[]
   metadata?: Record<string, unknown>
   properties?: Record<string, unknown>
   referrer?: string | null
@@ -876,6 +880,8 @@ export interface StoreAnalyticsEventPayload {
   fbclid?: string | null
   fbp?: string | null
   fbc?: string | null
+  landing_page?: string | null
+  landing_url?: string | null
   deduplication_key?: string | null
   has_account?: boolean
 }

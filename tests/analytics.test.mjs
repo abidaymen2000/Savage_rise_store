@@ -15,7 +15,15 @@ import {
   getSessionAttribution,
   initializeAnalytics,
 } from "../lib/analytics-context.ts"
-import { getStorefrontAnalyticsEndpoint, setStorefrontAnalyticsSlug } from "../lib/api/analytics-api.ts"
+import {
+  ANALYTICS_API_BASE_URL_MISSING,
+  AnalyticsTransportError,
+  analyticsApi,
+  getAnalyticsApiBaseUrl,
+  getStorefrontAnalyticsEndpoint,
+  getStorefrontAnalyticsUrl,
+  setStorefrontAnalyticsSlug,
+} from "../lib/api/analytics-api.ts"
 import { api } from "../lib/api/index.ts"
 import { buildOrderPayload } from "../lib/order-payload.ts"
 import { trackStoreEvent } from "../lib/store-analytics.ts"
@@ -91,6 +99,7 @@ function setBrowserEnv({
     writable: true,
     value: {
       language: "fr-FR",
+      userAgent: "Mozilla/5.0 Test Browser",
       sendBeacon: () => true,
     },
   })
@@ -127,6 +136,177 @@ test("uses the tenant-scoped Savage Rise analytics endpoint", () => {
 
   setStorefrontAnalyticsSlug("")
   assert.equal(getStorefrontAnalyticsEndpoint(), "/analytics/savage-rise/events")
+})
+
+test("StoreAnalytics is mounted by the production root layout", () => {
+  const layout = fs.readFileSync(path.join(projectRoot, "app/layout.tsx"), "utf8")
+  const component = fs.readFileSync(path.join(projectRoot, "app/components/StoreAnalytics.tsx"), "utf8")
+
+  assert.match(component, /^"use client"/)
+  assert.match(layout, /<StoreAnalytics storeSlug={config\.slug} \/>/)
+})
+
+test("initial StoreAnalytics hydration sends session_started and page_view", () => {
+  const component = fs.readFileSync(path.join(projectRoot, "app/components/StoreAnalytics.tsx"), "utf8")
+
+  assert.match(component, /trackStoreEvent\("session_started"/)
+  assert.match(component, /trackStoreEvent\("page_view"/)
+  assert.match(component, /usePathname\(\)/)
+  assert.match(component, /useSearchParams\(\)/)
+})
+
+test("final analytics URL uses NEXT_PUBLIC_API_BASE_URL without double slashes", () => {
+  const previousBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  process.env.NEXT_PUBLIC_API_BASE_URL = "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/"
+  setStorefrontAnalyticsSlug("savage-rise")
+
+  try {
+    assert.equal(getAnalyticsApiBaseUrl(), "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com")
+    assert.equal(
+      getStorefrontAnalyticsUrl(),
+      "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events",
+    )
+  } finally {
+    if (previousBaseUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_API_BASE_URL
+    } else {
+      process.env.NEXT_PUBLIC_API_BASE_URL = previousBaseUrl
+    }
+  }
+})
+
+test("missing development analytics base URL raises a clear diagnostic message", () => {
+  const previousBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const previousNodeEnv = process.env.NODE_ENV
+  delete process.env.NEXT_PUBLIC_API_BASE_URL
+  process.env.NODE_ENV = "development"
+
+  try {
+    assert.throws(() => getAnalyticsApiBaseUrl(), new RegExp(ANALYTICS_API_BASE_URL_MISSING))
+  } finally {
+    if (previousBaseUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_API_BASE_URL
+    } else {
+      process.env.NEXT_PUBLIC_API_BASE_URL = previousBaseUrl
+    }
+    process.env.NODE_ENV = previousNodeEnv
+  }
+})
+
+test("analytics transport sends a real JSON POST with keepalive and omitted credentials", async () => {
+  const previousBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const previousFetch = global.fetch
+  const calls = []
+  process.env.NEXT_PUBLIC_API_BASE_URL = "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/"
+  global.fetch = async (url, init) => {
+    calls.push({ url, init })
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+
+  try {
+    await analyticsApi.trackEvent({
+      event_name: "page_view",
+      event_time: "2026-08-02T09:30:00.000Z",
+      session_id: "sess_stable",
+      anonymous_id: "anon_stable",
+      page_url: "https://savagerise.com/",
+      page_path: "/",
+      referrer: "",
+      source: "direct",
+      currency: "TND",
+      device_type: "desktop",
+      product_id: undefined,
+    })
+
+    assert.equal(calls.length, 1)
+    assert.equal(calls[0].url, "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events")
+    assert.equal(calls[0].init.method, "POST")
+    assert.equal(calls[0].init.headers["Content-Type"], "application/json")
+    assert.equal(calls[0].init.headers["Accept"], "application/json")
+    assert.equal(calls[0].init.keepalive, true)
+    assert.equal(calls[0].init.credentials, "omit")
+    const body = JSON.parse(calls[0].init.body)
+    assert.equal(body.event_name, "page_view")
+    assert.equal(body.currency, "TND")
+    assert.equal(Object.hasOwn(body, "product_id"), false)
+  } finally {
+    global.fetch = previousFetch
+    if (previousBaseUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_API_BASE_URL
+    } else {
+      process.env.NEXT_PUBLIC_API_BASE_URL = previousBaseUrl
+    }
+  }
+})
+
+test("analytics transport exposes 422 details for debug mode", async () => {
+  const previousFetch = global.fetch
+  global.fetch = async () =>
+    new Response(JSON.stringify({ detail: "invalid event_name" }), {
+      status: 422,
+      headers: { "Content-Type": "application/json" },
+    })
+
+  try {
+    await assert.rejects(
+      () =>
+        analyticsApi.trackEvent({
+          event_name: "page_view",
+          event_time: "2026-08-02T09:30:00.000Z",
+          session_id: "sess_stable",
+          anonymous_id: "anon_stable",
+          page_url: "https://savagerise.com/",
+          page_path: "/",
+          source: "direct",
+          currency: "TND",
+        }),
+      (error) => {
+        assert.ok(error instanceof AnalyticsTransportError)
+        assert.equal(error.status, 422)
+        assert.match(error.url, /\/analytics\/savage-rise\/events$/)
+        assert.match(error.response, /invalid event_name/)
+        return true
+      },
+    )
+  } finally {
+    global.fetch = previousFetch
+  }
+})
+
+test("analytics transport treats tracked=false as a visible diagnostic failure", async () => {
+  const previousFetch = global.fetch
+  global.fetch = async () =>
+    new Response(JSON.stringify({ success: true, tracked: false, event: null }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+
+  try {
+    await assert.rejects(
+      () =>
+        analyticsApi.trackEvent({
+          event_name: "page_view",
+          event_time: "2026-08-02T09:30:00.000Z",
+          session_id: "sess_stable",
+          anonymous_id: "anon_stable",
+          page_url: "https://savagerise.com/",
+          page_path: "/",
+          source: "direct",
+          currency: "TND",
+        }),
+      (error) => {
+        assert.ok(error instanceof AnalyticsTransportError)
+        assert.equal(error.status, 200)
+        assert.match(error.response, /"tracked":false/)
+        return true
+      },
+    )
+  } finally {
+    global.fetch = previousFetch
+  }
 })
 
 test("storefront source has no remaining direct event post to the legacy analytics endpoint", () => {
@@ -291,7 +471,7 @@ test("checkout_started contains the real cart items", () => {
     })
 
     assert.equal(analytics.sent[0].event_name, "checkout_started")
-    assert.deepEqual(analytics.sent[0].metadata.items, items)
+    assert.deepEqual(analytics.sent[0].items, items)
   } finally {
     analytics.restore()
   }
@@ -347,6 +527,44 @@ test("analytics errors never block the storefront path", async () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
   } finally {
     api.trackAnalyticsEvent = previous
+    process.env.NODE_ENV = previousNodeEnv
+  }
+})
+
+test("analytics debug mode logs safe 422 diagnostics in production", async () => {
+  setBrowserEnv({ href: "https://savagerise.com/?analytics_debug=1" })
+  const previous = api.trackAnalyticsEvent
+  const previousWarn = console.warn
+  const previousNodeEnv = process.env.NODE_ENV
+  const warnings = []
+  api.trackAnalyticsEvent = async () => {
+    throw new AnalyticsTransportError("Analytics request failed with HTTP 422", {
+      status: 422,
+      url: "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events",
+      response: "{\"detail\":\"invalid event_name\"}",
+    })
+  }
+  console.warn = (...args) => {
+    warnings.push(args.join(" "))
+  }
+  process.env.NODE_ENV = "production"
+
+  try {
+    const result = trackStoreEvent("page_view", {
+      page_path: "/",
+      currency: "TND",
+    })
+    await result.request
+
+    assert.equal(warnings.length, 1)
+    assert.match(warnings[0], /\[SR Analytics\] page_view/)
+    assert.match(warnings[0], /POST https:\/\/savage-rise-backend-8f0f0a23c13f\.herokuapp\.com\/analytics\/savage-rise\/events/)
+    assert.match(warnings[0], /status=422/)
+    assert.match(warnings[0], /invalid event_name/)
+    assert.doesNotMatch(warnings[0], /anonymous_id/)
+  } finally {
+    api.trackAnalyticsEvent = previous
+    console.warn = previousWarn
     process.env.NODE_ENV = previousNodeEnv
   }
 })

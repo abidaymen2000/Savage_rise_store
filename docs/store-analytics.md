@@ -3,7 +3,13 @@
 The storefront sends internal analytics events to the backend endpoint:
 
 ```txt
-POST /analytics/savage-rise/events
+POST https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events
+```
+
+Vercel must define:
+
+```txt
+NEXT_PUBLIC_API_BASE_URL=https://savage-rise-backend-8f0f0a23c13f.herokuapp.com
 ```
 
 All event calls should go through the centralized helper:
@@ -55,7 +61,27 @@ The store sends these internal business events:
 - `checkout_started`
 - `purchase`
 
-## Automatic Safety Net
+## Debugging
+
+Errors are non-blocking during normal browsing. To inspect production analytics safely, open the storefront with:
+
+```txt
+https://savagerise.com/?analytics_debug=1
+```
+
+or run:
+
+```js
+localStorage.setItem("sr_analytics_debug", "1")
+```
+
+Debug logs include only the event name, POST URL, HTTP status and safe backend response. They do not print the full client payload.
+
+## Local Diagnostic Page
+
+In development only, `/analytics-diagnostics` sends a manual `page_view` and prints the final endpoint, status and safe response.
+
+## Ignored UI Activity
 
 `app/components/StoreAnalytics.tsx` also listens globally for clicks on:
 
@@ -63,9 +89,9 @@ The store sends these internal business events:
 - `a`
 - `[role="button"]`
 
-It records them as `button_clicked` with `metadata.auto = true`. This catches secondary UI actions without changing the user experience.
+Calls such as `button_clicked`, form events and engagement heartbeat are ignored by the internal analytics helper because the backend funnel only accepts the six business events above.
 
-It also tracks:
+The component still uses these listeners for local page timing state:
 
 - page views on route/search changes
 - session start, heartbeat, visibility changes and page end
@@ -79,4 +105,4 @@ It also tracks:
 - form field changes without field values
 - scroll depth milestones at 25%, 50%, 75% and 90%
 
-Important business actions should still call `trackEvent` directly with a precise event name and useful metadata.
+Important business actions should call `trackEvent` directly with one of the six accepted event names.
