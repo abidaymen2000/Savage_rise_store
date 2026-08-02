@@ -5,6 +5,8 @@ import type { AnalyticsContext } from "@/types/api"
 const ANON_KEY = "savage-rise-anonymous-id"
 const SESSION_KEY = "savage-rise-session-id"
 const PAGE_VIEW_KEY = "savage-rise-page-view-id"
+const PAGE_VIEW_URL_KEY = "savage-rise-page-view-url"
+const PAGE_VIEW_CREATED_AT_KEY = "savage-rise-page-view-created-at"
 const CHECKOUT_KEY = "savage-rise-checkout-id"
 const DEDUPE_PREFIX = "savage-rise-analytics-dedupe:"
 const FIRST_TOUCH_KEY = "savage-rise-first-touch"
@@ -46,9 +48,26 @@ export function getCurrentPageViewId() {
   return sessionStore()!.getItem(PAGE_VIEW_KEY)
 }
 
-export function createPageView(_url?: string | URL | null) {
+export function createPageView(url?: string | URL | null) {
+  if (typeof window !== "undefined" && url) {
+    const storage = sessionStore()!
+    const currentPageViewId = storage.getItem(PAGE_VIEW_KEY)
+    const currentUrl = storage.getItem(PAGE_VIEW_URL_KEY)
+    const createdAt = Number(storage.getItem(PAGE_VIEW_CREATED_AT_KEY) ?? 0)
+    if (currentPageViewId && currentUrl === String(url) && Date.now() - createdAt < 1000) {
+      return currentPageViewId
+    }
+  }
+
   const pageViewId = createId("pv")
-  if (typeof window !== "undefined") sessionStore()!.setItem(PAGE_VIEW_KEY, pageViewId)
+  if (typeof window !== "undefined") {
+    const storage = sessionStore()!
+    storage.setItem(PAGE_VIEW_KEY, pageViewId)
+    if (url) {
+      storage.setItem(PAGE_VIEW_URL_KEY, String(url))
+      storage.setItem(PAGE_VIEW_CREATED_AT_KEY, String(Date.now()))
+    }
+  }
   return pageViewId
 }
 

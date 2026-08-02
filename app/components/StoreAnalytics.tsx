@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { createPageView, getOrCreateSessionId, initializeAnalytics } from "@/lib/analytics-context"
+import { setStorefrontAnalyticsSlug } from "@/lib/api/analytics-api"
 import { trackEvent, trackStoreEvent } from "@/lib/store-analytics"
 
 const IDLE_AFTER_MS = 30000
@@ -108,12 +109,16 @@ function getPageTimingSnapshot(page: PageTiming) {
   }
 }
 
-export default function StoreAnalytics() {
+export default function StoreAnalytics({ storeSlug = "savage-rise" }: { storeSlug?: string }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const previousUrl = useRef<string | null>(null)
   const currentPage = useRef<PageTiming | null>(null)
   const lastActivityEventAt = useRef(0)
+
+  useEffect(() => {
+    setStorefrontAnalyticsSlug(storeSlug)
+  }, [storeSlug])
 
   const markActivity = (activityType: string, metadata: Record<string, unknown> = {}) => {
     const page = currentPage.current
@@ -197,11 +202,11 @@ export default function StoreAnalytics() {
     previousUrl.current = url
     currentPage.current = createPageTiming(url)
 
-    trackStoreEvent("page_viewed", {
+    trackStoreEvent("page_view", {
       event_category: "navigation",
       page_path: url,
       page_title: document.title,
-      deduplication_key: `page_viewed:${currentPage.current.id}`,
+      deduplication_key: `page_view:${currentPage.current.id}`,
       metadata: {
         url,
         page_view_id: currentPage.current.id,

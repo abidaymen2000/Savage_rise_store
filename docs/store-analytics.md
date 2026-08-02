@@ -3,7 +3,7 @@
 The storefront sends internal analytics events to the backend endpoint:
 
 ```txt
-POST /analytics/events
+POST /analytics/savage-rise/events
 ```
 
 All event calls should go through the centralized helper:
@@ -11,14 +11,18 @@ All event calls should go through the centralized helper:
 ```ts
 import { trackEvent } from "@/lib/store-analytics"
 
-trackEvent("button_clicked", {
+trackEvent("add_to_cart", {
   product_id: "product-id",
-  order_id: "order-id",
+  variant_id: "variant-id",
+  currency: "TND",
+  revenue: 149,
   metadata: {
-    action: "clear_action_name",
+    items: [],
   },
 })
 ```
+
+Only the internal funnel events recognized by the backend are sent. Legacy helper calls for UI activity are ignored by the client helper and do not hit the backend.
 
 ## Payload Context
 
@@ -32,62 +36,24 @@ trackEvent("button_clicked", {
 - `utm_source`
 - `utm_medium`
 - `has_account`
-- `event_category`
+- `event_time`
 - `page_path`
 - `page_title`
 - `device_type`
-- `metadata.path`
-- `metadata.search`
-- `metadata.title`
-- `metadata.url`
-- `metadata.occurred_at`
-- `metadata.session_started_at`
-- viewport, screen, language, timezone and connection context
-- `Authorization` header when the user is signed in
+- `revenue`
 
 Do not send passwords, raw tokens, full addresses, payment data, or sensitive personal data in `metadata`.
 
 ## Business Events
 
-The store currently tracks these business events:
+The store sends these internal business events:
 
-- `page_viewed`
-- `product_viewed`
-- `collection_viewed`
-- `search_submitted`
-- `notify_me_clicked`
-- `account_created`
-- `login`
-- `logout`
-- `add_to_cart`
-- `remove_from_cart`
-- `cart_viewed`
-- `checkout_started`
-- `shipping_info_submitted`
-- `payment_started`
-- `payment_success`
-- `payment_failed`
-- `order_completed`
-- `coupon_applied`
-- `size_selected`
-- `color_selected`
-- `wishlist_added`
-- `button_clicked`
-- `form_submitted`
-- `form_field_changed`
-- `cart_quantity_changed`
-- `cart_cleared`
 - `session_started`
-- `session_heartbeat`
-- `session_ended`
-- `page_hidden`
-- `page_visible`
-- `page_engagement`
-- `page_exited`
-- `user_activity`
-- `user_idle`
-- `form_field_focused`
-- `scroll_depth_reached`
+- `page_view`
+- `product_view`
+- `add_to_cart`
+- `checkout_started`
+- `purchase`
 
 ## Automatic Safety Net
 

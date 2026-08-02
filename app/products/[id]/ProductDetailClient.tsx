@@ -80,12 +80,12 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   useEffect(() => {
     if (!product) return
     const pageViewId = getCurrentPageViewId()
-    const analyticsEvent = trackStoreEvent("product_viewed", {
+    const analyticsEvent = trackStoreEvent("product_view", {
       product_id: product.id,
       variant_id: currentVariant?.meta_content_id ?? null,
       currency: "TND",
       value: product.price,
-      deduplication_key: `product_viewed:${pageViewId ?? "no_page"}:${product.id}:${currentVariant?.color ?? "none"}:${selectedSize || "none"}`,
+      deduplication_key: `product_view:${pageViewId ?? "no_page"}:${product.id}:${currentVariant?.color ?? "none"}:${selectedSize || "none"}`,
       items: [
         {
           product_id: product.id,

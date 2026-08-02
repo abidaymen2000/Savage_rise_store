@@ -141,10 +141,11 @@ export default function PackDetailPage() {
   useEffect(() => {
     if (!pack) return
     const pageViewId = getCurrentPageViewId()
-    const analyticsEvent = trackStoreEvent("product_viewed", {
+    const analyticsEvent = trackStoreEvent("product_view", {
+      product_id: pack.id,
       currency: "TND",
       value: pack.pack_price ?? 0,
-      deduplication_key: `product_viewed:${pageViewId ?? "no_page"}:pack:${pack.id}`,
+      deduplication_key: `product_view:${pageViewId ?? "no_page"}:pack:${pack.id}`,
       items: (pack.components ?? []).map((component) => ({
         product_id: component.product_id,
         item_type: "pack_component",

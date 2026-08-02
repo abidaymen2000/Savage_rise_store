@@ -158,7 +158,7 @@ export default async function RootLayout({
       <body className="bg-background font-inter text-foreground" style={getBrandingCssVariables(config)}>
         <MetaPixel />
         <Suspense fallback={null}>
-          <StoreAnalytics />
+          <StoreAnalytics storeSlug={config.slug} />
         </Suspense>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <StoreConfigProvider value={storeConfig}>

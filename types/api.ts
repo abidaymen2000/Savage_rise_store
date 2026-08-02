@@ -833,45 +833,12 @@ export interface LoyaltyQuote {
 }
 
 export type StoreAnalyticsEventName =
-  | "page_viewed"
-  | "product_viewed"
-  | "collection_viewed"
-  | "search_submitted"
-  | "notify_me_clicked"
-  | "account_created"
-  | "login"
-  | "logout"
-  | "add_to_cart"
-  | "remove_from_cart"
-  | "cart_viewed"
-  | "checkout_started"
-  | "checkout_updated"
-  | "checkout_validation_failed"
-  | "shipping_info_submitted"
-  | "payment_started"
-  | "payment_success"
-  | "payment_failed"
-  | "order_completed"
-  | "coupon_applied"
-  | "size_selected"
-  | "color_selected"
-  | "wishlist_added"
-  | "button_clicked"
-  | "form_submitted"
-  | "form_field_changed"
-  | "cart_quantity_changed"
-  | "cart_cleared"
   | "session_started"
-  | "session_heartbeat"
-  | "session_ended"
-  | "page_hidden"
-  | "page_visible"
-  | "page_engagement"
-  | "page_exited"
-  | "user_activity"
-  | "user_idle"
-  | "form_field_focused"
-  | "scroll_depth_reached"
+  | "page_view"
+  | "product_view"
+  | "add_to_cart"
+  | "checkout_started"
+  | "purchase"
 
 export interface StoreAnalyticsEventPayload {
   event_name: StoreAnalyticsEventName | string
@@ -879,6 +846,7 @@ export interface StoreAnalyticsEventPayload {
   event_version?: number
   event_source?: string | null
   occurred_at?: string | null
+  user_id?: string | null
   anonymous_id?: string | null
   session_id?: string | null
   page_view_id?: string | null
@@ -893,6 +861,8 @@ export interface StoreAnalyticsEventPayload {
   device_type?: string | null
   currency?: string | null
   value?: number | null
+  revenue?: number | null
+  event_time?: string | null
   metadata?: Record<string, unknown>
   properties?: Record<string, unknown>
   referrer?: string | null

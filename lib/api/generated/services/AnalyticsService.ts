@@ -28,7 +28,7 @@ export class AnalyticsService {
     public static createAnalyticsEventAnalyticsEventsPost(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/analytics/events',
+            url: '/analytics/savage-rise/events',
         });
     }
     /**
