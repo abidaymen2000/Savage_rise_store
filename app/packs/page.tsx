@@ -36,21 +36,21 @@ export default async function PacksPage() {
   const { packs, productLookup } = await getPacksPageData()
 
   return (
-    <main className="min-h-screen bg-black pt-24 text-white">
+    <main className="min-h-screen bg-background pt-24 text-foreground">
       <CollectionViewTracker collection="packs" metadata={{ type: "packs" }} />
       <div className="container mx-auto px-4 py-10">
         <div className="mb-10 max-w-3xl">
           <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-gold">Savage Rise Packs</p>
           <h1 className="font-playfair text-4xl font-bold sm:text-5xl">Build the full look, unlock the better price.</h1>
-          <p className="mt-4 leading-7 text-gray-400">
+          <p className="mt-4 leading-7 text-muted-foreground">
             Same-color sets, separate size selection, and a clearer path from standout piece to full outfit.
           </p>
         </div>
 
         {packs.length === 0 ? (
-          <div className="rounded-md border border-white/10 bg-gray-900 p-8 text-center">
-            <Package className="mx-auto mb-4 h-12 w-12 text-gray-600" />
-            <p className="text-gray-400">No active packs available yet.</p>
+          <div className="rounded-md border border-border bg-card p-8 text-center">
+            <Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground">No active packs available yet.</p>
           </div>
         ) : (
           <div className="space-y-6">

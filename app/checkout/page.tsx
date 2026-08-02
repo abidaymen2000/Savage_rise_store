@@ -603,10 +603,10 @@ export default function CheckoutPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     )
@@ -616,17 +616,17 @@ export default function CheckoutPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-20 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="h-8 w-8 text-white" />
+            <Shield className="h-8 w-8 text-foreground" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Order confirmed!</h1>
-          <p className="text-gray-400 mb-4">
+          <p className="text-muted-foreground mb-4">
             Your order has been created successfully. Redirecting to your confirmation page...
           </p>
           {loyaltyFeatureEnabled && isAuthenticated && createdOrder && (
-            <div className="mb-4 rounded-md border border-gold/25 bg-gold/10 p-3 text-sm text-gold">
+            <div className="mb-4 rounded-md border border-accent/25 bg-accent/10 p-3 text-sm text-accent">
               {createdOrder.loyalty_points_used ? (
                 <p>{createdOrder.loyalty_points_used} loyalty points used on this order.</p>
               ) : null}
@@ -635,18 +635,18 @@ export default function CheckoutPage() {
               ) : null}
             </div>
           )}
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold mx-auto"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent mx-auto"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-background text-foreground pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
+          <Link href="/products" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Continue shopping
           </Link>
@@ -654,8 +654,8 @@ export default function CheckoutPage() {
         </div>
 
         {!isAuthenticated && (
-          <Alert className="mb-8 border-gold/40 bg-gold/10">
-            <AlertDescription className="text-gold">
+          <Alert className="mb-8 border-accent/40 bg-accent/10">
+            <AlertDescription className="text-accent">
               You are checking out as a guest. Sign in if you want to use a promo code and track orders from your profile.
               {loyaltyFeatureEnabled ? " Connected customers can also earn and redeem loyalty points." : ""}
             </AlertDescription>
@@ -665,9 +665,9 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Order Summary */}
           <div className="lg:col-span-2">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white">Order summary</CardTitle>
+                <CardTitle className="text-foreground">Order summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {cartState.items.map((item) => (
@@ -675,7 +675,7 @@ export default function CheckoutPage() {
                     key={item.selectedVariantItemId ? `${item.product.id}-${item.selectedVariantItemId}` : `${item.product.id}-${item.selectedVariant.color}-${item.selectedSize}`}
                     className="flex gap-4"
                   >
-                    <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">
+                    <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-muted">
                       <Image
                         src={item.selectedVariant.images[0]?.url || "/placeholder.svg"}
                         alt={item.product.name}
@@ -684,11 +684,11 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white">{item.product.name}</h3>
-                      <p className="text-sm text-gray-400">
+                      <h3 className="font-semibold text-foreground">{item.product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
                         {item.selectedVariant.color} • {item.selectedSize} • Qté : {item.quantity}
                       </p>
-                      <p className="text-gold font-semibold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
+                      <p className="text-accent font-semibold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
                     </div>
                   </div>
                 ))}
@@ -698,8 +698,8 @@ export default function CheckoutPage() {
                   const packPrice = (item.pack.pack_price ?? item.selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) * item.quantity
 
                   return (
-                    <div key={`${item.pack.id}-${item.selections.map((selection) => `${selection.product_id}-${selection.color}-${selection.size}`).join("|")}`} className="flex gap-4 rounded-lg border border-gold/20 bg-gold/5 p-3">
-                      <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">
+                    <div key={`${item.pack.id}-${item.selections.map((selection) => `${selection.product_id}-${selection.color}-${selection.size}`).join("|")}`} className="flex gap-4 rounded-lg border border-accent/20 bg-accent/5 p-3">
+                      <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-muted">
                         <Image
                           src={imageUrl}
                           alt={item.pack.title}
@@ -708,16 +708,16 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pack</p>
-                        <h3 className="font-semibold text-white">{item.pack.title}</h3>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Pack</p>
+                        <h3 className="font-semibold text-foreground">{item.pack.title}</h3>
                         <div className="mt-1 space-y-0.5">
                           {item.selections.map((selection) => (
-                            <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
+                            <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-muted-foreground">
                               {selection.color} • {selection.size} • Qté : {(selection.qty ?? 1) * item.quantity}
                             </p>
                           ))}
                         </div>
-                        <p className="mt-2 text-gold font-semibold">{packPrice.toFixed(2)} TND</p>
+                        <p className="mt-2 text-accent font-semibold">{packPrice.toFixed(2)} TND</p>
                       </div>
                     </div>
                   )
@@ -726,9 +726,9 @@ export default function CheckoutPage() {
             </Card>
 
             {/* Shipping Form */}
-            <Card className="bg-gray-900 border-gray-800 mt-6">
+            <Card className="bg-card border-border mt-6">
               <CardHeader>
-                <CardTitle className="text-white">Informations de livraison</CardTitle>
+                <CardTitle className="text-foreground">Informations de livraison</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -738,7 +738,7 @@ export default function CheckoutPage() {
                       id="full_name"
                       value={shippingInfo.full_name}
                       onChange={(e) => handleInputChange("full_name", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       required
                     />
                   </div>
@@ -749,7 +749,7 @@ export default function CheckoutPage() {
                       type="email"
                       value={shippingInfo.email ?? ""}
                       onChange={(e) => handleInputChange("email", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       placeholder={isAuthenticated ? undefined : "Optional for guest checkout"}
                       required={isAuthenticated}
                     />
@@ -762,7 +762,7 @@ export default function CheckoutPage() {
                     id="phone"
                     value={shippingInfo.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-background border-input text-foreground"
                     placeholder="+216 XX XXX XXX"
                     required
                   />
@@ -774,7 +774,7 @@ export default function CheckoutPage() {
                     id="address_line1"
                     value={shippingInfo.address_line1}
                     onChange={(e) => handleInputChange("address_line1", e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-background border-input text-foreground"
                     required
                   />
                 </div>
@@ -785,7 +785,7 @@ export default function CheckoutPage() {
                     id="address_line2"
                     value={shippingInfo.address_line2 || ""}
                     onChange={(e) => handleInputChange("address_line2", e.target.value)}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-background border-input text-foreground"
                     placeholder="Apartment, floor, etc."
                   />
                 </div>
@@ -797,7 +797,7 @@ export default function CheckoutPage() {
                       id="postal_code"
                       value={shippingInfo.postal_code}
                       onChange={(e) => handleInputChange("postal_code", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       required
                     />
                   </div>
@@ -807,7 +807,7 @@ export default function CheckoutPage() {
                       id="city"
                       value={shippingInfo.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       required
                     />
                   </div>
@@ -817,7 +817,7 @@ export default function CheckoutPage() {
                       id="country"
                       value={shippingInfo.country}
                       onChange={(e) => handleInputChange("country", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       required
                     />
                   </div>
@@ -828,14 +828,14 @@ export default function CheckoutPage() {
 
           {/* Order Total */}
           <div>
-            <Card className="bg-gray-900 border-gray-800 sticky top-24">
+            <Card className="bg-card border-border sticky top-24">
               <CardHeader>
-                <CardTitle className="text-white">Order total</CardTitle>
+                <CardTitle className="text-foreground">Order total</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Subtotal</span>
-                  <span className="text-white">{displaySubtotal.toFixed(2)} TND</span>
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-foreground">{displaySubtotal.toFixed(2)} TND</span>
                 </div>
 
                 {displayPackDiscount > 0 && (
@@ -855,7 +855,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-green-500">- {displayPromotionDiscount.toFixed(2)} TND</span>
                       <button
-                        className="text-xs text-gray-400 hover:text-white flex items-center gap-1"
+                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                         onClick={handleRemovePromo}
                         disabled={promoLoading}
                         title="Remove code"
@@ -874,15 +874,15 @@ export default function CheckoutPage() {
                 )}
 
                 {loyaltyFeatureEnabled && isAuthenticated && (
-                  <div className="rounded-md border border-gold/25 bg-gold/5 p-4 space-y-3">
+                  <div className="rounded-md border border-accent/25 bg-accent/5 p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-full bg-gold/15 p-2 text-gold">
+                        <div className="mt-0.5 rounded-full bg-accent/15 p-2 text-accent">
                           <Coins className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="font-semibold text-white">Loyalty points</p>
-                          <p className="text-sm text-gray-400">
+                          <p className="font-semibold text-foreground">Loyalty points</p>
+                          <p className="text-sm text-muted-foreground">
                             {loyaltyLoading && !loyaltyBalance
                               ? "Loading your balance..."
                               : loyaltyBalance
@@ -912,7 +912,7 @@ export default function CheckoutPage() {
                               }
                             }}
                           />
-                          <span className="text-sm text-gray-200">
+                          <span className="text-sm text-foreground">
                             Use points as a discount
                           </span>
                         </label>
@@ -933,19 +933,19 @@ export default function CheckoutPage() {
                                       : 0,
                                   )
                                 }}
-                                className="bg-black border-white/10 text-white"
+                                className="bg-black border-white/10 text-foreground"
                               />
                               <Button
                                 type="button"
                                 variant="outline"
-                                className="border-gold/50 bg-transparent text-gold hover:bg-gold hover:text-black"
+                                className="border-accent/50 bg-transparent text-accent hover:bg-accent hover:text-accent-foreground"
                                 onClick={() => setLoyaltyPointsToUse(loyaltyBalance.points_balance)}
                               >
                                 Max
                               </Button>
                             </div>
                             {loyaltyQuote && (
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-muted-foreground">
                                 {loyaltyQuote.usable_points} points apply {loyaltyQuote.discount_value.toFixed(2)} TND discount.
                               </p>
                             )}
@@ -953,7 +953,7 @@ export default function CheckoutPage() {
                         )}
                       </>
                     ) : (
-                      <p className="text-sm text-gray-500">Loyalty rewards are currently unavailable.</p>
+                      <p className="text-sm text-muted-foreground">Loyalty rewards are currently unavailable.</p>
                     )}
 
                     {loyaltyError && (
@@ -965,7 +965,7 @@ export default function CheckoutPage() {
                 )}
 
                 {loyaltyFeatureEnabled && isAuthenticated && displayLoyaltyDiscount > 0 && (
-                  <div className="flex justify-between text-gold">
+                  <div className="flex justify-between text-accent">
                     <div className="flex items-center gap-2">
                       <Coins className="h-4 w-4" />
                       <span>{loyaltyPointsUsed} loyalty points</span>
@@ -975,8 +975,8 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Livraison</span>
-                  <span className="text-white">
+                  <span className="text-muted-foreground">Livraison</span>
+                  <span className="text-foreground">
                     {quoteLoading
                       ? "Validating..."
                       : orderQuote
@@ -988,7 +988,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {orderQuote?.shipping_rate_name && (
-                  <p className="text-xs text-gray-500 text-right">{orderQuote.shipping_rate_name}</p>
+                  <p className="text-xs text-muted-foreground text-right">{orderQuote.shipping_rate_name}</p>
                 )}
 
                 {quoteError && (
@@ -1003,15 +1003,15 @@ export default function CheckoutPage() {
                   </Alert>
                 )}
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Status: {checkoutStatus}
                 </p>
 
                 <Separator className="bg-gray-700" />
 
                 <div className="flex justify-between text-lg font-semibold">
-                  <span className="text-white">Total</span>
-                  <span className="text-gold">{total.toFixed(2)} TND</span>
+                  <span className="text-foreground">Total</span>
+                  <span className="text-accent">{total.toFixed(2)} TND</span>
                 </div>
 
                 {error && (
@@ -1021,15 +1021,15 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Truck className="h-4 w-4" />
                     <span>{orderQuote ? "Total validated by the backend quote." : "Your final total is being validated by the backend."}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Shield className="h-4 w-4" />
                     <span>Secure payment</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CreditCard className="h-4 w-4" />
                     <span>Paiement à la livraison</span>
                   </div>
@@ -1038,7 +1038,7 @@ export default function CheckoutPage() {
                 <Button
                   onClick={handlePlaceOrder}
                   disabled={isProcessing || promoLoading || quoteLoading || (useLoyaltyPoints && loyaltyLoading) || !orderQuote}
-                  className="w-full bg-gold text-black hover:bg-gold/90 font-semibold py-3"
+                  className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold py-3"
                 >
                   {isProcessing ? (
                     <>
@@ -1050,7 +1050,7 @@ export default function CheckoutPage() {
                   )}
                 </Button>
 
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   By confirming your order, you accept our terms of sale.
                 </p>
               </CardContent>
@@ -1071,3 +1071,5 @@ export default function CheckoutPage() {
     </div>
   )
 }
+
+

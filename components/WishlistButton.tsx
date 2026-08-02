@@ -84,7 +84,7 @@ export default function WishlistButton({ productId, initialIsInWishlist = false,
     <Button
       variant="outline"
       size="icon"
-      className={`border-white text-white hover:bg-white hover:text-black bg-transparent ${className}`}
+      className={`border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black ${className}`}
       onClick={handleToggleWishlist}
       disabled={isUpdating || authLoading}
     >

@@ -146,12 +146,12 @@ export default function CategoryPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20">
+      <div className="min-h-screen bg-background text-foreground pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="flex items-center justify-center">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-              <p className="text-gray-400">Chargement des produits...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Chargement des produits...</p>
             </div>
           </div>
         </div>
@@ -161,11 +161,11 @@ export default function CategoryPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20">
+      <div className="min-h-screen bg-background text-foreground pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
             <p className="text-red-400 mb-4">Error: {error}</p>
-            <Button onClick={() => fetchCategoryProducts()} className="bg-gold text-black hover:bg-gold/90">
+            <Button onClick={() => fetchCategoryProducts()} className="bg-accent text-accent-foreground hover:bg-accent/90">
               Try again
             </Button>
           </div>
@@ -175,22 +175,22 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-background text-foreground pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8">
-          <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
+          <Link href="/products" className="flex items-center text-muted-foreground hover:text-foreground dark:text-white transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             All products
           </Link>
-          <span className="text-gray-500">/</span>
-          <span className="text-gold">{categoryName}</span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-accent">{categoryName}</span>
         </div>
 
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4">{categoryName.toUpperCase()}</h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Discover our exclusive selection of {categoryName.toLowerCase()} for a contemporary and confident style.
           </p>
         </div>
@@ -198,20 +198,20 @@ export default function CategoryPage() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search for a product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-400"
+              className="pl-10 bg-card border-input text-card-foreground placeholder:text-muted-foreground"
             />
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full md:w-48 bg-gray-900 border-gray-700 text-white">
+            <SelectTrigger className="w-full md:w-48 bg-card border-input text-card-foreground">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-900 border-gray-700">
+            <SelectContent className="bg-card border-input">
               <SelectItem value="name">Name A-Z</SelectItem>
               <SelectItem value="price-asc">Price: low to high</SelectItem>
               <SelectItem value="price-desc">Price: high to low</SelectItem>
@@ -222,7 +222,7 @@ export default function CategoryPage() {
         {/* Products Grid */}
         {filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No products found in this category.</p>
+            <p className="text-muted-foreground text-lg">No products found in this category.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -238,7 +238,7 @@ export default function CategoryPage() {
               return (
                 <div
                   key={product.id}
-                  className="group relative overflow-hidden bg-gray-900 rounded-lg"
+                  className="group relative overflow-hidden bg-muted rounded-lg"
                   onMouseEnter={() => setHoveredProduct(product.id)}
                   onMouseLeave={() => setHoveredProduct(null)}
                 >
@@ -254,7 +254,7 @@ export default function CategoryPage() {
 
                       {!productInStock && (
                         <div className="absolute top-4 left-4">
-                          <span className="bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded-full">
+                          <span className="bg-red-600 text-foreground dark:text-white px-3 py-1 text-xs font-semibold rounded-full">
                             Out of stock
                           </span>
                         </div>
@@ -271,11 +271,11 @@ export default function CategoryPage() {
                     <Button
                       size="icon"
                       variant="secondary"
-                      className={`bg-white/90 hover:bg-white ${inWishlist ? 'bg-gold text-black hover:bg-gold/90' : ''}`}
+                      className={`bg-white/90 hover:bg-white ${inWishlist ? 'bg-accent text-accent-foreground hover:bg-accent/90' : ''}`}
                       onClick={() => handleToggleWishlist(product)}
                       disabled={isWishlistLoading && isAuthenticated}
                     >
-                      <Heart className={`h-4 w-4 ${inWishlist ? 'fill-black' : 'text-black'}`} />
+                      <Heart className={`h-4 w-4 ${inWishlist ? 'fill-accent-foreground' : 'text-accent-foreground'}`} />
                     </Button>
                     {!isBundle && (
                       <Button
@@ -285,20 +285,20 @@ export default function CategoryPage() {
                         onClick={() => handleAddToCart(product)}
                         disabled={!productInStock}
                       >
-                        <ShoppingBag className="h-4 w-4 text-black" />
+                        <ShoppingBag className="h-4 w-4 text-accent-foreground" />
                       </Button>
                     )}
                   </div>
 
                   <div className="p-6">
                     <Link href={`/products/${product.id}`}>
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-gold transition-colors line-clamp-2">
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">
                         {product.name}
                       </h3>
                       {product.description && (
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{product.description}</p>
+                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{product.description}</p>
                       )}
-                      <p className="text-gold text-lg font-bold">{formatPrice(product.price)}</p>
+                      <p className="text-accent text-lg font-bold">{formatPrice(product.price)}</p>
                     </Link>
 
                     {relatedPack && (
@@ -308,11 +308,11 @@ export default function CategoryPage() {
                     )}
 
                     {sizes.length > 0 && (
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-                        <span className="text-xs uppercase tracking-[0.16em] text-gray-500">Sizes</span>
+                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-border dark:border-white/10 pt-4">
+                        <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Sizes</span>
                         <div className="flex flex-wrap justify-end gap-1.5">
                           {sizes.slice(0, 6).map((size) => (
-                            <span key={size} className="min-w-7 rounded border border-white/15 px-2 py-1 text-center text-xs text-gray-200">
+                            <span key={size} className="min-w-7 rounded border border-border dark:border-white/15 px-2 py-1 text-center text-xs text-foreground">
                               {size}
                             </span>
                           ))}
@@ -330,3 +330,4 @@ export default function CategoryPage() {
     </div>
   )
 }
+

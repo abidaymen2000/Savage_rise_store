@@ -70,21 +70,21 @@ function ResetPasswordForm() {
   }
 
   return (
-    <main className="min-h-screen bg-black px-4 py-12 pt-28 text-white">
-      <Card className="mx-auto max-w-lg border-gray-800 bg-gray-900 text-white">
+    <main className="min-h-screen bg-background px-4 py-12 pt-28 text-foreground">
+      <Card className="mx-auto max-w-lg border-border bg-card text-foreground dark:text-white">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gold/15 text-gold">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 text-accent">
             {success ? <CheckCircle2 className="h-6 w-6" /> : <Lock className="h-6 w-6" />}
           </div>
-          <CardTitle className="font-playfair text-2xl text-gold">
+          <CardTitle className="font-playfair text-2xl text-accent">
             {success ? "Password updated" : "Reset password"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {success ? (
             <div className="space-y-5 text-center">
-              <p className="text-gray-300">Your password has been changed. You can sign in with your new password.</p>
-              <Button asChild className="bg-gold text-black hover:bg-gold/90">
+              <p className="text-muted-foreground">Your password has been changed. You can sign in with your new password.</p>
+              <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <Link href="/">Back to store</Link>
               </Button>
             </div>
@@ -105,7 +105,7 @@ function ResetPasswordForm() {
                   placeholder="Enter new password"
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
-                  className="border-gray-700 bg-gray-800 text-white placeholder:text-gray-500"
+                  className="border-input bg-background text-foreground placeholder:text-muted-foreground"
                   minLength={6}
                   required
                 />
@@ -118,7 +118,7 @@ function ResetPasswordForm() {
                   placeholder="Confirm new password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="border-gray-700 bg-gray-800 text-white placeholder:text-gray-500"
+                  className="border-input bg-background text-foreground placeholder:text-muted-foreground"
                   minLength={6}
                   required
                 />
@@ -133,7 +133,7 @@ function ResetPasswordForm() {
               <Button
                 type="submit"
                 disabled={isSubmitting || !token}
-                className="w-full bg-gold font-semibold text-black hover:bg-gold/90"
+                className="w-full bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
               >
                 {isSubmitting ? (
                   <>
@@ -156,8 +156,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center bg-black pt-20 text-white">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+        <main className="flex min-h-screen items-center justify-center bg-background pt-20 text-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
         </main>
       }
     >
@@ -165,3 +165,5 @@ export default function ResetPasswordPage() {
     </Suspense>
   )
 }
+
+

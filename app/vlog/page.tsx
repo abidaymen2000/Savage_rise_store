@@ -230,7 +230,7 @@ function EpisodeCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-md border border-white/10 bg-zinc-950">
+    <article className="overflow-hidden rounded-md border border-border dark:border-white/10 bg-card">
       <div className="relative aspect-video bg-zinc-900">
         {hasVideo ? (
           <video
@@ -246,12 +246,12 @@ function EpisodeCard({
           <Image src={episode.thumbnail_url} alt={episode.title} fill className="object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-zinc-900">
-            <Clock className="h-10 w-10 text-gold" />
+            <Clock className="h-10 w-10 text-accent" />
           </div>
         )}
         {!hasVideo && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/45">
-            <span className="rounded-full border border-gold/60 bg-black/70 px-4 py-2 text-sm font-semibold text-gold">
+            <span className="rounded-full border border-accent/60 bg-black/70 px-4 py-2 text-sm font-semibold text-accent">
               Coming soon
             </span>
           </div>
@@ -259,11 +259,11 @@ function EpisodeCard({
       </div>
 
       <div className="space-y-4 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
-          <span className="rounded-full bg-gold px-3 py-1 font-semibold text-black">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="rounded-full bg-accent px-3 py-1 font-semibold text-accent-foreground">
             Drop {String(episode.episode_number).padStart(2, "0")}
           </span>
-          <span className="rounded-full border border-white/10 px-3 py-1">{getStatusLabel(episode.status)}</span>
+          <span className="rounded-full border border-border dark:border-white/10 px-3 py-1">{getStatusLabel(episode.status)}</span>
           {releaseDate && (
             <span className="inline-flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
@@ -273,13 +273,13 @@ function EpisodeCard({
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-white">{episode.title}</h3>
-          {episode.description && <p className="mt-2 text-sm leading-6 text-gray-400">{episode.description}</p>}
+          <h3 className="text-lg font-semibold text-foreground dark:text-white">{episode.title}</h3>
+          {episode.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{episode.description}</p>}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-y border-white/10 py-3 text-sm text-gray-300">
+        <div className="flex flex-wrap items-center gap-2 border-y border-border dark:border-white/10 py-3 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5">
-            <Eye className="h-4 w-4 text-gold" />
+            <Eye className="h-4 w-4 text-accent" />
             {formatCount(episode.view_count)} views
           </span>
           <button
@@ -288,8 +288,8 @@ function EpisodeCard({
             disabled={isLiking}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
               episode.liked_by_current_user
-                ? "bg-gold text-black"
-                : "bg-white/5 text-gray-300 hover:bg-gold/10 hover:text-gold"
+                ? "bg-accent text-accent-foreground"
+                : "bg-white/5 text-muted-foreground hover:bg-accent/10 hover:text-accent"
             }`}
           >
             <Heart className={`h-4 w-4 ${episode.liked_by_current_user ? "fill-current" : ""}`} />
@@ -298,22 +298,22 @@ function EpisodeCard({
           <button
             type="button"
             onClick={handleToggleComments}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 transition-colors hover:bg-gold/10 hover:text-gold"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 transition-colors hover:bg-accent/10 hover:text-accent"
           >
-            <MessageCircle className="h-4 w-4 text-gold" />
+            <MessageCircle className="h-4 w-4 text-accent" />
             {formatCount(episode.comment_count)}
           </button>
         </div>
 
         {commentsOpen && (
-          <div className="space-y-4 rounded-md border border-white/10 bg-black/35 p-3">
+          <div className="space-y-4 rounded-md border border-border dark:border-white/10 bg-black/35 p-3">
             <div className="space-y-2">
               <Textarea
                 value={commentText}
                 onChange={(event) => setCommentText(event.target.value)}
                 placeholder={isAuthenticated ? "Write a comment..." : "Sign in to comment"}
                 disabled={!isAuthenticated || commentSubmitting}
-                className="min-h-[88px] border-white/10 bg-black text-white placeholder:text-gray-500"
+                className="min-h-[88px] border-border dark:border-white/10 bg-background text-foreground placeholder:text-muted-foreground"
               />
               <div className="flex justify-end">
                 <Button
@@ -321,7 +321,7 @@ function EpisodeCard({
                   size="sm"
                   onClick={handleSubmitComment}
                   disabled={commentSubmitting || (isAuthenticated && !commentText.trim())}
-                  className="bg-gold text-black hover:bg-gold/90"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
                   {commentSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                   {isAuthenticated ? "Post" : "Sign in"}
@@ -331,46 +331,46 @@ function EpisodeCard({
 
             <div className="space-y-3">
               {commentsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Loading comments
                 </div>
               ) : comments.length > 0 ? (
                 comments.map((comment) => (
-                  <div key={comment.id} className="rounded-md border border-white/10 bg-zinc-950 p-3">
+                  <div key={comment.id} className="rounded-md border border-border dark:border-white/10 bg-card p-3">
                     <div className="mb-1 flex items-center justify-between gap-3">
-                      <span className="text-sm font-semibold text-white">{comment.author ?? "Savage viewer"}</span>
+                      <span className="text-sm font-semibold text-foreground dark:text-white">{comment.author ?? "Savage viewer"}</span>
                       {user?.id === comment.user_id && (
                         <button
                           type="button"
                           onClick={() => handleDeleteComment(comment.id)}
-                          className="text-gray-500 transition-colors hover:text-red-300"
+                          className="text-muted-foreground transition-colors hover:text-red-300"
                           aria-label="Delete comment"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       )}
                     </div>
-                    <p className="text-sm leading-6 text-gray-300">{comment.content}</p>
+                    <p className="text-sm leading-6 text-muted-foreground">{comment.content}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No comments yet.</p>
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
               )}
             </div>
           </div>
         )}
 
         {episode.products && episode.products.length > 0 && (
-          <div className="space-y-2 border-t border-white/10 pt-4">
+          <div className="space-y-2 border-t border-border dark:border-white/10 pt-4">
             {episode.products.slice(0, 3).map((product) => (
               <Link
                 key={product.id}
                 href={`/products/${product.id}`}
-                className="flex items-center justify-between gap-3 text-sm text-gray-300 transition-colors hover:text-gold"
+                className="flex items-center justify-between gap-3 text-sm text-muted-foreground transition-colors hover:text-accent"
               >
                 <span className="min-w-0 truncate">{product.full_name ?? product.name}</span>
-                <span className="shrink-0 text-gold">{formatPrice(product.price)}</span>
+                <span className="shrink-0 text-accent">{formatPrice(product.price)}</span>
               </Link>
             ))}
           </div>
@@ -394,7 +394,7 @@ function ChapterSection({
   const shortFilm = chapter.short_film
 
   return (
-    <section className="border-t border-white/10 py-12 md:py-16" id={chapter.slug}>
+    <section className="border-t border-border dark:border-white/10 py-12 md:py-16" id={chapter.slug}>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)] lg:gap-10">
         <div className="space-y-6">
           <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-zinc-900 sm:aspect-[16/10] lg:sticky lg:top-24 lg:aspect-[4/5]">
@@ -411,16 +411,16 @@ function ChapterSection({
               <Image src={chapter.cover_image_url} alt={chapter.title} fill className="object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <Film className="h-12 w-12 text-gold" />
+                <Film className="h-12 w-12 text-accent" />
               </div>
             )}
-            <div className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-gold">
+            <div className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-accent">
               {getStatusLabel(chapter.status)}
             </div>
           </div>
 
           <div>
-            <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-400">
+            <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span>Chapter {chapter.order ?? 1}</span>
               {releaseDate && (
                 <span className="inline-flex items-center gap-1">
@@ -429,8 +429,8 @@ function ChapterSection({
                 </span>
               )}
             </div>
-            <h2 className="font-playfair text-3xl font-bold text-white sm:text-4xl">{chapter.title}</h2>
-            {chapter.description && <p className="mt-4 leading-7 text-gray-300">{chapter.description}</p>}
+            <h2 className="font-playfair text-3xl font-bold text-foreground dark:text-white sm:text-4xl">{chapter.title}</h2>
+            {chapter.description && <p className="mt-4 leading-7 text-muted-foreground">{chapter.description}</p>}
           </div>
         </div>
 
@@ -446,21 +446,21 @@ function ChapterSection({
                   />
                 ))
               : [1, 2, 3].map((dropNumber) => (
-                  <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-zinc-950 p-5 theme-aware-card">
+                  <div key={dropNumber} className="rounded-md border border-dashed border-border dark:border-white/15 bg-card p-5 theme-aware-card">
                     <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900 theme-aware-secondary">
-                      <Clock className="h-8 w-8 text-gold" />
+                      <Clock className="h-8 w-8 text-accent" />
                     </div>
-                    <span className="rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+                    <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
                       Drop {String(dropNumber).padStart(2, "0")}
                     </span>
                     <h3 className="mt-4 text-lg font-semibold">Coming soon</h3>
-                    <p className="mt-2 text-sm leading-6 text-gray-400">This part of the chapter will appear here.</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">This part of the chapter will appear here.</p>
                   </div>
                 ))}
           </div>
 
           {shortFilm && (
-            <article className="overflow-hidden rounded-md border border-gold/30 bg-zinc-950 theme-aware-card">
+            <article className="overflow-hidden rounded-md border border-accent/30 bg-card theme-aware-card">
               <div className="grid gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
                 <div className="relative aspect-video bg-zinc-900">
                   {shortFilm.video_url ? (
@@ -476,19 +476,19 @@ function ChapterSection({
                     <Image src={shortFilm.thumbnail_url} alt={shortFilm.title ?? chapter.title} fill className="object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
-                      <Film className="h-10 w-10 text-gold" />
+                      <Film className="h-10 w-10 text-accent" />
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col justify-center p-5 sm:p-6">
-                  <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+                  <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
                     <Film className="h-3.5 w-3.5" />
                     Short film
                   </div>
-                  <h3 className="text-2xl font-semibold text-white">{shortFilm.title ?? `${chapter.title}: The Film`}</h3>
-                  {shortFilm.description && <p className="mt-3 leading-7 text-gray-300">{shortFilm.description}</p>}
+                  <h3 className="text-2xl font-semibold text-foreground dark:text-white">{shortFilm.title ?? `${chapter.title}: The Film`}</h3>
+                  {shortFilm.description && <p className="mt-3 leading-7 text-muted-foreground">{shortFilm.description}</p>}
                   {!shortFilm.is_released && (
-                    <p className="mt-4 text-sm font-semibold text-gold">Final film coming soon</p>
+                    <p className="mt-4 text-sm font-semibold text-accent">Final film coming soon</p>
                   )}
                 </div>
               </div>
@@ -552,34 +552,34 @@ export default function VlogPage() {
 
   return (
     <>
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <section className="relative flex min-h-[78vh] items-end overflow-hidden pt-20">
         {heroVideo ? (
           <video src={heroVideo} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" />
         ) : settings.hero_image_url ? (
           <Image src={settings.hero_image_url} alt={heroTitle ?? "Savage Rise Vlog"} fill className="object-cover" priority />
         ) : (
-          <div className="absolute inset-0 bg-zinc-950" />
+          <div className="absolute inset-0 bg-card" />
         )}
         <div className="absolute inset-0 bg-black/60" />
 
         <div className="container relative z-10 mx-auto px-4 pb-12 sm:pb-16 lg:pb-20">
           <div className="max-w-3xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-gold/50 bg-black/50 px-4 py-2 text-sm font-semibold text-gold">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/50 bg-black/50 px-4 py-2 text-sm font-semibold text-accent">
               <Play className="h-4 w-4 fill-current" />
               Vlog
             </div>
-            {settings.subtitle && <p className="mb-3 text-sm font-semibold uppercase text-gold">{settings.subtitle}</p>}
+            {settings.subtitle && <p className="mb-3 text-sm font-semibold uppercase text-accent">{settings.subtitle}</p>}
             <h1 className="font-playfair text-5xl font-bold leading-tight sm:text-6xl lg:text-7xl">{heroTitle}</h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-gray-200 sm:text-lg">{heroDescription}</p>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-foreground sm:text-lg">{heroDescription}</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Button asChild className="bg-gold text-black hover:bg-gold/90">
+              <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <a href="#chapters">
                   Watch chapters
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </a>
               </Button>
-              <Button asChild variant="outline" className="border-white/70 bg-black/20 text-white hover:bg-white hover:text-black">
+              <Button asChild variant="outline" className="border-white/70 bg-black/20 text-foreground dark:text-white hover:bg-primary hover:text-primary-foreground">
                 <Link href="/products">Explore drops</Link>
               </Button>
             </div>
@@ -590,11 +590,11 @@ export default function VlogPage() {
       <section id="chapters" className="container mx-auto px-4 py-12 md:py-16">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase text-gold">Chapters</p>
+            <p className="mb-2 text-sm font-semibold uppercase text-accent">Chapters</p>
             <h2 className="font-playfair text-3xl font-bold sm:text-4xl">Three drops. One story.</h2>
           </div>
           {loading && (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading
             </div>
@@ -613,26 +613,26 @@ export default function VlogPage() {
             />
           ))
         ) : (
-          <div className="rounded-md border border-white/10 bg-zinc-950 p-6 sm:p-8 theme-aware-card">
+          <div className="rounded-md border border-border dark:border-white/10 bg-card p-6 sm:p-8 theme-aware-card">
             <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center">
               <div>
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gold text-black">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
                   <Film className="h-7 w-7" />
                 </div>
                 <h3 className="text-2xl font-semibold">The first chapter is being prepared</h3>
-                <p className="mt-3 leading-7 text-gray-400">
+                <p className="mt-3 leading-7 text-muted-foreground">
                   When we publishes a chapter, this space will show its three drops, their videos, linked products,
                   and the final short film.
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[1, 2, 3].map((dropNumber) => (
-                  <div key={dropNumber} className="rounded-md border border-dashed border-white/15 bg-black p-4 theme-aware-card">
+                  <div key={dropNumber} className="rounded-md border border-dashed border-border dark:border-white/15 bg-black p-4 theme-aware-card">
                     <div className="mb-4 flex aspect-video items-center justify-center rounded bg-zinc-900 theme-aware-secondary">
-                      <Clock className="h-8 w-8 text-gold" />
+                      <Clock className="h-8 w-8 text-accent" />
                     </div>
-                    <p className="text-sm font-semibold text-gold">Drop {String(dropNumber).padStart(2, "0")}</p>
-                    <p className="mt-2 text-sm text-gray-400">Coming soon</p>
+                    <p className="text-sm font-semibold text-accent">Drop {String(dropNumber).padStart(2, "0")}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Coming soon</p>
                   </div>
                 ))}
               </div>
@@ -645,3 +645,5 @@ export default function VlogPage() {
     </>
   )
 }
+
+

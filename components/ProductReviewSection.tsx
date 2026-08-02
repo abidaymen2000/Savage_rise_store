@@ -120,7 +120,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
         {Array.from({ length: maxStars }, (_, i) => i + 1).map((starValue) => (
           <Star
             key={starValue}
-            className={`h-5 w-5 ${starValue <= rating ? "text-gold fill-gold" : "text-gray-500"
+            className={`h-5 w-5 ${starValue <= rating ? "text-accent fill-gold" : "text-muted-foreground"
               } ${clickable ? "cursor-pointer" : ""}`}
             onClick={clickable ? () => handleStarClick(starValue) : undefined}
           />
@@ -130,22 +130,22 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <Star className="h-5 w-5 text-gold" />
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <Star className="h-5 w-5 text-accent" />
           Customer reviews
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {reviewStats && reviewStats.count > 0 && (
           <div className="flex items-center gap-4 mb-4">
-            <div className="text-4xl font-bold text-gold">
+            <div className="text-4xl font-bold text-accent">
               {reviewStats.average_rating?.toFixed(1) || "N/A"}
             </div>
             <div className="flex flex-col">
               {renderStars(reviewStats.average_rating || 0)}
-              <p className="text-gray-400 text-sm">Based on {reviewStats.count} reviews</p>
+              <p className="text-muted-foreground text-sm">Based on {reviewStats.count} reviews</p>
             </div>
           </div>
         )}
@@ -154,7 +154,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
 
         {/* Review Submission Form */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Leave a review</h3>
+          <h3 className="text-lg font-semibold text-foreground">Leave a review</h3>
           {!isAuthenticated && !authLoading ? (
             <Alert className="border-blue-600 bg-blue-900/20">
               <AlertDescription className="text-blue-400">
@@ -177,7 +177,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                       placeholder="A title for your review..."
                       value={userReviewTitle}
                       onChange={(e) => setUserReviewTitle(e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       rows={1}
                     />
                   </div>
@@ -188,7 +188,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                       placeholder="Share your experience with this product..."
                       value={userComment}
                       onChange={(e) => setUserComment(e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-background border-input text-foreground"
                       rows={4}
                     />
                   </div>
@@ -200,7 +200,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
                   <Button
                     type="submit"
                     disabled={isSubmittingReview || userRating === 0}
-                    className="w-full bg-gold text-black hover:bg-gold/90 font-semibold"
+                    className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
                   >
                     {isSubmittingReview ? (
                       <>
@@ -221,27 +221,27 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
 
         {/* Existing Reviews */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">All reviews ({reviews.length})</h3>
+          <h3 className="text-lg font-semibold text-foreground">All reviews ({reviews.length})</h3>
           {loadingReviews ? (
             <div className="text-center py-4">
-              <Loader2 className="h-8 w-8 animate-spin text-gold mx-auto" />
-              <p className="text-gray-400 mt-2">Loading reviews...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-accent mx-auto" />
+              <p className="text-muted-foreground mt-2">Loading reviews...</p>
             </div>
           ) : reviews.length === 0 ? (
-            <p className="text-gray-400">Be the first to review this product!</p>
+            <p className="text-muted-foreground">Be the first to review this product!</p>
           ) : (
             <div className="space-y-6">
               {reviews.map((review) => (
-                <div key={review.id} className="border-b border-gray-800 pb-4 last:border-b-0">
+                <div key={review.id} className="border-b border-border pb-4 last:border-b-0">
                   <div className="flex items-center gap-2 mb-2">
                     {renderStars(review.rating)}
-                    <span className="text-sm text-gray-400">
+                    <span className="text-sm text-muted-foreground">
                       {new Date(review.created_at).toLocaleDateString("en-US")}
                     </span>
                   </div>
-                  {review.title && <h4 className="font-semibold text-white text-lg mb-1">{review.title}</h4>}
-                  {review.comment && <p className="text-gray-300 text-sm">{review.comment}</p>}
-                  <p className="text-xs text-gray-500 mt-2">
+                  {review.title && <h4 className="font-semibold text-foreground text-lg mb-1">{review.title}</h4>}
+                  {review.comment && <p className="text-muted-foreground text-sm">{review.comment}</p>}
+                  <p className="text-xs text-muted-foreground mt-2">
                     By: {review.author?.trim() || "User"}
                   </p>
                 </div>
@@ -253,3 +253,4 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
     </Card>
   )
 }
+

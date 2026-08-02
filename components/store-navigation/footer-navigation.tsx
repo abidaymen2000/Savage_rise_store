@@ -8,14 +8,14 @@ function FooterColumn({ item }: { item: NavigationItem }) {
   if (children.length === 0) {
     return (
       <li>
-        <NavigationItemLink item={item} className="text-sm text-gray-400 transition-colors hover:text-white" />
+        <NavigationItemLink item={item} className="text-sm text-muted-foreground transition-colors hover:text-foreground dark:text-white" />
       </li>
     )
   }
 
   return (
     <li>
-      <p className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-white">{item.label}</p>
+      <p className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-foreground dark:text-white">{item.label}</p>
       <ul className="space-y-2">
         {children.map((child) => (
           <FooterColumn key={child.id} item={child} />
@@ -33,7 +33,7 @@ export default function FooterNavigation({ items }: { items: NavigationItem[] })
   if (!hasColumns) {
     return (
       <div>
-        <h4 className="mb-4 font-semibold text-white">NAVIGATION</h4>
+        <h4 className="mb-4 font-semibold text-foreground dark:text-white">NAVIGATION</h4>
         <ul className="space-y-2">
           {items.map((item) => (
             <FooterColumn key={item.id} item={item} />
@@ -49,7 +49,7 @@ export default function FooterNavigation({ items }: { items: NavigationItem[] })
         <div key={item.id}>
           {(item.children?.length ?? 0) > 0 ? (
             <>
-              <h4 className="mb-4 font-semibold uppercase tracking-[0.14em] text-white">{item.label}</h4>
+              <h4 className="mb-4 font-semibold uppercase tracking-[0.14em] text-foreground dark:text-white">{item.label}</h4>
               <ul className="space-y-2">
                 {item.children?.map((child) => (
                   <FooterColumn key={child.id} item={child} />
@@ -66,3 +66,4 @@ export default function FooterNavigation({ items }: { items: NavigationItem[] })
     </div>
   )
 }
+

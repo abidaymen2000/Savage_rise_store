@@ -35,9 +35,9 @@ type IconName = keyof typeof iconMap
 
 export function StorePageShell({ page, children }: { page: StorePagePublicOut; children?: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-black text-white pt-24">
+    <main className="min-h-screen bg-background text-foreground pt-24">
       <div className="container mx-auto px-4 py-10">
-        <Link href="/" className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-8">
+        <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-foreground dark:text-white transition-colors mb-8">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to home
         </Link>
@@ -53,7 +53,7 @@ export function StorePageHeader({ page, compact = false }: { page: StorePagePubl
   return (
     <div className={cn("max-w-3xl", compact ? "mb-8" : "mb-12")}>
       <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4">{page.title}</h1>
-      {page.subtitle ? <p className="text-gray-300 text-lg leading-relaxed">{page.subtitle}</p> : null}
+      {page.subtitle ? <p className="text-muted-foreground text-lg leading-relaxed">{page.subtitle}</p> : null}
     </div>
   )
 }
@@ -82,11 +82,11 @@ function HeroBlock({ block }: { block: StorePageHeroBlock }) {
   return (
     <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
       <div>
-        {block.eyebrow ? <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gold">{block.eyebrow}</p> : null}
+        {block.eyebrow ? <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent">{block.eyebrow}</p> : null}
         <h2 className="text-3xl md:text-4xl font-playfair font-bold mb-6">{block.title}</h2>
-        {block.subtitle ? <MarkdownText text={block.subtitle} className="text-gray-300 text-lg leading-relaxed" /> : null}
+        {block.subtitle ? <MarkdownText text={block.subtitle} className="text-muted-foreground text-lg leading-relaxed" /> : null}
         {block.cta_label && block.cta_url ? (
-          <Link href={block.cta_url} className="mt-8 inline-flex rounded-md bg-gold px-5 py-3 font-semibold text-black hover:bg-gold/90">
+          <Link href={block.cta_url} className="mt-8 inline-flex rounded-md bg-accent px-5 py-3 font-semibold text-accent-foreground hover:bg-accent/90">
             {block.cta_label}
           </Link>
         ) : null}
@@ -94,7 +94,7 @@ function HeroBlock({ block }: { block: StorePageHeroBlock }) {
       {block.image_url ? (
         <div className="relative">
           <Image src={block.image_url} alt={block.image_alt || block.title} width={560} height={640} className="rounded-lg object-contain" unoptimized />
-          <div className="absolute -bottom-6 -left-6 bg-gold text-black p-6 rounded-lg">
+          <div className="absolute -bottom-6 -left-6 bg-accent text-accent-foreground p-6 rounded-lg">
             <div className="text-2xl font-bold">100%</div>
             <div className="text-sm font-semibold">FAIT MAIN</div>
           </div>
@@ -106,18 +106,18 @@ function HeroBlock({ block }: { block: StorePageHeroBlock }) {
 
 function RichTextBlock({ block }: { block: StorePageRichTextBlock }) {
   return (
-    <section className="max-w-3xl border border-gray-800 bg-gray-900 p-6 rounded-lg">
+    <section className="max-w-3xl border border-border bg-card p-6 rounded-lg">
       {block.title ? <h2 className="text-xl font-semibold mb-3">{block.title}</h2> : null}
-      <MarkdownText text={block.markdown} className="text-gray-400 leading-relaxed" />
+      <MarkdownText text={block.markdown} className="text-muted-foreground leading-relaxed" />
     </section>
   )
 }
 
 function ImageBlock({ block }: { block: StorePageImageBlock }) {
   return (
-    <figure className={cn("overflow-hidden rounded-lg border border-gray-800", block.alignment === "full" ? "w-full" : "mx-auto max-w-4xl")}>
+    <figure className={cn("overflow-hidden rounded-lg border border-border", block.alignment === "full" ? "w-full" : "mx-auto max-w-4xl")}>
       <Image src={block.url} alt={block.alt} width={1200} height={720} className="h-auto w-full object-cover" unoptimized />
-      {block.caption ? <figcaption className="bg-gray-900 px-4 py-3 text-sm text-gray-400">{block.caption}</figcaption> : null}
+      {block.caption ? <figcaption className="bg-muted px-4 py-3 text-sm text-muted-foreground">{block.caption}</figcaption> : null}
     </figure>
   )
 }
@@ -130,11 +130,11 @@ function CardsBlock({ block }: { block: StorePageCardsBlock }) {
         {(block.items || []).map((item) => {
           const Icon = iconMap[String(item.icon || "HelpCircle") as IconName] || HelpCircle
           return (
-            <article key={`${item.title}-${item.description}`} className="border border-gray-800 bg-gray-900 p-6 rounded-lg">
-              <Icon className="h-6 w-6 text-gold mb-4" />
+            <article key={`${item.title}-${item.description}`} className="border border-border bg-card p-6 rounded-lg">
+              <Icon className="h-6 w-6 text-accent mb-4" />
               <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-              {item.description ? <p className="text-gray-400 leading-relaxed">{item.description}</p> : null}
-              {item.link_label && item.link_url ? <Link href={item.link_url} className="mt-4 inline-block text-gold hover:underline">{item.link_label}</Link> : null}
+              {item.description ? <p className="text-muted-foreground leading-relaxed">{item.description}</p> : null}
+              {item.link_label && item.link_url ? <Link href={item.link_url} className="mt-4 inline-block text-accent hover:underline">{item.link_label}</Link> : null}
             </article>
           )
         })}
@@ -149,9 +149,9 @@ function FaqBlock({ block }: { block: StorePageFaqBlock }) {
       {block.title ? <h2 className="mb-5 text-2xl font-playfair font-bold">{block.title}</h2> : null}
       <div className="space-y-3">
         {(block.items || []).map((item) => (
-          <details key={item.question} className="rounded-lg border border-gray-800 bg-gray-900 p-5">
-            <summary className="cursor-pointer font-semibold text-white">{item.question}</summary>
-            <MarkdownText text={item.answer_markdown} className="mt-3 text-gray-400 leading-relaxed" />
+          <details key={item.question} className="rounded-lg border border-border bg-card p-5">
+            <summary className="cursor-pointer font-semibold text-foreground dark:text-white">{item.question}</summary>
+            <MarkdownText text={item.answer_markdown} className="mt-3 text-muted-foreground leading-relaxed" />
           </details>
         ))}
       </div>
@@ -163,36 +163,36 @@ function TableBlock({ block }: { block: StorePageTableBlock }) {
   return (
     <section>
       {block.title ? <h2 className="mb-5 text-2xl font-playfair font-bold">{block.title}</h2> : null}
-      <div className="overflow-x-auto border border-gray-800 rounded-lg">
+      <div className="overflow-x-auto border border-border rounded-lg">
         <table className="w-full min-w-[640px] text-left">
-          <thead className="bg-gray-900 text-gold">
+          <thead className="bg-muted text-accent">
             <tr>{block.columns.map((column) => <th key={column} className="p-4 font-semibold">{column}</th>)}</tr>
           </thead>
           <tbody>
             {(block.rows || []).map((row, index) => (
-              <tr key={index} className="border-t border-gray-800">
-                {row.map((cell, cellIndex) => <td key={`${index}-${cellIndex}`} className={cn("p-4", cellIndex === 0 ? "font-semibold text-white" : "text-gray-300")}>{cell}</td>)}
+              <tr key={index} className="border-t border-border">
+                {row.map((cell, cellIndex) => <td key={`${index}-${cellIndex}`} className={cn("p-4", cellIndex === 0 ? "font-semibold text-foreground dark:text-white" : "text-muted-foreground")}>{cell}</td>)}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {block.caption ? <p className="mt-3 text-sm text-gray-500">{block.caption}</p> : null}
+      {block.caption ? <p className="mt-3 text-sm text-muted-foreground">{block.caption}</p> : null}
     </section>
   )
 }
 
 function ContactInfoBlock({ block }: { block: StorePageContactInfoBlock }) {
   return (
-    <section className="max-w-3xl border border-gold/30 bg-gold/10 p-6 rounded-lg">
+    <section className="max-w-3xl border border-accent/30 bg-accent/10 p-6 rounded-lg">
       <div className="flex items-start gap-4">
-        <Mail className="h-6 w-6 text-gold mt-1" />
+        <Mail className="h-6 w-6 text-accent mt-1" />
         <div>
-          {block.title ? <h2 className="text-xl font-semibold text-gold mb-2">{block.title}</h2> : null}
+          {block.title ? <h2 className="text-xl font-semibold text-accent mb-2">{block.title}</h2> : null}
           {[block.email, block.phone, block.whatsapp, block.address, block.opening_hours].filter(Boolean).map((line) => (
-            <p key={line} className="text-gray-300 mb-2">{line}</p>
+            <p key={line} className="text-muted-foreground mb-2">{line}</p>
           ))}
-          <Link href="/contact" className="text-gold hover:underline">Contact customer service</Link>
+          <Link href="/contact" className="text-accent hover:underline">Contact customer service</Link>
         </div>
       </div>
     </section>
@@ -201,8 +201,8 @@ function ContactInfoBlock({ block }: { block: StorePageContactInfoBlock }) {
 
 function MapBlock({ block }: { block: StorePageMapBlock }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
-      {block.title ? <h2 className="p-4 text-xl font-semibold text-gold">{block.title}</h2> : null}
+    <section className="overflow-hidden rounded-lg border border-border bg-card">
+      {block.title ? <h2 className="p-4 text-xl font-semibold text-accent">{block.title}</h2> : null}
       <iframe
         title={block.label || block.title || "Map"}
         src={block.embed_url}
@@ -230,7 +230,9 @@ function MarkdownText({ text, className }: { text: string; className?: string })
 function renderInlineMarkdown(text: string) {
   const match = text.match(/^\[(.+)\]\((.+)\)$/)
   if (match) {
-    return <Link href={match[2]} className="text-gold hover:underline">{match[1]}</Link>
+    return <Link href={match[2]} className="text-accent hover:underline">{match[1]}</Link>
   }
   return text
 }
+
+

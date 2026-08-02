@@ -155,7 +155,7 @@ export default async function RootLayout({
 
   return (
     <html lang={config.locale} className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="font-inter bg-black text-white" style={getBrandingCssVariables(config)}>
+      <body className="bg-background font-inter text-foreground" style={getBrandingCssVariables(config)}>
         <MetaPixel />
         <Suspense fallback={null}>
           <StoreAnalytics />

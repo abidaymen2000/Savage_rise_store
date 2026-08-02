@@ -243,10 +243,10 @@ function ProfileContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     )
@@ -255,17 +255,17 @@ function ProfileContent() {
   if (!isAuthenticated || !user) return null
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-background text-foreground pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-playfair font-bold">My Profile</h1>
-            <p className="text-gray-400">Welcome, {user.full_name || user.email}</p>
+            <p className="text-muted-foreground">Welcome, {user.full_name || user.email}</p>
           </div>
           <Button
             variant="outline"
             onClick={logout}
-            className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+            className="border-border text-foreground hover:bg-muted bg-transparent"
           >
             <LogOut className="h-4 w-4 mr-2" />
             Log out
@@ -287,30 +287,30 @@ function ProfileContent() {
           }}
           className="space-y-6"
         >
-          <TabsList className="grid h-auto w-full grid-cols-2 bg-gray-900 sm:grid-cols-5">
-            <TabsTrigger value="orders" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+          <TabsList className="grid h-auto w-full grid-cols-2 bg-muted sm:grid-cols-5">
+            <TabsTrigger value="orders" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
               <Package className="h-4 w-4 mr-2" />
               Orders
             </TabsTrigger>
             {wishlistEnabled && (
-              <TabsTrigger value="wishlist" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+              <TabsTrigger value="wishlist" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
                 <Heart className="h-4 w-4 mr-2" />
                 Wishlist
               </TabsTrigger>
             )}
             {reviewsEnabled && (
-              <TabsTrigger value="reviews" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+              <TabsTrigger value="reviews" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
                 <Star className="h-4 w-4 mr-2" />
                 Reviews
               </TabsTrigger>
             )}
             {loyaltyEnabled && (
-              <TabsTrigger value="loyalty" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+              <TabsTrigger value="loyalty" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
                 <Coins className="h-4 w-4 mr-2" />
                 Points
               </TabsTrigger>
             )}
-            <TabsTrigger value="settings" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+            <TabsTrigger value="settings" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </TabsTrigger>
@@ -318,54 +318,54 @@ function ProfileContent() {
 
           {/* Orders Tab */}
           <TabsContent value="orders">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white">My Orders</CardTitle>
+                <CardTitle className="text-foreground">My Orders</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingOrders ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4"></div>
-                    <p className="text-gray-400">Loading orders...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading orders...</p>
                   </div>
                 ) : orders.length === 0 ? (
                   <div className="text-center py-8">
                     <Package className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">No orders found</p>
+                    <p className="text-muted-foreground mb-4">No orders found</p>
                     <Link href="/products">
-                      <Button className="bg-gold text-black hover:bg-gold/90">Discover our products</Button>
+                      <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Discover our products</Button>
                     </Link>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {orders.map((order) => (
-                      <div key={order.id} className="border border-gray-700 rounded-lg p-4">
+                      <div key={order.id} className="border border-input rounded-lg p-4">
                         {(() => {
                           const status = getCanonicalOrderStatus(order)
                           return (
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <p className="font-semibold text-white">Order #{order.id.slice(-8)}</p>
-                            <p className="text-sm text-gray-400">
+                            <p className="font-semibold text-foreground">Order #{order.id.slice(-8)}</p>
+                            <p className="text-sm text-muted-foreground">
                               {new Date(order.created_at).toLocaleDateString("en-US")}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               {order.is_guest ? `Guest - ${order.user_email ?? order.shipping.email}` : "Signed-in customer"}
                             </p>
                           </div>
                           <div className="text-right">
-                            <Badge className={`${getOrderStatusColor(status)} text-white`}>
+                            <Badge className={`${getOrderStatusColor(status)} text-foreground`}>
                               {getOrderStatusLabel(status)}
                             </Badge>
                             {/* Total incluant la livraison */}
-                            <p className="text-gold font-semibold mt-1">
+                            <p className="text-accent font-semibold mt-1">
                               {formatPrice(computeGrandTotal(order), config)}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-muted-foreground">
                               Shipping: {order.shipping_amount === 0 ? "Free" : formatPrice(order.shipping_amount ?? 0, config)}
                               {order.shipping_rate_name ? ` - ${order.shipping_rate_name}` : ""}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               Payment: {getPaymentStatusLabel(order.payment_status)} - Fulfillment: {getFulfillmentStatusLabel(order.fulfillment_status)}
                             </p>
                           </div>
@@ -375,7 +375,7 @@ function ProfileContent() {
 
                         <div className="space-y-2 mb-4">
                           {order.items.map((item, index) => (
-                            <div key={index} className="text-sm text-gray-300">
+                            <div key={index} className="text-sm text-muted-foreground">
                               {item.qty}x {productNames[item.product_id] ?? `Product ${item.product_id.slice(-6)}`} — {item.color} ({item.size})
                             </div>
                           ))}
@@ -386,7 +386,7 @@ function ProfileContent() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                              className="border-border text-foreground hover:bg-muted bg-transparent"
                             >
                               View details
                             </Button>
@@ -412,22 +412,22 @@ function ProfileContent() {
 
           {/* Wishlist Tab */}
           {wishlistEnabled && <TabsContent value="wishlist">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white">My Wishlist</CardTitle>
+                <CardTitle className="text-foreground">My Wishlist</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingWishlist ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4"></div>
-                    <p className="text-gray-400">Loading wishlist...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading wishlist...</p>
                   </div>
                 ) : wishlist.length === 0 ? (
                   <div className="text-center py-8">
                     <Heart className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">Your wishlist is empty</p>
+                    <p className="text-muted-foreground mb-4">Your wishlist is empty</p>
                     <Link href="/products">
-                      <Button className="bg-gold text-black hover:bg-gold/90">Discover our products</Button>
+                      <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Discover our products</Button>
                     </Link>
                   </div>
                 ) : (
@@ -437,10 +437,10 @@ function ProfileContent() {
                         key={item.id}
                         role="button"
                         onClick={() => router.push(`/products/${item.product_id}`)}
-                        className="border border-gray-700 rounded-lg p-4 cursor-pointer hover:border-gold/60 transition-colors"
+                        className="border border-input rounded-lg p-4 cursor-pointer hover:border-accent/60 transition-colors"
                       >
-                        <p className="text-white">{item.product?.name ?? `Product ${item.product_id}`}</p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-foreground">{item.product?.name ?? `Product ${item.product_id}`}</p>
+                        <p className="text-sm text-muted-foreground">
                           Added on {new Date(item.added_at).toLocaleDateString("en-US")}
                         </p>
 
@@ -474,34 +474,34 @@ function ProfileContent() {
 
           {/* Reviews Tab */}
           {reviewsEnabled && <TabsContent value="reviews">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white">My Reviews</CardTitle>
+                <CardTitle className="text-foreground">My Reviews</CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingReviews ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4" />
-                    <p className="text-gray-400">Loading reviews...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading reviews...</p>
                   </div>
                 ) : reviews.length === 0 ? (
                   <div className="text-center py-8">
                     <Star className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">You have not left any reviews yet.</p>
+                    <p className="text-muted-foreground">You have not left any reviews yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {reviews.map((r) => (
-                      <div key={r.id} className="border border-gray-700 rounded-lg p-4 flex items-start justify-between">
+                      <div key={r.id} className="border border-input rounded-lg p-4 flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-1 mb-1">
                             {[1, 2, 3, 4, 5].map((i) => (
                               <StarIcon key={i} className={`h-4 w-4 ${i <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
                             ))}
                           </div>
-                          {r.title && <p className="text-white font-medium">{r.title}</p>}
-                          {r.comment && <p className="text-gray-300 text-sm">{r.comment}</p>}
-                          <a href={`/products/${r.product_id}`} className="text-gold text-sm underline mt-2 inline-block">
+                          {r.title && <p className="text-foreground font-medium">{r.title}</p>}
+                          {r.comment && <p className="text-muted-foreground text-sm">{r.comment}</p>}
+                          <a href={`/products/${r.product_id}`} className="text-accent text-sm underline mt-2 inline-block">
                             View product
                           </a>
                         </div>
@@ -509,7 +509,7 @@ function ProfileContent() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-gray-600 text-white hover:bg-gray-800 bg-transparent"
+                            className="border-border text-foreground hover:bg-muted bg-transparent"
                             onClick={() => openEdit(r)}
                           >
                             Edit
@@ -532,7 +532,7 @@ function ProfileContent() {
 
             {/* Dialog édition */}
             <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-              <DialogContent className="bg-gray-900 border-gray-800 text-white">
+              <DialogContent className="bg-card border-border text-card-foreground">
                 <DialogHeader>
                   <DialogTitle>Edit my review</DialogTitle>
                 </DialogHeader>
@@ -548,21 +548,21 @@ function ProfileContent() {
                     placeholder="Title (optional)"
                     value={form.title}
                     onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                    className="bg-gray-800 border-gray-700"
+                    className="bg-background border-input"
                   />
                   <Textarea
                     placeholder="Comment (optional)"
                     rows={4}
                     value={form.comment}
                     onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
-                    className="bg-gray-800 border-gray-700"
+                    className="bg-background border-input"
                   />
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" className="border-gray-600 text-white bg-transparent" onClick={() => setEditing(null)}>
+                  <Button variant="outline" className="border-border text-foreground bg-transparent" onClick={() => setEditing(null)}>
                     Cancel
                   </Button>
-                  <Button className="bg-gold text-black hover:bg-gold/90" onClick={saveEdit}>
+                  <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={saveEdit}>
                     Save
                   </Button>
                 </DialogFooter>
@@ -571,13 +571,13 @@ function ProfileContent() {
 
             {/* Confirmation suppression */}
             <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
-              <AlertDialogContent className="bg-gray-900 border-gray-800 text-white">
+              <AlertDialogContent className="bg-card border-border text-card-foreground">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete this review?</AlertDialogTitle>
                 </AlertDialogHeader>
-                <p className="text-gray-300 text-sm">This action cannot be undone.</p>
+                <p className="text-muted-foreground text-sm">This action cannot be undone.</p>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="bg-transparent border-gray-600 text-white">Cancel</AlertDialogCancel>
+                  <AlertDialogCancel className="bg-transparent border-border text-foreground">Cancel</AlertDialogCancel>
                   <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmDelete}>
                     Delete
                   </AlertDialogAction>
@@ -588,44 +588,44 @@ function ProfileContent() {
 
           {/* Loyalty Tab */}
           {loyaltyEnabled && <TabsContent value="loyalty">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Coins className="h-5 w-5 text-gold" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Coins className="h-5 w-5 text-accent" />
                   Loyalty points
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingLoyalty ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-4" />
-                    <p className="text-gray-400">Loading loyalty points...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading loyalty points...</p>
                   </div>
                 ) : loyalty ? (
                   <div className="space-y-6">
                     <div className="grid gap-4 sm:grid-cols-3">
-                      <div className="rounded-lg border border-gold/30 bg-gold/10 p-4">
-                        <p className="text-sm text-gold">Available points</p>
-                        <p className="mt-2 text-3xl font-bold text-white">{loyalty.points_balance}</p>
+                      <div className="rounded-lg border border-accent/30 bg-accent/10 p-4">
+                        <p className="text-sm text-accent">Available points</p>
+                        <p className="mt-2 text-3xl font-bold text-foreground">{loyalty.points_balance}</p>
                       </div>
-                      <div className="rounded-lg border border-gray-700 bg-black/30 p-4">
-                        <p className="text-sm text-gray-400">Points value</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">{formatPrice(loyalty.value_balance, config)}</p>
+                      <div className="rounded-lg border border-input bg-black/30 p-4">
+                        <p className="text-sm text-muted-foreground">Points value</p>
+                        <p className="mt-2 text-2xl font-semibold text-foreground">{formatPrice(loyalty.value_balance, config)}</p>
                       </div>
-                      <div className="rounded-lg border border-gray-700 bg-black/30 p-4">
-                        <p className="text-sm text-gray-400">Earn rate</p>
-                        <p className="mt-2 text-2xl font-semibold text-white">
+                      <div className="rounded-lg border border-input bg-black/30 p-4">
+                        <p className="text-sm text-muted-foreground">Earn rate</p>
+                        <p className="mt-2 text-2xl font-semibold text-foreground">
                           {loyalty.settings.earning_percentage ?? 0}%
                         </p>
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-gray-700 bg-black/25 p-4">
+                    <div className="rounded-lg border border-input bg-black/25 p-4">
                       <div className="flex items-start gap-3">
-                        <Gift className="mt-1 h-5 w-5 shrink-0 text-gold" />
+                        <Gift className="mt-1 h-5 w-5 shrink-0 text-accent" />
                         <div>
-                          <p className="font-semibold text-white">How it works</p>
-                          <p className="mt-1 text-sm leading-6 text-gray-400">
+                          <p className="font-semibold text-foreground">How it works</p>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
                             Earn points when your purchases are confirmed. During checkout, choose whether to redeem
                             available points as a discount or keep them for later.
                           </p>
@@ -634,13 +634,13 @@ function ProfileContent() {
                     </div>
 
                     <div>
-                      <h3 className="mb-3 text-lg font-semibold text-white">Recent activity</h3>
+                      <h3 className="mb-3 text-lg font-semibold text-foreground">Recent activity</h3>
                       {loyalty.recent_transactions && loyalty.recent_transactions.length > 0 ? (
                         <div className="space-y-3">
                           {loyalty.recent_transactions.map((transaction) => (
                             <div
                               key={transaction.id}
-                              className="grid gap-3 rounded-lg border border-gray-700 bg-black/25 p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+                              className="grid gap-3 rounded-lg border border-input bg-black/25 p-4 sm:grid-cols-[1fr_auto] sm:items-center"
                             >
                               <div>
                                 <div className="flex flex-wrap items-center gap-2">
@@ -649,26 +649,26 @@ function ProfileContent() {
                                       transaction.type === "earn"
                                         ? "bg-green-600"
                                         : transaction.type === "redeem"
-                                          ? "bg-gold text-black"
+                                          ? "bg-accent text-accent-foreground"
                                           : "bg-gray-600"
                                     }
                                   >
                                     {transaction.type}
                                   </Badge>
-                                  <span className="text-sm text-gray-400">
+                                  <span className="text-sm text-muted-foreground">
                                     {new Date(transaction.created_at).toLocaleDateString("en-US")}
                                   </span>
                                 </div>
                                 {transaction.reason && (
-                                  <p className="mt-2 text-sm text-gray-400">{transaction.reason}</p>
+                                  <p className="mt-2 text-sm text-muted-foreground">{transaction.reason}</p>
                                 )}
                               </div>
                               <div className="text-left sm:text-right">
-                                <p className={transaction.points >= 0 ? "font-semibold text-green-400" : "font-semibold text-gold"}>
+                                <p className={transaction.points >= 0 ? "font-semibold text-green-400" : "font-semibold text-accent"}>
                                   {transaction.points >= 0 ? "+" : ""}
                                   {transaction.points} pts
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                   Balance: {transaction.balance_after} pts
                                 </p>
                               </div>
@@ -676,9 +676,9 @@ function ProfileContent() {
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-lg border border-dashed border-gray-700 p-6 text-center">
+                        <div className="rounded-lg border border-dashed border-input p-6 text-center">
                           <Coins className="mx-auto mb-3 h-10 w-10 text-gray-600" />
-                          <p className="text-gray-400">No loyalty activity yet.</p>
+                          <p className="text-muted-foreground">No loyalty activity yet.</p>
                         </div>
                       )}
                     </div>
@@ -694,22 +694,22 @@ function ProfileContent() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white">Account settings</CardTitle>
+                <CardTitle className="text-foreground">Account settings</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-400">Email</label>
-                    <p className="text-white">{user.email}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Email</label>
+                    <p className="text-foreground">{user.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-400">Full name</label>
-                    <p className="text-white">{user.full_name || "Not provided"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Full name</label>
+                    <p className="text-foreground">{user.full_name || "Not provided"}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-400">Account status</label>
+                    <label className="text-sm font-medium text-muted-foreground">Account status</label>
                     <Badge className={user.is_active ? "bg-green-600" : "bg-red-600"}>
                       {user.is_active ? "Verified" : "Not verified"}
                     </Badge>
@@ -717,12 +717,12 @@ function ProfileContent() {
                   <Separator className="bg-gray-700" />
                   <div className="space-y-2">
                     <Link href="/profile/edit">
-                      <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
+                      <Button variant="outline" className="border-border text-foreground hover:bg-muted bg-transparent">
                         Edit profile
                       </Button>
                     </Link>
                     <Link href="/profile/change-password">
-                      <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800 bg-transparent">
+                      <Button variant="outline" className="border-border text-foreground hover:bg-muted bg-transparent">
                         Change password
                       </Button>
                     </Link>
@@ -742,10 +742,10 @@ export default function ProfilePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
+        <div className="min-h-screen bg-background text-foreground pt-20 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
       }
@@ -754,3 +754,5 @@ export default function ProfilePage() {
     </Suspense>
   )
 }
+
+

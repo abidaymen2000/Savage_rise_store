@@ -50,11 +50,12 @@ export default function VerifySuccess() {
   }, [refreshUser, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
       <div className="text-center">
         <p className="text-lg mb-2">Verification successful</p>
-        <p className="text-gray-400">Signing you in...</p>
+        <p className="text-muted-foreground">Signing you in...</p>
       </div>
     </div>
   );
 }
+

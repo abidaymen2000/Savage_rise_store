@@ -94,14 +94,14 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const sizeOptions = Array.from(new Set(products.flatMap((product) => getAvailableSizes(product)))).filter(Boolean).sort()
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#050504] px-4 pb-16 pt-28 text-white sm:px-6 sm:pt-32">
+    <main className="min-h-screen overflow-x-hidden bg-background px-4 pb-16 pt-28 text-foreground sm:px-6 sm:pt-32">
       <div className="mx-auto max-w-7xl">
-        <header className="border-b border-stone-800 pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#D4AF37]">Savage Rise</p>
+        <header className="border-b border-border pb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Savage Rise</p>
           <div className="mt-3 flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="min-w-0">
               <h1 className="font-playfair text-5xl leading-none sm:text-6xl">Boutique</h1>
-              <p className="mt-3 text-sm text-stone-400">{filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""}</p>
+              <p className="mt-3 text-sm text-muted-foreground">{filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""}</p>
             </div>
             <ProductsControls
               filters={{ ...filters, page: currentPage }}
@@ -125,10 +125,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
 
           <section className="min-w-0">
             {visibleProducts.length === 0 ? (
-              <div className="border border-stone-800 p-10 text-center">
-                <p className="text-lg font-semibold text-white">Aucun produit trouve.</p>
-                <p className="mt-2 text-sm text-stone-400">Essaie une autre taille, couleur ou categorie.</p>
-                <Button asChild className="mt-5 rounded-none bg-white text-black hover:bg-[#D4AF37]">
+              <div className="border border-border bg-card p-10 text-center">
+                <p className="text-lg font-semibold text-card-foreground">Aucun produit trouve.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Essaie une autre taille, couleur ou categorie.</p>
+                <Button asChild className="mt-5 rounded-none bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground">
                   <Link href="/products">Voir toute la boutique</Link>
                 </Button>
               </div>
@@ -141,13 +141,13 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             {totalPages > 1 && (
               <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination catalogue">
                 {currentPage > 1 && (
-                  <Button asChild variant="outline" className="h-11 rounded-none border-stone-700 bg-transparent text-white hover:bg-white hover:text-black">
+                  <Button asChild variant="outline" className="h-11 rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground">
                     <Link href={getPageHref(filters, currentPage - 1)}>Precedent</Link>
                   </Button>
                 )}
-                <span className="px-3 text-sm text-stone-400">Page {currentPage} / {totalPages}</span>
+                <span className="px-3 text-sm text-muted-foreground">Page {currentPage} / {totalPages}</span>
                 {currentPage < totalPages && (
-                  <Button asChild variant="outline" className="h-11 rounded-none border-stone-700 bg-transparent text-white hover:bg-white hover:text-black">
+                  <Button asChild variant="outline" className="h-11 rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground">
                     <Link href={getPageHref(filters, currentPage + 1)}>Suivant</Link>
                   </Button>
                 )}

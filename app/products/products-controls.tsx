@@ -107,47 +107,47 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
   const filterFields = (
     <div className="space-y-4">
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">Categorie</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Categorie</label>
         <Select value={filters.category} onValueChange={(value) => replaceFilters({ category: value })}>
-          <SelectTrigger className="rounded-none border-stone-700 bg-black text-white"><SelectValue /></SelectTrigger>
-          <SelectContent className="border-stone-700 bg-black text-white">
+          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             {categoryOptions.map((feature) => <SelectItem key={feature.value} value={feature.value}>{feature.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">Couleur</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Couleur</label>
         <Select value={filters.color} onValueChange={(value) => replaceFilters({ color: value })}>
-          <SelectTrigger className="rounded-none border-stone-700 bg-black text-white"><SelectValue /></SelectTrigger>
-          <SelectContent className="border-stone-700 bg-black text-white">
+          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             {colorOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">Taille</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Taille</label>
         <Select value={filters.size} onValueChange={(value) => replaceFilters({ size: value })}>
-          <SelectTrigger className="rounded-none border-stone-700 bg-black text-white"><SelectValue /></SelectTrigger>
-          <SelectContent className="border-stone-700 bg-black text-white">
+          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             {sizeOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">Disponibilite</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Disponibilite</label>
         <Select value={filters.availability} onValueChange={(value) => replaceFilters({ availability: value })}>
-          <SelectTrigger className="rounded-none border-stone-700 bg-black text-white"><SelectValue /></SelectTrigger>
-          <SelectContent className="border-stone-700 bg-black text-white">
+          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             <SelectItem value="available">Disponible</SelectItem>
             <SelectItem value="sold-out">Epuise</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      <Button type="button" variant="outline" className="w-full rounded-none border-stone-700 bg-transparent text-white hover:bg-white hover:text-black" onClick={resetFilters}>
+      <Button type="button" variant="outline" className="w-full rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground" onClick={resetFilters}>
         Reinitialiser
       </Button>
     </div>
@@ -156,11 +156,11 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
   if (variant === "aside") {
     return (
       <aside className="hidden lg:block">
-        <div className="sticky top-32 border border-stone-800 p-4">
+        <div className="sticky top-32 border border-border bg-card p-4 text-card-foreground">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-white">Filtres</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-card-foreground">Filtres</h2>
             {activeFilterCount > 0 && (
-              <button type="button" onClick={resetFilters} className="inline-flex items-center gap-1 text-xs text-stone-400 hover:text-white">
+              <button type="button" onClick={resetFilters} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
                 <X className="h-3 w-3" />
                 Reset
               </button>
@@ -175,20 +175,20 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
   return (
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
         <div className="relative min-w-0">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Rechercher"
-            className="h-11 w-full rounded-none border-stone-700 bg-black pl-10 text-white placeholder:text-stone-500 sm:w-72"
+            className="h-11 w-full rounded-none border-border bg-card pl-10 text-card-foreground placeholder:text-muted-foreground sm:w-72"
           />
         </div>
         <Select value={filters.sort} onValueChange={(value) => replaceFilters({ sort: value })}>
-          <SelectTrigger className="h-11 w-full rounded-none border-stone-700 bg-black text-white sm:w-52">
+          <SelectTrigger className="h-11 w-full rounded-none border-border bg-card text-card-foreground sm:w-52">
             <SlidersHorizontal className="mr-2 h-4 w-4 shrink-0" />
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="border-stone-700 bg-black text-white">
+          <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="newest">Nouveautes</SelectItem>
             <SelectItem value="price-asc">Prix croissant</SelectItem>
             <SelectItem value="price-desc">Prix decroissant</SelectItem>
@@ -197,17 +197,17 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
         </Select>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" className="h-11 rounded-none border-stone-700 bg-transparent text-white hover:bg-white hover:text-black lg:hidden">
+            <Button variant="outline" className="h-11 rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground lg:hidden">
               <Filter className="mr-2 h-4 w-4" />
               Filtres {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto border-stone-800 bg-[#050504] text-white">
+          <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto border-border bg-background text-foreground">
             <SheetHeader>
-              <SheetTitle className="text-white">Filtres</SheetTitle>
+              <SheetTitle className="text-foreground">Filtres</SheetTitle>
             </SheetHeader>
             <div className="mt-6">{filterFields}</div>
-            <Button className="mt-4 w-full rounded-none bg-white text-black hover:bg-[#D4AF37]" onClick={() => setFiltersOpen(false)}>
+            <Button className="mt-4 w-full rounded-none bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => setFiltersOpen(false)}>
               Appliquer
             </Button>
           </SheetContent>

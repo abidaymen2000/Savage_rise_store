@@ -62,11 +62,11 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
   if (success) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="bg-black text-white border-gray-800 max-w-md">
+        <DialogContent className="bg-background text-foreground border-border max-w-md">
           <div className="text-center py-6">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Email verified!</h2>
-            <p className="text-gray-400">Your account is now active.</p>
+            <p className="text-muted-foreground">Your account is now active.</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -75,14 +75,14 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-black text-white border-gray-800 max-w-md">
+      <DialogContent className="bg-background text-foreground border-border max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-playfair text-center text-gold">Email verification</DialogTitle>
+          <DialogTitle className="text-2xl font-playfair text-center text-accent">Email verification</DialogTitle>
         </DialogHeader>
 
         <div className="text-center mb-6">
-          <Mail className="h-12 w-12 text-gold mx-auto mb-4" />
-          <p className="text-gray-400">
+          <Mail className="h-12 w-12 text-accent mx-auto mb-4" />
+          <p className="text-muted-foreground">
             A verification code has been sent to <strong>{email}</strong>
           </p>
         </div>
@@ -102,7 +102,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
               placeholder="Enter the code received by email"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
-              className="bg-gray-900 border-gray-700 text-white text-center text-lg tracking-widest"
+              className="bg-card border-input text-card-foreground text-center text-lg tracking-widest"
               maxLength={6}
               required
             />
@@ -111,7 +111,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
           <Button
             type="submit"
             disabled={isLoading || verificationCode.length < 6}
-            className="w-full bg-gold text-black hover:bg-gold/90 font-semibold"
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
           >
             {isLoading ? (
               <>
@@ -125,12 +125,12 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
         </form>
 
         <div className="text-center mt-4">
-          <p className="text-gray-400 text-sm mb-2">Did not receive the code?</p>
+          <p className="text-muted-foreground text-sm mb-2">Did not receive the code?</p>
           <Button
             variant="ghost"
             onClick={handleResendCode}
             disabled={isResending}
-            className="text-gold hover:text-gold/80"
+            className="text-accent hover:text-accent/80"
           >
             {isResending ? (
               <>
@@ -146,3 +146,4 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
     </Dialog>
   )
 }
+

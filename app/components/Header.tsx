@@ -127,16 +127,16 @@ export default function Header({
   return (
     <>
       <div className="fixed top-0 z-50 w-full">
-        <div className="border-b border-stone-800 bg-[#090908] px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-300 sm:text-xs">
+        <div className="border-b border-border bg-primary px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-foreground sm:text-xs">
           <span className="hidden sm:inline">{content.announcement.join(" · ")}</span>
           <span className="sm:hidden">{content.announcement[0]}</span>
         </div>
-        <header className={`w-full border-b backdrop-blur-md transition-colors duration-300 theme-aware-header ${isHome ? "border-white/10 bg-black/72" : "border-stone-800 bg-black/95"}`}>
+        <header className={`w-full border-b backdrop-blur-md transition-colors duration-300 ${isHome ? "border-border bg-surface/88 dark:border-white/10 dark:bg-black/72" : "border-border bg-surface/95 dark:border-stone-800 dark:bg-black/95"}`}>
           <div className="mx-auto max-w-7xl px-4">
             <div className="flex h-16 items-center justify-between gap-3">
               <Link
                 href="/"
-                className="min-w-0 flex-1 truncate whitespace-nowrap text-lg font-semibold uppercase tracking-[0.18em] text-white sm:text-xl md:flex-none"
+                className="min-w-0 flex-1 truncate whitespace-nowrap text-lg font-semibold uppercase tracking-[0.18em] text-foreground sm:text-xl md:flex-none dark:text-white"
                 onClick={closeMobileMenu}
               >
                 <span className="flex h-10 min-w-0 items-center">
@@ -152,7 +152,7 @@ export default function Header({
 
               <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden items-center gap-2 md:flex">
-                  <Button asChild variant="ghost" size="icon" className="text-white hover:text-gold">
+                  <Button asChild variant="ghost" size="icon" className="text-foreground hover:text-accent dark:text-white dark:hover:text-gold">
                     <Link href="/products" aria-label="Recherche">
                       <Search className="h-5 w-5" />
                     </Link>
@@ -160,10 +160,10 @@ export default function Header({
                   <ThemeToggle />
                   {isAuthenticated && wishlistEnabled && (
                     <Link href="/profile?tab=wishlist">
-                      <Button variant="ghost" size="icon" className="relative text-white hover:text-gold">
+                      <Button variant="ghost" size="icon" className="relative text-foreground hover:text-accent dark:text-white dark:hover:text-gold">
                         <Heart className="h-5 w-5" />
                         {wishlistCount > 0 && (
-                          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs text-black">
+                          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground">
                             {wishlistCount}
                           </span>
                         )}
@@ -173,21 +173,21 @@ export default function Header({
                   {isAuthenticated ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="relative text-white hover:text-gold">
+                        <Button variant="ghost" size="icon" className="relative text-foreground hover:text-accent dark:text-white dark:hover:text-gold">
                           <User className="h-5 w-5" />
                           {user?.is_active && <Badge className="absolute -right-1 -top-1 h-3 w-3 bg-green-500 p-0" />}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="border-stone-800 bg-black" align="end">
+                      <DropdownMenuContent className="border-border bg-popover text-popover-foreground dark:border-stone-800 dark:bg-black" align="end">
                         <DropdownMenuItem asChild>
-                          <Link href="/profile?tab=settings" className="text-white hover:text-gold">Mon profil</Link>
+                          <Link href="/profile?tab=settings" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">Mon profil</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/profile?tab=orders" className="text-white hover:text-gold">Mes commandes</Link>
+                          <Link href="/profile?tab=orders" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">Mes commandes</Link>
                         </DropdownMenuItem>
                         {wishlistEnabled && (
                           <DropdownMenuItem asChild>
-                            <Link href="/profile?tab=wishlist" className="text-white hover:text-gold">Wishlist</Link>
+                            <Link href="/profile?tab=wishlist" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">Wishlist</Link>
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator className="bg-stone-800" />
@@ -195,7 +195,7 @@ export default function Header({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <Button variant="ghost" size="icon" className="text-white hover:text-gold" onClick={() => setShowAuthModal(true)} aria-label="Compte">
+                    <Button variant="ghost" size="icon" className="text-foreground hover:text-accent dark:text-white dark:hover:text-gold" onClick={() => setShowAuthModal(true)} aria-label="Compte">
                       <User className="h-5 w-5" />
                     </Button>
                   )}
@@ -205,7 +205,7 @@ export default function Header({
 
                 <Button
                   variant="ghost"
-                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-none border border-white/25 bg-white/5 px-3 text-sm font-semibold uppercase tracking-[0.12em] text-white hover:bg-white hover:text-black md:hidden"
+                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-none border border-border bg-card px-3 text-sm font-semibold uppercase tracking-[0.12em] text-card-foreground hover:bg-primary hover:text-primary-foreground md:hidden dark:border-white/25 dark:bg-white/5 dark:text-white dark:hover:bg-white dark:hover:text-black"
                   onClick={() => setIsMenuOpen((value) => !value)}
                   aria-expanded={isMenuOpen}
                   aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
@@ -217,24 +217,24 @@ export default function Header({
             </div>
 
             {isMenuOpen && (
-              <div className="fixed inset-x-0 top-[6.5rem] z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto border-t border-stone-800 bg-[#050505]/98 px-4 py-5 shadow-2xl shadow-black/70 backdrop-blur-md md:hidden">
+              <div className="fixed inset-x-0 top-[6.5rem] z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto border-t border-border bg-background/98 px-4 py-5 shadow-2xl shadow-black/20 backdrop-blur-md md:hidden dark:border-stone-800 dark:bg-[#050505]/98 dark:shadow-black/70">
                 <nav className="mx-auto flex w-full max-w-screen-sm flex-col gap-3 pb-4">
-                  <div className="mb-1 border-b border-stone-800 pb-4">
+                  <div className="mb-1 border-b border-border pb-4 dark:border-stone-800">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">{storeName}</p>
-                    <p className="mt-1 text-sm text-white/65">Boutique, Drops et FAZA</p>
+                    <p className="mt-1 text-sm text-muted-foreground dark:text-white/65">Boutique, Drops et FAZA</p>
                   </div>
                   <MobileNavigation items={mobileItems} onNavigate={closeMobileMenu} />
                   <ThemeToggle mobile />
-                  <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">Compte</p>
+                  <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground dark:text-white/45">Compte</p>
                   {isAuthenticated && wishlistEnabled && (
-                    <Link href="/profile?tab=wishlist" className="group flex items-center justify-between border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold" onClick={closeMobileMenu}>
+                    <Link href="/profile?tab=wishlist" className="group flex items-center justify-between border border-border bg-card px-4 py-3.5 text-sm font-medium text-card-foreground transition-colors hover:border-accent/35 hover:bg-accent/10 hover:text-accent dark:border-white/10 dark:bg-white/[0.03] dark:text-white/90 dark:hover:border-gold/35 dark:hover:bg-gold/10 dark:hover:text-gold" onClick={closeMobileMenu}>
                       <span>Wishlist ({wishlistCount})</span>
                       <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                     </Link>
                   )}
                   {isAuthenticated ? (
                     <>
-                      <Link href="/profile?tab=settings" className="group flex items-center justify-between border border-white/10 bg-white/[0.03] px-4 py-3.5 text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold" onClick={closeMobileMenu}>
+                      <Link href="/profile?tab=settings" className="group flex items-center justify-between border border-border bg-card px-4 py-3.5 text-sm font-medium text-card-foreground transition-colors hover:border-accent/35 hover:bg-accent/10 hover:text-accent dark:border-white/10 dark:bg-white/[0.03] dark:text-white/90 dark:hover:border-gold/35 dark:hover:bg-gold/10 dark:hover:text-gold" onClick={closeMobileMenu}>
                         <span>Mon profil</span>
                         <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                       </Link>
@@ -248,7 +248,7 @@ export default function Header({
                         closeMobileMenu()
                         setShowAuthModal(true)
                       }}
-                      className="border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left text-sm font-medium text-white/90 transition-colors hover:border-gold/35 hover:bg-gold/10 hover:text-gold"
+                      className="border border-border bg-card px-4 py-3.5 text-left text-sm font-medium text-card-foreground transition-colors hover:border-accent/35 hover:bg-accent/10 hover:text-accent dark:border-white/10 dark:bg-white/[0.03] dark:text-white/90 dark:hover:border-gold/35 dark:hover:bg-gold/10 dark:hover:text-gold"
                     >
                       Se connecter
                     </button>

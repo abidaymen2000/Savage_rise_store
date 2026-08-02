@@ -33,8 +33,8 @@ export default function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
 
   if (mobile) {
     return (
-      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 theme-aware-card">
-        <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">Theme</p>
+      <div className="rounded-lg border border-border bg-card p-3 text-card-foreground dark:border-white/10 dark:bg-white/[0.03]">
+        <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground dark:text-white/45">Theme</p>
         <div className="grid grid-cols-3 gap-2">
           {themeOptions.map((option) => {
             const OptionIcon = option.icon
@@ -47,8 +47,8 @@ export default function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
                 onClick={() => setTheme(option.value)}
                 className={`flex items-center justify-center gap-2 rounded-md border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                   selected
-                    ? "border-gold bg-gold text-black"
-                    : "border-white/10 text-white hover:border-gold/40 hover:text-gold theme-aware-button-secondary"
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border text-foreground hover:border-accent/40 hover:text-accent dark:border-white/10 dark:text-white dark:hover:border-gold/40 dark:hover:text-gold"
                 }`}
               >
                 <OptionIcon className="h-4 w-4" />
@@ -71,7 +71,7 @@ export default function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
                 variant="ghost"
                 size="icon"
                 aria-label="Choose theme"
-                className="text-white hover:text-gold focus-visible:ring-2 focus-visible:ring-gold"
+                className="text-foreground hover:text-accent focus-visible:ring-2 focus-visible:ring-accent dark:text-white dark:hover:text-gold"
               >
                 <Icon className="h-5 w-5" />
               </Button>
@@ -79,12 +79,12 @@ export default function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
           </TooltipTrigger>
           <TooltipContent>Theme</TooltipContent>
         </Tooltip>
-        <DropdownMenuContent align="end" className="bg-black border-gray-800">
+        <DropdownMenuContent align="end" className="border-border bg-popover text-popover-foreground dark:border-gray-800 dark:bg-black">
           <DropdownMenuRadioGroup value={theme ?? "system"} onValueChange={setTheme}>
             {themeOptions.map((option) => {
               const OptionIcon = option.icon
               return (
-                <DropdownMenuRadioItem key={option.value} value={option.value} className="text-white hover:text-gold">
+                <DropdownMenuRadioItem key={option.value} value={option.value} className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">
                   <OptionIcon className="h-4 w-4" />
                   {option.label}
                 </DropdownMenuRadioItem>

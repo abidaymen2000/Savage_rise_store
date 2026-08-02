@@ -22,17 +22,18 @@ export default function VerifyEmailPage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
       <section className="w-full max-w-md text-center space-y-5">
-        <p className="text-sm uppercase tracking-[0.18em] text-gold">Savage Rise</p>
+        <p className="text-sm uppercase tracking-[0.18em] text-accent">Savage Rise</p>
         <h1 className="text-3xl font-playfair">Confirming your email</h1>
-        <p className="text-gray-400">
+        <p className="text-muted-foreground">
           Please wait while we validate your account.
         </p>
-        <Button asChild className="bg-gold text-black hover:bg-gold/90">
+        <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
           <Link href="/">Back to store</Link>
         </Button>
       </section>
     </main>
   )
 }
+

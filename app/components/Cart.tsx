@@ -289,20 +289,20 @@ export default function Cart() {
   const promoSection = (
     <>
       {isAuthenticated ? (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="rounded-xl border border-border bg-card p-4 text-card-foreground dark:border-white/10 dark:bg-white/[0.03]">
           <button
             type="button"
             onClick={() => setShowPromo((v) => !v)}
             aria-expanded={showPromo}
             className={`flex w-full items-center justify-between rounded-md px-1 py-2 text-left transition ${
-              isPromoError ? "bg-red-900/20" : "hover:bg-white/5"
+              isPromoError ? "bg-red-900/20" : "hover:bg-muted dark:hover:bg-white/5"
             }`}
           >
             <div className="min-w-0 flex items-center gap-2">
               <Ticket className={`h-4 w-4 shrink-0 ${isPromoError ? "text-red-400" : "text-gold"}`} />
-              <span className={`text-sm ${isPromoError ? "text-red-400" : "text-gray-300"}`}>Promo code</span>
+              <span className={`text-sm ${isPromoError ? "text-red-400" : "text-muted-foreground dark:text-gray-300"}`}>Promo code</span>
             </div>
-            <ChevronDown className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${showPromo ? "rotate-180" : ""}`} />
+            <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${showPromo ? "rotate-180" : ""}`} />
           </button>
 
           {promo?.valid && <p className="mt-2 text-xs text-green-400">{promo.code} applied</p>}
@@ -330,14 +330,14 @@ export default function Cart() {
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                         placeholder="ENTER YOUR CODE"
-                        className={`bg-transparent text-white placeholder:text-gray-500 ${
-                          isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-gray-700"
+                        className={`bg-transparent text-foreground placeholder:text-muted-foreground dark:text-white ${
+                          isPromoError ? "border-red-600 focus-visible:ring-red-600" : "border-border dark:border-gray-700"
                         }`}
                       />
                       <Button
                         type="submit"
                         disabled={promoLoading}
-                        className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-gold text-black hover:bg-gold/90"}
+                        className={isPromoError ? "bg-red-600 hover:bg-red-700" : "bg-accent text-accent-foreground hover:bg-accent/90"}
                       >
                         {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                       </Button>
@@ -362,9 +362,9 @@ export default function Cart() {
                   <div className="flex items-center justify-between rounded-lg border border-green-700/40 p-2">
                     <div className="text-sm">
                       <span className="font-medium text-green-500">{promo.code}</span>{" "}
-                      <span className="text-gray-400">applied</span>
+                          <span className="text-muted-foreground">applied</span>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={clearPromo} className="text-gray-400 hover:text-white">
+                    <Button variant="ghost" size="sm" onClick={clearPromo} className="text-muted-foreground hover:text-foreground dark:hover:text-white">
                       Remove
                     </Button>
                   </div>
@@ -388,15 +388,15 @@ export default function Cart() {
   )
 
   const summarySection = (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="flex items-center gap-2 text-sm text-gray-400">
+    <div className="rounded-xl border border-border bg-card p-4 text-card-foreground dark:border-white/10 dark:bg-white/[0.03]">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Truck className="h-4 w-4 shrink-0" />
         <span>Final prices and shipping are confirmed by the backend at checkout</span>
       </div>
 
       <div className="mt-4 space-y-2">
         <div className="flex justify-between gap-4 text-sm">
-          <span className="text-gray-400">Subtotal</span>
+          <span className="text-muted-foreground">Subtotal</span>
           <span className="text-right">{subtotal.toFixed(2)} TND</span>
         </div>
 
@@ -422,11 +422,11 @@ export default function Cart() {
         )}
 
         <div className="flex justify-between gap-4 text-sm">
-          <span className="text-gray-400">Livraison</span>
+          <span className="text-muted-foreground">Livraison</span>
           <span className="text-right">To calculate</span>
         </div>
 
-        <Separator className="bg-gray-800" />
+        <Separator className="bg-border dark:bg-gray-800" />
 
         <div className="flex justify-between gap-4 text-lg font-semibold">
           <span>Estimated total</span>
@@ -434,7 +434,7 @@ export default function Cart() {
         </div>
       </div>
 
-      <Button className="mt-4 w-full bg-gold py-3 font-semibold text-black hover:bg-gold/90" onClick={handleProceed}>
+      <Button className="mt-4 w-full bg-accent py-3 font-semibold text-accent-foreground hover:bg-accent/90" onClick={handleProceed}>
         Proceed to checkout
       </Button>
     </div>
@@ -485,10 +485,10 @@ export default function Cart() {
           }
         }}
       >
-        <Button variant="ghost" size="icon" className="relative text-white hover:text-gold" onClick={openCart}>
+        <Button variant="ghost" size="icon" className="relative text-foreground hover:text-accent dark:text-white dark:hover:text-gold" onClick={openCart}>
           <ShoppingBag className="h-5 w-5" />
           {state.itemCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs text-black">
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground">
               {state.itemCount}
             </span>
           )}
@@ -496,19 +496,19 @@ export default function Cart() {
 
         <SheetContent
           data-cart-drawer="true"
-          className="flex h-[100dvh] max-h-[100dvh] w-full flex-col gap-0 overflow-hidden border-gray-800 bg-black p-0 text-white sm:max-w-xl lg:max-w-4xl"
+          className="flex h-[100dvh] max-h-[100dvh] w-full flex-col gap-0 overflow-hidden border-border bg-background p-0 text-foreground sm:max-w-xl lg:max-w-4xl dark:border-gray-800 dark:bg-black dark:text-white"
         >
-          <SheetHeader className="shrink-0 border-b border-white/10 px-4 pb-4 pt-6 pr-12 text-left sm:px-5 lg:px-6">
-            <SheetTitle className="font-playfair text-2xl text-white">Cart ({state.itemCount})</SheetTitle>
+          <SheetHeader className="shrink-0 border-b border-border px-4 pb-4 pt-6 pr-12 text-left sm:px-5 lg:px-6 dark:border-white/10">
+            <SheetTitle className="font-playfair text-2xl text-foreground dark:text-white">Cart ({state.itemCount})</SheetTitle>
           </SheetHeader>
 
           <div className="flex h-full min-h-0 flex-col">
             {state.itemCount === 0 ? (
               <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
-                  <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-gray-600" />
-                  <p className="mb-2 text-lg text-gray-400">Your cart is empty</p>
-                  <p className="text-sm text-gray-500">Add products to start shopping</p>
+                  <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+                  <p className="mb-2 text-lg text-muted-foreground">Your cart is empty</p>
+                  <p className="text-sm text-muted-foreground">Add products to start shopping</p>
                 </div>
               </div>
             ) : (
@@ -524,8 +524,8 @@ export default function Cart() {
                     const maxQuantity = getItemMaxQuantity(item)
 
                     return (
-                      <div key={cartKey} className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 sm:gap-4">
-                        <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-gray-900">
+                      <div key={cartKey} className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-xl border border-border bg-card p-3 sm:gap-4 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-muted dark:bg-gray-900">
                           <Image src={imageUrl || "/placeholder.svg"} alt={imageAlt} fill className="object-cover" />
                         </div>
 
@@ -533,8 +533,8 @@ export default function Cart() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.product.name}</h3>
-                              <p className="text-xs text-gray-400">Couleur : {item.selectedVariant.color}</p>
-                              <p className="text-xs text-gray-400">Taille : {item.selectedSize}</p>
+                              <p className="text-xs text-muted-foreground">Couleur : {item.selectedVariant.color}</p>
+                              <p className="text-xs text-muted-foreground">Taille : {item.selectedSize}</p>
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
                               <p className="text-right text-base font-semibold text-gold sm:text-lg">
@@ -543,7 +543,7 @@ export default function Cart() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 text-gray-400 hover:text-white"
+                                className="h-6 w-6 text-muted-foreground hover:text-foreground dark:hover:text-white"
                                 onClick={() => removeFromCart(item.product.id, item.selectedVariant.color, item.selectedSize, item.selectedVariantItemId)}
                               >
                                 <X className="h-4 w-4" />
@@ -555,7 +555,7 @@ export default function Cart() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              className="h-8 w-8 border-border bg-transparent text-foreground hover:bg-muted dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                               onClick={() =>
                                 handleQuantityChange(
                                   item.product.id,
@@ -572,7 +572,7 @@ export default function Cart() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              className="h-8 w-8 border-border bg-transparent text-foreground hover:bg-muted dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                               disabled={item.quantity >= maxQuantity}
                               onClick={() =>
                                 handleQuantityChange(
@@ -604,7 +604,7 @@ export default function Cart() {
 
                     return (
                       <div key={cartKey} className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-xl border border-gold/20 bg-gold/5 p-3 sm:gap-4">
-                        <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-gray-900">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-muted dark:bg-gray-900">
                           <Image src={imageUrl} alt={item.pack.title} fill className="object-cover" />
                         </div>
 
@@ -615,7 +615,7 @@ export default function Cart() {
                               <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.pack.title}</h3>
                               <div className="mt-1 space-y-0.5">
                                 {item.selections.map((selection) => (
-                                  <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-gray-400">
+                                  <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-muted-foreground">
                                     {selection.color} / {selection.size} x{selection.qty ?? 1}
                                   </p>
                                 ))}
@@ -626,7 +626,7 @@ export default function Cart() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 text-gray-400 hover:text-white"
+                                className="h-6 w-6 text-muted-foreground hover:text-foreground dark:hover:text-white"
                                 onClick={() => removePackFromCart(item.pack.id, selectionKey)}
                               >
                                 <X className="h-4 w-4" />
@@ -638,7 +638,7 @@ export default function Cart() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              className="h-8 w-8 border-border bg-transparent text-foreground hover:bg-muted dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                               onClick={() => handlePackQuantityChange(item, item.quantity - 1)}
                             >
                               <Minus className="h-3 w-3" />
@@ -647,7 +647,7 @@ export default function Cart() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 border-gray-600 bg-transparent text-white hover:bg-gray-800"
+                              className="h-8 w-8 border-border bg-transparent text-foreground hover:bg-muted dark:border-gray-600 dark:text-white dark:hover:bg-gray-800"
                               onClick={() => handlePackQuantityChange(item, item.quantity + 1)}
                             >
                               <Plus className="h-3 w-3" />
@@ -659,16 +659,16 @@ export default function Cart() {
                   })}
 
                   {upgradeLoading && (
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-gray-400">
+                    <div className="rounded-xl border border-border bg-muted p-4 text-sm text-muted-foreground dark:border-white/10 dark:bg-white/5">
                       Looking for a matching set...
                     </div>
                   )}
 
                   {upgradeCandidate && upgradeCompanionProduct && upgradeSelection && (
-                    <div className="rounded-xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-4">
+                    <div className="rounded-xl border border-accent/25 bg-card p-4 text-card-foreground dark:bg-gradient-to-br dark:from-gold/10 dark:via-black dark:to-black">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Complete your set</p>
                       <div className="mt-3 flex gap-3">
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-900">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted dark:bg-gray-900">
                           <Image
                             src={getProductImageForColor(upgradeCompanionProduct, upgradeSelection.color)}
                             alt={upgradeCompanionProduct.name}
@@ -677,12 +677,12 @@ export default function Cart() {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-white sm:text-lg">{upgradeCandidate.pack.title}</p>
-                          <p className="mt-1 text-sm leading-6 text-gray-300">
+                          <p className="font-semibold text-card-foreground sm:text-lg">{upgradeCandidate.pack.title}</p>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
                             Add the matching {upgradeCompanionProduct.name.toLowerCase()} and save{" "}
                             {formatPrice(getPackSavingsLabel(upgradeCandidate.pack) * upgradeCandidate.item.quantity)}.
                           </p>
-                          <p className="mt-2 text-xs text-gray-400">
+                          <p className="mt-2 text-xs text-muted-foreground">
                             Same-color set. Your current {upgradeCandidate.item.selectedSize} stays selected.
                           </p>
                         </div>
@@ -696,12 +696,12 @@ export default function Cart() {
                               setUpgradeSelection((current) => (current ? { ...current, size: value } : current))
                             }
                           >
-                            <SelectTrigger className="border-gray-700 bg-gray-950 text-white">
+                            <SelectTrigger className="border-border bg-card text-card-foreground dark:border-gray-700 dark:bg-gray-950 dark:text-white">
                               <SelectValue placeholder="Choose matching size" />
                             </SelectTrigger>
-                            <SelectContent className="border-gray-700 bg-gray-900">
+                            <SelectContent className="border-border bg-popover text-popover-foreground dark:border-gray-700 dark:bg-gray-900">
                               {getAvailableSizesForColor(upgradeCompanionProduct, upgradeSelection.color).map((size) => (
-                                <SelectItem key={size} value={size} className="text-white">
+                                <SelectItem key={size} value={size}>
                                   {size}
                                 </SelectItem>
                               ))}
@@ -712,14 +712,14 @@ export default function Cart() {
 
                       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                          <p className="text-sm text-gray-500 line-through">
+                          <p className="text-sm text-muted-foreground line-through">
                             {formatPrice((upgradeCandidate.pack.original_price ?? 0) * upgradeCandidate.item.quantity)}
                           </p>
                           <p className="text-xl font-bold text-gold">
                             {formatPrice(getPackPrice(upgradeCandidate.pack) * upgradeCandidate.item.quantity)}
                           </p>
                         </div>
-                        <Button className="w-full bg-gold text-black hover:bg-gold/90 sm:w-auto" onClick={handleUpgradeToSet}>
+                        <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 sm:w-auto" onClick={handleUpgradeToSet}>
                           Upgrade to the set
                         </Button>
                       </div>
@@ -729,11 +729,11 @@ export default function Cart() {
                   </div>
                 </div>
 
-                <div className="hidden border-l border-white/10 bg-black/95 px-6 py-5 lg:block">
+                <div className="hidden border-l border-border bg-surface px-6 py-5 lg:block dark:border-white/10 dark:bg-black/95">
                   {summarySection}
                 </div>
 
-                <div className="shrink-0 border-t border-white/10 bg-black/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur lg:hidden">
+                <div className="shrink-0 border-t border-border bg-surface px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] backdrop-blur lg:hidden dark:border-white/10 dark:bg-black/95">
                   {summarySection}
                 </div>
               </div>
@@ -746,3 +746,4 @@ export default function Cart() {
     </>
   )
 }
+

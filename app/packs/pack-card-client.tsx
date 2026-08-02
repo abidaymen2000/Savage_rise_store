@@ -34,11 +34,11 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
   return (
     <Link
       href={`/packs/${pack.id}`}
-      className="group overflow-hidden rounded-2xl border border-gold/20 bg-black transition-colors hover:border-gold/70 theme-aware-pack-card"
+      className="group overflow-hidden rounded-2xl border border-accent/20 bg-card text-card-foreground transition-colors hover:border-accent/70"
     >
       <div className="grid gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div
-          className={`relative grid min-h-[260px] overflow-hidden bg-gray-900 ${
+          className={`relative grid min-h-[260px] overflow-hidden bg-muted ${
             mediaItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
           }`}
         >
@@ -61,7 +61,7 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
             </div>
           ))}
           {discountLabel && (
-            <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+            <div className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
               {discountLabel}
             </div>
           )}
@@ -72,14 +72,14 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
           )}
         </div>
 
-        <div className="flex flex-col justify-between gap-5 p-6 theme-aware-panel">
+        <div className="flex flex-col justify-between gap-5 p-6">
           <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-gold">The set offer</p>
-            <h2 className="text-2xl font-semibold transition-colors group-hover:text-gold">{pack.title}</h2>
-            {pack.description && <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">{pack.description}</p>}
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-300">
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 theme-aware-card">Choose each item&apos;s size separately</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 theme-aware-card">Same-color set</span>
+            <h2 className="text-2xl font-semibold transition-colors group-hover:text-accent">{pack.title}</h2>
+            {pack.description && <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{pack.description}</p>}
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full border border-border bg-muted px-3 py-1">Choose each item&apos;s size separately</span>
+              <span className="rounded-full border border-border bg-muted px-3 py-1">Same-color set</span>
             </div>
             {colorOptions.length > 0 && (
               <div className="mt-5 flex flex-wrap gap-2">
@@ -94,7 +94,7 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
                         setSelectedColor(color)
                       }}
                       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                        isSelected ? "border-gold bg-gold text-black" : "border-white/15 bg-white/5 text-white hover:border-gold/70"
+                        isSelected ? "border-accent bg-accent text-accent-foreground" : "border-border bg-muted text-foreground hover:border-accent/70"
                       }`}
                     >
                       <span className="h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: getColorSwatch(color) }} />
@@ -108,13 +108,13 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
+              <p className="text-sm text-muted-foreground line-through">{formatPrice(pack.original_price ?? 0)}</p>
               <p className="text-3xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
               {(pack.savings_value ?? 0) > 0 && (
-                <p className="mt-1 text-sm font-medium text-green-300">Save {formatPrice(pack.savings_value ?? 0)}</p>
+                <p className="mt-1 text-sm font-medium text-green-600 dark:text-green-300">Save {formatPrice(pack.savings_value ?? 0)}</p>
               )}
             </div>
-            <Button className="bg-gold text-black hover:bg-gold/90">Configure</Button>
+            <Button className="bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground">Configure</Button>
           </div>
         </div>
       </div>

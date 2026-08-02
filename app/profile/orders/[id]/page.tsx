@@ -89,21 +89,21 @@ export default function OrderDetailPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading order details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading order details...</p>
         </div>
       </div>
     )
   }
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-black text-white pt-20">
+      <div className="min-h-screen bg-background text-foreground pt-20">
         <div className="container mx-auto px-4 py-20 text-center">
           <p className="text-red-400 mb-4">Error: {error || "Order not found"}</p>
           <Link href="/profile?tab=orders">
-            <Button className="bg-gold text-black hover:bg-gold/90">Back to my orders</Button>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Back to my orders</Button>
           </Link>
         </div>
       </div>
@@ -144,11 +144,11 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-background text-foreground pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/profile?tab=orders" className="flex items-center text-gray-400 hover:text-white transition-colors">
+          <Link href="/profile?tab=orders" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to my orders
           </Link>
@@ -159,10 +159,10 @@ export default function OrderDetailPage() {
           {/* Colonne gauche */}
           <div className="lg:col-span-2">
             {/* Produits */}
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Package className="h-5 w-5 text-gold" />
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <Package className="h-5 w-5 text-accent" />
                   Ordered products
                 </CardTitle>
               </CardHeader>
@@ -171,15 +171,15 @@ export default function OrderDetailPage() {
                   const { url, alt } = productImage(item.product_id, item.color)
                   return (
                     <div key={index} className="flex gap-4 items-center">
-                      <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-gray-800">
+                      <div className="w-16 h-16 relative overflow-hidden rounded-lg bg-muted">
                         <Image src={url} alt={alt} fill className="object-cover" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-white">{productName(item.product_id)}</h3>
-                        <p className="text-sm text-gray-400">
+                        <h3 className="font-semibold text-foreground">{productName(item.product_id)}</h3>
+                        <p className="text-sm text-muted-foreground">
                           Color: {item.color} • Size: {item.size} • Qty: {item.qty}
                         </p>
-                        <p className="text-gold font-semibold">
+                        <p className="text-accent font-semibold">
                           {formatPrice(
                             "line_total" in item && typeof item.line_total === "number"
                               ? item.line_total
@@ -204,22 +204,22 @@ export default function OrderDetailPage() {
                         ) * packQty
 
                   return (
-                    <div key={`${packItem.pack_id ?? "pack"}-${index}`} className="rounded-lg border border-gold/20 bg-black/30 p-4">
+                    <div key={`${packItem.pack_id ?? "pack"}-${index}`} className="rounded-lg border border-accent/20 bg-black/30 p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <Badge className="mb-2 bg-gold text-black">Pack</Badge>
-                          <h3 className="font-semibold text-white">
+                          <Badge className="mb-2 bg-accent text-accent-foreground">Pack</Badge>
+                          <h3 className="font-semibold text-foreground">
                             {packItem.pack_title ?? packItem.title ?? `Pack ${packItem.pack_id?.slice?.(-8) ?? index + 1}`}
                           </h3>
-                          <p className="text-sm text-gray-400">Qty: {packQty}</p>
+                          <p className="text-sm text-muted-foreground">Qty: {packQty}</p>
                         </div>
-                        <p className="text-gold font-semibold">{formatPrice(packTotal)}</p>
+                        <p className="text-accent font-semibold">{formatPrice(packTotal)}</p>
                       </div>
 
                       {components.length > 0 && (
                         <div className="mt-3 space-y-2">
                           {components.map((component: any, componentIndex: number) => (
-                            <p key={`${component.product_id ?? "component"}-${componentIndex}`} className="text-sm text-gray-400">
+                            <p key={`${component.product_id ?? "component"}-${componentIndex}`} className="text-sm text-muted-foreground">
                               {component.product_name ?? `Product ${component.product_id ?? componentIndex + 1}`} - Color:{" "}
                               {component.color} - Size: {component.size} - Qty: {component.qty ?? 1}
                             </p>
@@ -234,7 +234,7 @@ export default function OrderDetailPage() {
                 <Separator className="bg-gray-700" />
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Subtotal</span>
+                    <span className="text-muted-foreground">Subtotal</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
 
@@ -252,7 +252,7 @@ export default function OrderDetailPage() {
                   )}
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400 flex items-center gap-2">
+                    <span className="text-muted-foreground flex items-center gap-2">
                       <Truck className="h-4 w-4" />
                       {order.shipping_rate_name ?? "Shipping"}
                     </span>
@@ -261,22 +261,22 @@ export default function OrderDetailPage() {
 
                   <Separator className="bg-gray-700" />
                   <div className="flex justify-between text-lg font-semibold">
-                    <span className="text-white">Total (items + shipping)</span>
-                    <span className="text-gold">{formatPrice(grandTotal)}</span>
+                    <span className="text-foreground">Total (items + shipping)</span>
+                    <span className="text-accent">{formatPrice(grandTotal)}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Livraison */}
-            <Card className="bg-gray-900 border-gray-800 mt-6">
+            <Card className="bg-card border-border mt-6">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-gold" />
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-accent" />
                   Shipping information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-gray-300">
+              <CardContent className="space-y-3 text-muted-foreground">
                 <p><strong>Full name:</strong> {order.shipping.full_name}</p>
                 <p><strong>Customer type:</strong> {order.is_guest ? `Guest (${order.user_email ?? order.shipping.email})` : "Signed-in customer"}</p>
                 <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> {order.shipping.email}</p>
@@ -293,13 +293,13 @@ export default function OrderDetailPage() {
 
           {/* Sidebar */}
           <div>
-            <Card className="bg-gray-900 border-gray-800 sticky top-24">
+            <Card className="bg-card border-border sticky top-24">
               <CardHeader>
-                <CardTitle className="text-white">Order status</CardTitle>
+                <CardTitle className="text-foreground">Order status</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Badge className={`${getOrderStatusColor(orderStatus)} text-white text-base px-3 py-1`}>
+                  <Badge className={`${getOrderStatusColor(orderStatus)} text-foreground text-base px-3 py-1`}>
                     {getOrderStatusLabel(orderStatus)}
                   </Badge>
                   {hasPromo && (
@@ -310,27 +310,27 @@ export default function OrderDetailPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-300">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarDays className="h-4 w-4" />
                   <span>Order date: {new Date(order.created_at).toLocaleDateString("en-US")}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-300">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <DollarSign className="h-4 w-4" />
                   <span>
                     Payment method: {order.payment_method === "cod" ? "Cash on delivery" : order.payment_method}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Badge variant="outline" className="border-white/20 text-gray-200">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Badge variant="outline" className="border-white/20 text-foreground">
                     Payment: {getPaymentStatusLabel(order.payment_status)}
                   </Badge>
-                  <Badge variant="outline" className="border-white/20 text-gray-200">
+                  <Badge variant="outline" className="border-white/20 text-foreground">
                     Fulfillment: {getFulfillmentStatusLabel(order.fulfillment_status)}
                   </Badge>
                 </div>
 
                 <Separator className="bg-gray-700" />
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   You will receive email updates about your order status.
                 </p>
 
@@ -351,3 +351,4 @@ export default function OrderDetailPage() {
     </div>
   )
 }
+

@@ -26,10 +26,11 @@ export default async function Home() {
   const { products, packs, categories, headerVideo, drop } = await getHomePageData()
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <Hero headerVideo={headerVideo} drop={drop} />
       <FeaturedProducts products={products} packs={packs} storeCategories={categories} />
       <Newsletter />
     </main>
   )
 }
+

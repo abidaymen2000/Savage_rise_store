@@ -23,7 +23,7 @@ export default function ProductCardActions({ product, href }: { product: Product
     <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_44px_44px] gap-2 pt-1 max-[360px]:grid-cols-2">
       <Button
         asChild
-        className="h-11 min-w-0 rounded-none bg-white px-2 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.08em] text-black hover:bg-[#D4AF37] sm:px-3 sm:text-xs sm:tracking-[0.12em] max-[360px]:col-span-2"
+        className="h-11 min-w-0 rounded-none bg-primary px-2 text-center text-[11px] font-semibold uppercase leading-tight tracking-[0.08em] text-primary-foreground hover:bg-accent hover:text-accent-foreground sm:px-3 sm:text-xs sm:tracking-[0.12em] max-[360px]:col-span-2"
       >
         <Link href={href} className="min-w-0 justify-center overflow-hidden text-ellipsis whitespace-normal">
           {inStock ? "Choisir une taille" : "Voir le produit"}
@@ -32,7 +32,7 @@ export default function ProductCardActions({ product, href }: { product: Product
       <Button
         type="button"
         size="icon"
-        className="h-11 w-11 min-w-[44px] shrink-0 rounded-none bg-stone-900 text-white hover:bg-[#D4AF37] hover:text-black"
+        className="h-11 w-11 min-w-[44px] shrink-0 rounded-none bg-muted text-foreground hover:bg-accent hover:text-accent-foreground"
         disabled={!inStock}
         onClick={handleQuickAdd}
         aria-label="Ajouter rapidement au panier"

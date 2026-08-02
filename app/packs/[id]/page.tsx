@@ -284,8 +284,8 @@ export default function PackDetailPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-black pt-20 text-white">
-        <Loader2 className="mr-3 h-6 w-6 animate-spin text-gold" />
+      <main className="flex min-h-screen items-center justify-center bg-background pt-20 text-foreground">
+        <Loader2 className="mr-3 h-6 w-6 animate-spin text-accent" />
         Loading pack...
       </main>
     )
@@ -293,10 +293,10 @@ export default function PackDetailPage() {
 
   if (error || !pack) {
     return (
-      <main className="min-h-screen bg-black pt-24 text-white">
+      <main className="min-h-screen bg-background pt-24 text-foreground">
         <div className="container mx-auto px-4 py-16 text-center">
           <p className="mb-4 text-red-400">{error || "Pack not found."}</p>
-          <Button asChild className="bg-gold text-black hover:bg-gold/90">
+          <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
             <Link href="/packs">Back to packs</Link>
           </Button>
         </div>
@@ -305,9 +305,9 @@ export default function PackDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black pt-24 text-white">
+    <main className="min-h-screen bg-background pt-24 text-foreground">
       <div className="container mx-auto px-4 py-8">
-        <Link href="/packs" className="mb-8 inline-flex items-center text-gray-400 transition-colors hover:text-white">
+        <Link href="/packs" className="mb-8 inline-flex items-center text-muted-foreground transition-colors hover:text-foreground dark:text-white">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to packs
         </Link>
@@ -315,7 +315,7 @@ export default function PackDetailPage() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="space-y-4">
             <div
-              className={`relative grid aspect-[4/5] overflow-hidden rounded-lg bg-gray-900 ${
+              className={`relative grid aspect-[4/5] overflow-hidden rounded-lg bg-muted ${
                 previewItems.length > 1 ? "grid-cols-2" : "grid-cols-1"
               }`}
             >
@@ -324,7 +324,7 @@ export default function PackDetailPage() {
                   <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
                 </div>
               ))}
-              <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-black">
+              <div className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
                 Pack deal
               </div>
             </div>
@@ -349,7 +349,7 @@ export default function PackDetailPage() {
                       })
                     }}
                     disabled={!product}
-                    className="group flex w-full gap-3 rounded-md border border-white/10 bg-gray-900 p-3 text-left transition hover:border-gold/60 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 theme-aware-card"
+                    className="group flex w-full gap-3 rounded-md border border-border dark:border-white/10 bg-muted p-3 text-left transition hover:border-accent/60 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60 theme-aware-card"
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-black">
                       <Image
@@ -364,9 +364,9 @@ export default function PackDetailPage() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-white">{component.product.name}</p>
-                      <p className="text-sm text-gray-400">Qty {getComponentQty(component)}</p>
-                      <p className="mt-1 text-xs font-medium text-gold">View details</p>
+                      <p className="truncate font-medium text-foreground dark:text-white">{component.product.name}</p>
+                      <p className="text-sm text-muted-foreground">Qty {getComponentQty(component)}</p>
+                      <p className="mt-1 text-xs font-medium text-accent">View details</p>
                     </div>
                   </button>
                 )
@@ -377,16 +377,16 @@ export default function PackDetailPage() {
           <div className="space-y-6">
             <div>
               {(pack.savings_value ?? 0) > 0 && (
-                <Badge className="mb-4 bg-gold text-black">
+                <Badge className="mb-4 bg-accent text-accent-foreground">
                   {formatPrice(pack.savings_value ?? 0)} off
                 </Badge>
               )}
               <h1 className="font-playfair text-4xl font-bold sm:text-5xl">{pack.title}</h1>
-              {pack.description && <p className="mt-4 leading-7 text-gray-300">{pack.description}</p>}
+              {pack.description && <p className="mt-4 leading-7 text-muted-foreground">{pack.description}</p>}
               <div className="mt-5 flex flex-wrap items-end gap-4">
                 <div>
-                  <p className="text-sm text-gray-500 line-through">{formatPrice(pack.original_price ?? 0)}</p>
-                  <p className="text-3xl font-bold text-gold">{formatPrice(pack.pack_price ?? 0)}</p>
+                  <p className="text-sm text-muted-foreground line-through">{formatPrice(pack.original_price ?? 0)}</p>
+                  <p className="text-3xl font-bold text-accent">{formatPrice(pack.pack_price ?? 0)}</p>
                 </div>
                 {(pack.savings_value ?? 0) > 0 && (
                   <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm text-green-300">
@@ -396,13 +396,13 @@ export default function PackDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-gray-900 p-4 theme-aware-pack-card">
+            <div className="rounded-lg border border-border dark:border-white/10 bg-muted p-4 theme-aware-pack-card">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-semibold text-white">Choose sizes</p>
-                  <p className="text-sm text-gray-400">Use one size when it exists for every product, or configure each item.</p>
+                  <p className="font-semibold text-foreground dark:text-white">Choose sizes</p>
+                  <p className="text-sm text-muted-foreground">Use one size when it exists for every product, or configure each item.</p>
                 </div>
-                <div className="grid grid-cols-2 rounded-md border border-white/10 bg-black p-1 text-sm theme-aware-card">
+                <div className="grid grid-cols-2 rounded-md border border-border dark:border-white/10 bg-black p-1 text-sm theme-aware-card">
                   <button
                     type="button"
                     onClick={() => {
@@ -415,7 +415,7 @@ export default function PackDetailPage() {
                       })
                     }}
                     disabled={commonSizes.length === 0}
-                    className={`rounded px-3 py-2 ${sameSizeMode ? "bg-gold text-black" : "text-gray-300"} disabled:opacity-40`}
+                    className={`rounded px-3 py-2 ${sameSizeMode ? "bg-accent text-accent-foreground" : "text-muted-foreground"} disabled:opacity-40`}
                   >
                     Same size
                   </button>
@@ -430,7 +430,7 @@ export default function PackDetailPage() {
                         },
                       })
                     }}
-                    className={`rounded px-3 py-2 ${!sameSizeMode ? "bg-gold text-black" : "text-gray-300"}`}
+                    className={`rounded px-3 py-2 ${!sameSizeMode ? "bg-accent text-accent-foreground" : "text-muted-foreground"}`}
                   >
                     Each item
                   </button>
@@ -456,7 +456,7 @@ export default function PackDetailPage() {
                           })
                         }}
                         className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                          isSelected ? "border-gold bg-gold text-black" : "border-white/15 bg-black text-white hover:border-gold/70"
+                          isSelected ? "border-accent bg-accent text-accent-foreground" : "border-border dark:border-white/15 bg-background text-foreground hover:border-accent/70"
                         }`}
                       >
                         <span className="h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: getColorSwatch(color) }} />
@@ -483,12 +483,12 @@ export default function PackDetailPage() {
                       })
                     }}
                   >
-                    <SelectTrigger className="bg-black border-gray-700 text-white">
+                    <SelectTrigger className="bg-black border-input text-foreground dark:text-white">
                       <SelectValue placeholder="Choose one size for all" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectContent className="bg-card border-input">
                       {commonSizes.map((size) => (
-                        <SelectItem key={size} value={size} className="text-white">
+                        <SelectItem key={size} value={size} className="text-foreground dark:text-white">
                           {size}
                         </SelectItem>
                       ))}
@@ -508,10 +508,10 @@ export default function PackDetailPage() {
                   const effectiveSize = getEffectiveSize(component, selection, sameSizeMode, effectiveSameSize, commonSizes)
 
                   return (
-                    <div key={component.id} className="rounded-md border border-white/10 bg-black/35 p-4">
+                    <div key={component.id} className="rounded-md border border-border dark:border-white/10 bg-black/35 p-4">
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-semibold text-white">{component.product.name}</p>
+                          <p className="font-semibold text-foreground dark:text-white">{component.product.name}</p>
                           {isUnavailable && <p className="mt-1 text-sm text-red-300">Out of stock</p>}
                         </div>
                         {effectiveSize && selection.color && !isUnavailable && <Check className="h-5 w-5 text-green-400" />}
@@ -533,12 +533,12 @@ export default function PackDetailPage() {
                           }}
                           disabled={Boolean(component.color) || isUnavailable}
                         >
-                          <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                          <SelectTrigger className="bg-card border-input text-card-foreground">
                             <SelectValue placeholder="Color" />
                           </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border-gray-700">
+                          <SelectContent className="bg-card border-input">
                             {(component.color ? [component.color] : colorOptions).map((color) => (
-                              <SelectItem key={color} value={color} className="text-white">
+                              <SelectItem key={color} value={color} className="text-foreground dark:text-white">
                                 {color}
                               </SelectItem>
                             ))}
@@ -562,12 +562,12 @@ export default function PackDetailPage() {
                           }}
                           disabled={sizeLockedToSameSize || Boolean(component.size) || isUnavailable}
                         >
-                          <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                          <SelectTrigger className="bg-card border-input text-card-foreground">
                             <SelectValue placeholder="Size" />
                           </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border-gray-700">
+                          <SelectContent className="bg-card border-input">
                             {sizeOptions.map((size) => (
-                              <SelectItem key={size} value={size} className="text-white">
+                              <SelectItem key={size} value={size} className="text-foreground dark:text-white">
                                 {size}
                               </SelectItem>
                             ))}
@@ -583,7 +583,7 @@ export default function PackDetailPage() {
             <Button
               onClick={handleAddPack}
               disabled={!packAvailable}
-              className="w-full bg-gold py-6 text-base font-semibold text-black hover:bg-gold/90"
+              className="w-full bg-accent py-6 text-base font-semibold text-accent-foreground hover:bg-accent/90"
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
               {added ? "Pack added" : packAvailable ? "Add pack to cart" : "Complete available selections"}
@@ -602,13 +602,13 @@ export default function PackDetailPage() {
             aria-modal="true"
             aria-labelledby="pack-product-title"
             onClick={(event) => event.stopPropagation()}
-            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-gray-950 shadow-2xl"
+            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-border dark:border-white/10 bg-card shadow-2xl"
           >
             <button
               type="button"
               aria-label="Close product details"
               onClick={() => setSelectedProduct(null)}
-              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-gold hover:text-black"
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-foreground dark:text-white transition hover:bg-accent hover:text-accent-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -624,29 +624,29 @@ export default function PackDetailPage() {
               </div>
 
               <div className="flex flex-col p-6 sm:p-8">
-                <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-gold">
+                <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-accent">
                   Included in this pack
                 </p>
 
-                <h2 id="pack-product-title" className="font-playfair text-3xl font-bold text-white">
+                <h2 id="pack-product-title" className="font-playfair text-3xl font-bold text-foreground dark:text-white">
                   {selectedProduct.name}
                 </h2>
 
-                <p className="mt-4 text-2xl font-bold text-gold">{formatPrice(selectedProduct.price)}</p>
+                <p className="mt-4 text-2xl font-bold text-accent">{formatPrice(selectedProduct.price)}</p>
 
                 {selectedProduct.description && (
-                  <p className="mt-5 whitespace-pre-line leading-7 text-gray-300">
+                  <p className="mt-5 whitespace-pre-line leading-7 text-muted-foreground">
                     {selectedProduct.description}
                   </p>
                 )}
 
                 <div className="mt-6">
-                  <p className="mb-3 font-semibold text-white">Available colors</p>
+                  <p className="mb-3 font-semibold text-foreground dark:text-white">Available colors</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedProduct.variants?.map((variant) => (
                       <span
                         key={variant.color}
-                        className="rounded-full border border-white/15 bg-gray-900 px-3 py-1.5 text-sm text-gray-200"
+                        className="rounded-full border border-border dark:border-white/15 bg-muted px-3 py-1.5 text-sm text-foreground"
                       >
                         {variant.color}
                       </span>
@@ -655,7 +655,7 @@ export default function PackDetailPage() {
                 </div>
 
                 <div className="mt-6">
-                  <p className="mb-3 font-semibold text-white">Available sizes</p>
+                  <p className="mb-3 font-semibold text-foreground dark:text-white">Available sizes</p>
                   <div className="flex flex-wrap gap-2">
                     {Array.from(
                       new Set(
@@ -668,7 +668,7 @@ export default function PackDetailPage() {
                     ).map((size) => (
                       <span
                         key={size}
-                        className="flex h-10 min-w-10 items-center justify-center rounded border border-white/15 bg-gray-900 px-3 text-sm text-white"
+                        className="flex h-10 min-w-10 items-center justify-center rounded border border-border dark:border-white/15 bg-muted px-3 text-sm text-foreground dark:text-white"
                       >
                         {size}
                       </span>
@@ -680,7 +680,7 @@ export default function PackDetailPage() {
                   <Button
                     type="button"
                     onClick={() => setSelectedProduct(null)}
-                    className="w-full bg-gold text-black hover:bg-gold/90"
+                    className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
                   >
                     Continue configuring pack
                   </Button>
@@ -693,3 +693,5 @@ export default function PackDetailPage() {
     </main>
   )
 }
+
+

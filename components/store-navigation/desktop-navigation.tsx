@@ -43,7 +43,7 @@ export default function DesktopNavigation({ items }: { items: NavigationItem[] }
           const children = item.children ?? []
           const active = isActiveItem(item, pathname)
           const triggerClass = `inline-flex items-center gap-1 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-            active ? "text-gold" : "text-white hover:text-gold"
+            active ? "text-accent" : "text-foreground hover:text-accent dark:text-white dark:hover:text-gold"
           }`
 
           return (
@@ -66,7 +66,7 @@ export default function DesktopNavigation({ items }: { items: NavigationItem[] }
                   >
                     {item.label}
                     {item.badge && (
-                      <span className="rounded-full bg-gold px-1.5 py-0.5 text-[10px] font-bold uppercase text-black">
+                      <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase text-accent-foreground">
                         {item.badge}
                       </span>
                     )}
@@ -75,7 +75,7 @@ export default function DesktopNavigation({ items }: { items: NavigationItem[] }
                   <div
                     id={`${panelId}-${item.id}`}
                     role="menu"
-                    className={`absolute left-1/2 top-full mt-4 w-max min-w-56 max-w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-gold/20 bg-black/95 p-2 shadow-2xl shadow-black/60 backdrop-blur transition motion-reduce:transition-none ${
+                    className={`absolute left-1/2 top-full mt-4 w-max min-w-56 max-w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-accent/20 bg-popover p-2 text-popover-foreground shadow-2xl shadow-black/20 backdrop-blur transition motion-reduce:transition-none dark:bg-black/95 dark:shadow-black/60 ${
                       openId === item.id ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"
                     }`}
                   >

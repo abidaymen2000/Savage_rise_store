@@ -30,8 +30,8 @@ export default function ProductCard({ product, compact = false, priority = false
   const compareAt = product.compare_at_price && product.compare_at_price > product.price ? product.compare_at_price : null
 
   return (
-    <article className="group min-w-0 overflow-hidden border border-stone-800 bg-[#080807] transition-colors duration-300 hover:border-stone-500">
-      <Link href={href} className="relative block aspect-[3/4] overflow-hidden bg-stone-950">
+    <article className="group min-w-0 overflow-hidden border border-border bg-card text-card-foreground transition-colors duration-300 hover:border-accent/55">
+      <Link href={href} className="relative block aspect-[3/4] overflow-hidden bg-muted">
         <Image
           src={images.first}
           alt={getProductImageAlt(product)}
@@ -50,26 +50,26 @@ export default function ProductCard({ product, compact = false, priority = false
           />
         )}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          {!inStock && <span className="bg-black px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">Epuise</span>}
-          {compareAt && <span className="bg-[#D4AF37] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-black">Promo</span>}
+          {!inStock && <span className="bg-primary px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-foreground">Epuise</span>}
+          {compareAt && <span className="bg-accent px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-foreground">Promo</span>}
         </div>
       </Link>
       <div className="min-w-0 space-y-3 p-3 sm:p-4">
         <Link href={href} className="block min-w-0">
-          <h3 className="line-clamp-2 min-h-[2.5rem] overflow-hidden break-words text-sm font-semibold uppercase tracking-[0.08em] text-white transition-colors group-hover:text-[#D4AF37] sm:text-base" dir="auto">
+          <h3 className="line-clamp-2 min-h-[2.5rem] overflow-hidden break-words text-sm font-semibold uppercase tracking-[0.08em] text-card-foreground transition-colors group-hover:text-accent sm:text-base" dir="auto">
             {product.name}
           </h3>
           <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-2">
-            <span className="text-sm font-semibold text-white sm:text-base">{formatPrice(product.price)}</span>
-            {compareAt && <span className="text-xs text-stone-500 line-through">{formatPrice(compareAt)}</span>}
+            <span className="text-sm font-semibold text-card-foreground sm:text-base">{formatPrice(product.price)}</span>
+            {compareAt && <span className="text-xs text-muted-foreground line-through">{formatPrice(compareAt)}</span>}
           </div>
         </Link>
         {colors.length > 0 && (
           <div className="flex min-w-0 items-center gap-1.5 overflow-hidden" aria-label="Couleurs disponibles">
             {colors.slice(0, 5).map((color) => (
-              <span key={color.label} title={color.label} className="h-4 w-4 shrink-0 border border-white/30" style={{ backgroundColor: color.swatch }} />
+              <span key={color.label} title={color.label} className="h-4 w-4 shrink-0 border border-border" style={{ backgroundColor: color.swatch }} />
             ))}
-            {colors.length > 5 && <span className="text-xs text-stone-500">+{colors.length - 5}</span>}
+            {colors.length > 5 && <span className="text-xs text-muted-foreground">+{colors.length - 5}</span>}
           </div>
         )}
         {!compact && <ProductCardActions product={product} href={href} />}

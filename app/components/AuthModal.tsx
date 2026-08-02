@@ -178,19 +178,19 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-black text-white border-gray-800 max-w-md">
+      <DialogContent className="bg-background text-foreground border-border max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-playfair text-center text-gold">
+          <DialogTitle className="text-2xl font-playfair text-center text-accent">
             Welcome to Savage Rise
           </DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "signup")}>
-          <TabsList className="grid w-full grid-cols-2 bg-gray-900">
-            <TabsTrigger value="login" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+          <TabsList className="grid w-full grid-cols-2 bg-muted">
+            <TabsTrigger value="login" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
               Sign in
             </TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+            <TabsTrigger value="signup" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
               Sign up
             </TabsTrigger>
           </TabsList>
@@ -213,14 +213,14 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               <div className="space-y-2">
                 <Label htmlFor="login-email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     id="login-email"
                     type="email"
                     placeholder="your@email.com"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
+                    className="pl-10 bg-card border-input text-card-foreground placeholder:text-muted-foreground placeholder:opacity-70"
                     required
                   />
                 </div>
@@ -233,19 +233,19 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                     type="button"
                     onClick={handleForgotPassword}
                     disabled={isSendingReset}
-                    className="text-sm font-medium text-gold hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                    className="text-sm font-medium text-accent hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isSendingReset ? "Sending..." : "Forgot password?"}
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <PasswordInput
                     id="login-password"
                     placeholder="Enter your password"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
+                    className="pl-10 bg-card border-input text-card-foreground placeholder:text-muted-foreground placeholder:opacity-70"
                     required
                   />
                 </div>
@@ -254,7 +254,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gold text-black hover:bg-gold/90 font-semibold"
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
               >
                 {isLoading ? (
                   <>
@@ -274,14 +274,14 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               <div className="space-y-2">
                 <Label htmlFor="signup-email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     id="signup-email"
                     type="email"
                     placeholder="your@email.com"
                     value={signupForm.email}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, email: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
+                    className="pl-10 bg-card border-input text-card-foreground placeholder:text-muted-foreground placeholder:opacity-70"
                     required
                   />
                 </div>
@@ -295,7 +295,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                   placeholder="Your full name"
                   value={signupForm.fullName}
                   onChange={(e) => setSignupForm((prev) => ({ ...prev, fullName: e.target.value }))}
-                  className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
+                  className="bg-card border-input text-card-foreground placeholder:text-muted-foreground placeholder:opacity-70"
                   required
                 />
               </div>
@@ -303,13 +303,13 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <PasswordInput
                     id="signup-password"
                     placeholder="Create a password"
                     value={signupForm.password}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
+                    className="pl-10 bg-card border-input text-card-foreground placeholder:text-muted-foreground placeholder:opacity-70"
                     required
                     minLength={6}
                   />
@@ -319,13 +319,13 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               <div className="space-y-2">
                 <Label htmlFor="signup-confirm">Confirm password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <PasswordInput
                     id="signup-confirm"
                     placeholder="Confirm your password"
                     value={signupForm.confirmPassword}
                     onChange={(e) => setSignupForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 placeholder:opacity-70"
+                    className="pl-10 bg-card border-input text-card-foreground placeholder:text-muted-foreground placeholder:opacity-70"
                     required
                     minLength={6}
                   />
@@ -335,7 +335,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gold text-black hover:bg-gold/90 font-semibold"
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
               >
                 {isLoading ? (
                   <>
@@ -355,7 +355,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 variant="outline"
                 onClick={handleResend}
                 disabled={isResending || !signupForm.email.trim()}
-                className="w-full border-gold text-gold hover:bg-gold hover:text-black font-semibold"
+                className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold"
               >
                 {isResending ? (
                   <>
@@ -367,20 +367,20 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
                 )}
               </Button>
 
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-muted-foreground text-center">
                 Enter your email above, then click if you did not receive the email.
               </p>
             </div>
           </TabsContent>
         </Tabs>
 
-        <div className="text-center text-sm text-gray-400">
+        <div className="text-center text-sm text-muted-foreground">
           By signing up, you agree to our{" "}
-          <a href="/terms" className="text-gold hover:underline">
+          <a href="/terms" className="text-accent hover:underline">
             terms of use
           </a>{" "}
           and our{" "}
-          <a href="/privacy" className="text-gold hover:underline">
+          <a href="/privacy" className="text-accent hover:underline">
             privacy policy
           </a>
           .
@@ -389,3 +389,4 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
     </Dialog>
   )
 }
+

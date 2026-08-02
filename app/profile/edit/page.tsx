@@ -81,55 +81,55 @@ export default function EditProfilePage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
-        <Loader2 className="h-8 w-8 animate-spin text-gold" />
-        <p className="ml-4 text-gray-400">Loading profile...</p>
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-background text-foreground pt-16">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="ml-4 text-muted-foreground">Loading profile...</p>
       </div>
     )
   }
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-background text-foreground pt-16">
         <p className="text-red-500">You must be signed in to access this page.</p>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-black text-white py-12 pt-24">
+    <main className="min-h-screen bg-background text-foreground py-12 pt-24">
       <div className="container mx-auto px-4">
-        <Card className="bg-gray-900 border-gray-800 text-white max-w-lg mx-auto">
+        <Card className="bg-card border-border text-card-foreground max-w-lg mx-auto">
           <CardHeader>
-            <CardTitle className="text-gold text-2xl">Edit profile</CardTitle>
+            <CardTitle className="text-accent text-2xl">Edit profile</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="fullName" className="text-white">Full name</Label>
+                <Label htmlFor="fullName" className="text-foreground">Full name</Label>
                 <Input
                   id="fullName"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="email" className="text-white">Email</Label>
+                <Label htmlFor="email" className="text-foreground">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <div className="flex gap-4">
-                <Button type="submit" className="bg-gold text-black hover:bg-gold/90" disabled={isSubmitting}>
+                <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -143,7 +143,7 @@ export default function EditProfilePage() {
                   type="button"
                   variant="outline"
                   onClick={() => router.push('/profile')}
-                  className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  className="border-input text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   Cancel
                 </Button>
@@ -155,3 +155,4 @@ export default function EditProfilePage() {
     </main>
   )
 }
+

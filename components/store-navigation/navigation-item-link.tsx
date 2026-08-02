@@ -20,7 +20,7 @@ export default function NavigationItemLink({ item, className, children, onNaviga
     <>
       {children ?? item.label}
       {item.badge && (
-        <span className="ml-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold uppercase text-black">
+        <span className="ml-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold uppercase text-accent-foreground">
           {item.badge}
         </span>
       )}
@@ -42,3 +42,4 @@ export default function NavigationItemLink({ item, className, children, onNaviga
     </Link>
   )
 }
+

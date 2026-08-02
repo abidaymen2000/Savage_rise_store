@@ -80,66 +80,66 @@ export default function ChangePasswordPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
-        <Loader2 className="h-8 w-8 animate-spin text-gold" />
-        <p className="ml-4 text-gray-400">Loading...</p>
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-background text-foreground pt-16">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="ml-4 text-muted-foreground">Loading...</p>
       </div>
     )
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-black text-white pt-16">
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-background text-foreground pt-16">
         <p className="text-red-500">You must be signed in to access this page.</p>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-black text-white py-12 pt-24">
+    <main className="min-h-screen bg-background text-foreground py-12 pt-24">
       <div className="container mx-auto px-4">
-        <Card className="bg-gray-900 border-gray-800 text-white max-w-lg mx-auto">
+        <Card className="bg-card border-border text-card-foreground max-w-lg mx-auto">
           <CardHeader>
-            <CardTitle className="text-gold text-2xl">Change password</CardTitle>
+            <CardTitle className="text-accent text-2xl">Change password</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="currentPassword" className="text-white">Current password</Label>
+                <Label htmlFor="currentPassword" className="text-foreground">Current password</Label>
                 <PasswordInput
                   id="currentPassword"
                   placeholder="Enter current password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="newPassword" className="text-white">New password</Label>
+                <Label htmlFor="newPassword" className="text-foreground">New password</Label>
                 <PasswordInput
                   id="newPassword"
                   placeholder="Enter new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="confirmNewPassword" className="text-white">Confirm new password</Label>
+                <Label htmlFor="confirmNewPassword" className="text-foreground">Confirm new password</Label>
                 <PasswordInput
                   id="confirmNewPassword"
                   placeholder="Confirm new password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <div className="flex gap-4">
-                <Button type="submit" className="bg-gold text-black hover:bg-gold/90" disabled={isSubmitting}>
+                <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -153,7 +153,7 @@ export default function ChangePasswordPage() {
                   type="button"
                   variant="outline"
                   onClick={() => router.push('/profile')}
-                  className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                  className="border-input text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   Cancel
                 </Button>
@@ -165,3 +165,4 @@ export default function ChangePasswordPage() {
     </main>
   )
 }
+

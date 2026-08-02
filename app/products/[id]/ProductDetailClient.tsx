@@ -274,11 +274,11 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
         ]
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-background pt-20 text-foreground">
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8">
-          <Link href="/products" className="flex items-center text-gray-400 hover:text-white transition-colors">
+          <Link href="/products" className="flex items-center text-muted-foreground transition-colors hover:text-foreground">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour boutique
           </Link>
@@ -287,7 +287,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images */}
           <div className="space-y-4">
-            <div className="aspect-[4/5] relative overflow-hidden rounded-none bg-gray-900">
+            <div className="aspect-[4/5] relative overflow-hidden rounded-none bg-muted">
               <Image
                 src={displayImages[selectedImageIndex]?.url || "/placeholder.svg?height=600&width=600"}
                 alt={displayImages[selectedImageIndex]?.alt_text || product.name}
@@ -302,7 +302,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                   <button
                     key={image.id || index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`aspect-square relative overflow-hidden rounded-none border border-white/10 ${
+                    className={`aspect-square relative overflow-hidden rounded-none border border-border ${
                       selectedImageIndex === index ? "ring-2 ring-gold" : ""
                     }`}
                   >
@@ -322,7 +322,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-2">{product.name}</h1>
-              <p className="text-xl text-gray-400 mb-4">{product.full_name}</p>
+              <p className="mb-4 text-xl text-muted-foreground">{product.full_name}</p>
               <p className="text-3xl font-bold text-gold">{formatPrice(product.price, config)}</p>
             </div>
 
@@ -341,7 +341,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             {product.description && (
               <div>
                 <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <p className="text-gray-300 leading-relaxed">{product.description}</p>
+                <p className="leading-relaxed text-muted-foreground">{product.description}</p>
               </div>
             )}
 
@@ -362,12 +362,12 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                     })
                   }}
                 >
-                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                  <SelectTrigger className="border-border bg-card text-card-foreground">
                     <SelectValue placeholder="Choisir une couleur" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-900 border-gray-700">
+                  <SelectContent className="border-border bg-popover text-popover-foreground">
                     {availableColors.map((color) => (
-                      <SelectItem key={color} value={color} className="text-white">
+                      <SelectItem key={color} value={color}>
                         {color}
                       </SelectItem>
                     ))}
@@ -381,7 +381,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               <div>
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h3 className="text-lg font-semibold">Taille</h3>
-                  <Link href="/size-guide" className="text-sm font-semibold text-gold hover:text-white">Guide des tailles</Link>
+                  <Link href="/size-guide" className="text-sm font-semibold text-accent hover:text-foreground">Guide des tailles</Link>
                 </div>
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
                   {availableSizes.map((size) => {
@@ -408,10 +408,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                         }}
                         className={`min-h-11 border px-3 py-2 text-sm font-semibold transition-colors ${
                           selected
-                            ? "border-gold bg-gold text-black"
+                            ? "border-accent bg-accent text-accent-foreground"
                             : purchasable
-                              ? "border-white/20 bg-black text-white hover:border-white"
-                              : "cursor-not-allowed border-white/10 bg-white/5 text-white/35 line-through"
+                              ? "border-border bg-card text-card-foreground hover:border-foreground"
+                              : "cursor-not-allowed border-border bg-muted text-muted-foreground line-through opacity-55"
                         }`}
                         aria-pressed={selected}
                       >
@@ -429,12 +429,12 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             <div>
               <h3 className="text-lg font-semibold mb-3">Quantite</h3>
               <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))} disabled={quantityLimit === 0}>
-                <SelectTrigger className="w-24 bg-gray-900 border-gray-700 text-white">
+                <SelectTrigger className="w-24 border-border bg-card text-card-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700">
+                <SelectContent className="border-border bg-popover text-popover-foreground">
                   {Array.from({ length: quantityLimit }, (_, i) => i + 1).map((num) => (
-                    <SelectItem key={num} value={num.toString()} className="text-white">
+                    <SelectItem key={num} value={num.toString()}>
                       {num}
                     </SelectItem>
                   ))}
@@ -448,7 +448,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               <Button
                 onClick={handleAddToCart}
                 disabled={!canAddCurrentSelection}
-                className="w-full flex-1 bg-gold px-4 py-3 text-black hover:bg-gold/90 font-semibold whitespace-normal text-center leading-snug"
+                className="w-full flex-1 bg-accent px-4 py-3 font-semibold leading-snug text-accent-foreground hover:bg-accent/90 whitespace-normal text-center"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
                 {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? "Epuise" : "Choisir une taille"}
@@ -457,10 +457,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             </div>
 
             {packsEnabled && relatedPack && companionComponents.length > 0 && (
-              <div className="rounded-2xl border border-gold/25 bg-gradient-to-br from-gold/10 via-black to-black p-5">
+              <div className="rounded-2xl border border-accent/25 bg-card p-5 text-card-foreground dark:bg-gradient-to-br dark:from-gold/10 dark:via-black dark:to-black">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Completer le look</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-900">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
                     <Image
                       src={displayImages[0]?.url || "/placeholder.svg"}
                       alt={product.name}
@@ -479,7 +479,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
                     return (
                       <div key={component.id} className="space-y-3">
-                        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-900">
+                        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
                           <Image
                             src={getProductImageForColor(companionProduct, companionColor)}
                             alt={companionProduct.name}
@@ -488,8 +488,8 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                           />
                         </div>
                         <div>
-                          <p className="font-semibold text-white">{companionProduct.name}</p>
-                          <p className="text-sm text-gray-400">
+                          <p className="font-semibold text-card-foreground">{companionProduct.name}</p>
+                          <p className="text-sm text-muted-foreground">
                             {sameColorAvailable ? `Couleur coordonnee : ${selectedColor}` : `Couleur du set : ${companionColor}`}
                           </p>
                         </div>
@@ -503,12 +503,12 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                               }))
                             }
                           >
-                            <SelectTrigger className="bg-gray-950 border-gray-700 text-white">
+                            <SelectTrigger className="border-border bg-card text-card-foreground">
                               <SelectValue placeholder="Choose matching size" />
                             </SelectTrigger>
-                            <SelectContent className="bg-gray-900 border-gray-700">
+                            <SelectContent className="border-border bg-popover text-popover-foreground">
                               {companionSizes.map((size) => (
-                                <SelectItem key={size} value={size} className="text-white">
+                                <SelectItem key={size} value={size}>
                                   {size}
                                 </SelectItem>
                               ))}
@@ -520,27 +520,27 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                   })}
                 </div>
 
-                <div className="mt-5 rounded-xl border border-white/10 bg-black/50 p-4">
-                  <p className="text-sm uppercase tracking-[0.18em] text-gray-500">{relatedPack.title}</p>
-                          <p className="mt-2 text-sm text-gray-300">Commande la piece seule ou complete le set lorsque le pack est disponible.</p>
+                <div className="mt-5 rounded-xl border border-border bg-muted p-4 dark:border-white/10 dark:bg-black/50">
+                  <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">{relatedPack.title}</p>
+                          <p className="mt-2 text-sm text-muted-foreground">Commande la piece seule ou complete le set lorsque le pack est disponible.</p>
                   <div className="mt-4 flex flex-wrap items-end gap-4">
                     <div>
-                        <p className="text-sm text-gray-500 line-through">
+                        <p className="text-sm text-muted-foreground line-through">
                           {formatPrice((relatedPack.original_price ?? product.price) * quantity, config)}
                         </p>
                       <p className="text-3xl font-bold text-gold">{formatPrice(getPackPrice(relatedPack) * quantity, config)}</p>
                     </div>
-                    <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-300">
+                    <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-700 dark:text-green-300">
                       Economise {formatPrice(getPackSavingsLabel(relatedPack) * quantity, config)}
                     </p>
                   </div>
-                  <p className="mt-3 text-sm text-gray-400">Set coordonne. Choisis la taille de chaque piece separement.</p>
+                  <p className="mt-3 text-sm text-muted-foreground">Set coordonne. Choisis la taille de chaque piece separement.</p>
                 </div>
 
                 <Button
                   onClick={handleAddRelatedPack}
                   disabled={!canAddCurrentSelection || !completeLookReady}
-                  className="mt-5 w-full bg-white text-black hover:bg-gold"
+                  className="mt-5 w-full bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground"
                 >
                   Ajouter le pack - {formatPrice(getPackPrice(relatedPack) * quantity, config)}
                 </Button>
@@ -548,21 +548,21 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             )}
 
             {/* Product Details */}
-            <Separator className="bg-gray-700" />
+            <Separator className="bg-border" />
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Details produit</h3>
 
               {product.fabric && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Matiere :</span>
+                  <span className="text-muted-foreground">Matiere :</span>
                   <span>{product.fabric}</span>
                 </div>
               )}
 
               {product.composition && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Composition :</span>
+                  <span className="text-muted-foreground">Composition :</span>
                   <span>
                     {Object.entries(product.composition)
                       .map(([material, percentage]) => `${material} ${percentage}%`)
@@ -573,21 +573,21 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
               {product.care_instructions && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Entretien :</span>
+                  <span className="text-muted-foreground">Entretien :</span>
                   <span>{product.care_instructions}</span>
                 </div>
               )}
 
               {product.sku && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">SKU:</span>
+                  <span className="text-muted-foreground">SKU:</span>
                   <span>{product.sku}</span>
                 </div>
               )}
             </div>
 
             {/* Services */}
-            <Separator className="bg-gray-700" />
+            <Separator className="bg-border" />
 
             <div className="space-y-3">
               <div className="flex items-center gap-3">
