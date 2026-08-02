@@ -113,8 +113,32 @@ test("catalog product cards use light and dark semantic tokens", () => {
   assert.match(productsPage, /bg-background/)
   assert.match(productsPage, /text-foreground/)
   assert.match(controls, /bg-card/)
-  assert.doesNotMatch(productCard, /bg-\[#080807\]|text-white|border-stone-800/)
+  assert.doesNotMatch(productCard, /bg-\[#080807\]|border-stone-800/)
   assert.doesNotMatch(productsPage, /bg-\[#050504\]|text-white/)
+})
+
+test("catalog product card actions keep full labels and sold out state", () => {
+  const productCard = read("components/storefront/product-card.tsx")
+  const actions = read("components/storefront/product-card-actions.tsx")
+
+  assert.match(actions, /CHOISIR UNE TAILLE/)
+  assert.match(actions, /VOIR LE PRODUIT/)
+  assert.match(actions, /SOLD OUT/)
+  assert.match(actions, /grid-cols-\[minmax\(0,1fr\)_44px_44px\]/)
+  assert.match(actions, /overflow-hidden/)
+  assert.match(actions, /whitespace-nowrap/)
+  assert.match(actions, /ResizeObserver/)
+  assert.match(actions, /overflowDistance > 0/)
+  assert.match(actions, /motion-safe:group-hover:-translate-x-\[var\(--overflow-distance\)\]/)
+  assert.match(actions, /prefers-reduced-motion|motion-safe/)
+  assert.match(actions, /disabled/)
+  assert.match(actions, /aria-disabled="true"/)
+  assert.match(actions, /if \(!selection \|\| !inStock\) return/)
+  assert.match(productCard, /SOLD OUT/)
+  assert.match(productCard, /bg-black\/90/)
+  assert.match(productCard, /grayscale-\[20%\] opacity-90/)
+  assert.doesNotMatch(productCard, /Epuise|ÉPUISÉ/)
+  assert.doesNotMatch(actions, /Epuise|ÉPUISÉ|Choisir une taille|Voir le produit/)
 })
 
 test("cart and checkout surfaces are tokenized for light mode", () => {
