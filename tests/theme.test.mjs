@@ -33,6 +33,35 @@ test("theme toggle exposes system light and dark choices on desktop and mobile",
   assert.match(header, /<ThemeToggle mobile \/>/)
 })
 
+test("mobile menu is an opaque fixed viewport overlay with body scroll lock", () => {
+  const header = read("app/components/Header.tsx")
+  const mobileNav = read("components/store-navigation/mobile-navigation.tsx")
+
+  assert.match(header, /id="mobile-storefront-menu"/)
+  assert.match(header, /aria-controls="mobile-storefront-menu"/)
+  assert.match(header, /aria-expanded=\{isMenuOpen\}/)
+  assert.match(header, /role="dialog"/)
+  assert.match(header, /aria-modal="true"/)
+  assert.match(header, /aria-label="Fermer le menu"/)
+  assert.match(header, /fixed inset-0 z-\[100\]/)
+  assert.match(header, /h-\[100dvh\]/)
+  assert.match(header, /w-full/)
+  assert.match(header, /overflow-y-auto/)
+  assert.match(header, /overflow-x-hidden/)
+  assert.match(header, /bg-background/)
+  assert.match(header, /sticky top-0 z-\[110\]/)
+  assert.match(header, /document\.body\.style\.overflow = "hidden"/)
+  assert.match(header, /document\.body\.style\.overflow = previousOverflow/)
+  assert.match(header, /event\.key === "Escape"/)
+  assert.match(header, /mobileMenuPanelRef\.current\?\.focus/)
+  assert.match(header, /menuButton\?\.focus/)
+  assert.match(header, /paddingBottom: "calc\(24px \+ env\(safe-area-inset-bottom\)\)"/)
+  assert.doesNotMatch(header, /top-\[6\.5rem\] z-40|max-h-\[calc\(100dvh-6\.5rem\)\]|bg-background\/98/)
+  assert.match(mobileNav, /min-h-12/)
+  assert.match(mobileNav, /justify-between/)
+  assert.match(mobileNav, /w-full/)
+})
+
 test("global CSS defines light and dark semantic store tokens", () => {
   const css = read("app/globals.css")
 

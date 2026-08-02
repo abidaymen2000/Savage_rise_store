@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -70,6 +70,8 @@ export default function Header({
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
+  const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
   const headerItems = initialHeaderItems && initialHeaderItems.length > 0 ? initialHeaderItems : fallbackHeaderItems
   const mobileItems = initialMobileItems && initialMobileItems.length > 0 ? initialMobileItems : fallbackMobileItems
   const [wishlistCount, setWishlistCount] = useState(0)
@@ -83,7 +85,7 @@ export default function Header({
   const wishlistEnabled = isFeatureEnabled(config, "wishlist", true)
   const isHome = pathname === "/"
 
-  const closeMobileMenu = () => setIsMenuOpen(false)
+  const closeMobileMenu = useCallback(() => setIsMenuOpen(false), [])
 
   const fetchWishlistCount = useCallback(async () => {
     if (!isAuthenticated || !wishlistEnabled) {
@@ -103,12 +105,18 @@ export default function Header({
 
   useEffect(() => {
     closeMobileMenu()
-  }, [pathname])
+  }, [closeMobileMenu, pathname])
 
   useEffect(() => {
     if (!isMenuOpen) return
     const previousOverflow = document.body.style.overflow
+    const menuButton = mobileMenuButtonRef.current
     document.body.style.overflow = "hidden"
+
+    window.requestAnimationFrame(() => {
+      mobileMenuPanelRef.current?.focus()
+    })
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeMobileMenu()
     }
@@ -116,8 +124,9 @@ export default function Header({
     return () => {
       document.body.style.overflow = previousOverflow
       document.removeEventListener("keydown", onKeyDown)
+      menuButton?.focus()
     }
-  }, [isMenuOpen])
+  }, [closeMobileMenu, isMenuOpen])
 
   const handleMobileLogout = () => {
     closeMobileMenu()
@@ -204,10 +213,12 @@ export default function Header({
                 <Cart />
 
                 <Button
+                  ref={mobileMenuButtonRef}
                   variant="ghost"
                   className="inline-flex h-10 shrink-0 items-center gap-2 rounded-none border border-border bg-card px-3 text-sm font-semibold uppercase tracking-[0.12em] text-card-foreground hover:bg-primary hover:text-primary-foreground md:hidden dark:border-white/25 dark:bg-white/5 dark:text-white dark:hover:bg-white dark:hover:text-black"
                   onClick={() => setIsMenuOpen((value) => !value)}
                   aria-expanded={isMenuOpen}
+                  aria-controls="mobile-storefront-menu"
                   aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
                 >
                   {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -217,9 +228,48 @@ export default function Header({
             </div>
 
             {isMenuOpen && (
-              <div className="fixed inset-x-0 top-[6.5rem] z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto border-t border-border bg-background/98 px-4 py-5 shadow-2xl shadow-black/20 backdrop-blur-md md:hidden dark:border-stone-800 dark:bg-[#050505]/98 dark:shadow-black/70">
-                <nav className="mx-auto flex w-full max-w-screen-sm flex-col gap-3 pb-4">
-                  <div className="mb-1 border-b border-border pb-4 dark:border-stone-800">
+              <div
+                id="mobile-storefront-menu"
+                ref={mobileMenuPanelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Menu mobile"
+                tabIndex={-1}
+                data-mobile-menu
+                className="fixed inset-0 z-[100] flex h-[100dvh] w-full flex-col overflow-y-auto overflow-x-hidden bg-background text-foreground outline-none md:hidden dark:bg-[#050505] dark:text-white"
+                style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
+              >
+                <div className="sticky top-0 z-[110] border-b border-border bg-background px-4 py-3 dark:border-white/10 dark:bg-[#050505]">
+                  <div className="flex h-14 items-center justify-between gap-3">
+                    <Link
+                      href="/"
+                      className="min-w-0 flex-1 truncate whitespace-nowrap text-base font-semibold uppercase tracking-[0.18em] text-foreground dark:text-white"
+                      onClick={closeMobileMenu}
+                    >
+                      <span className="flex h-10 min-w-0 items-center">
+                        {logoUrl ? (
+                          <Image src={logoUrl} alt={logoAlt} width={132} height={40} className="h-10 w-auto object-contain" unoptimized priority />
+                        ) : (
+                          <span className="truncate">{storeName}</span>
+                        )}
+                      </span>
+                    </Link>
+                    <Cart />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 shrink-0 rounded-none border border-border bg-card text-card-foreground hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-accent dark:border-white/25 dark:bg-white/5 dark:text-white dark:hover:bg-white dark:hover:text-black"
+                      onClick={closeMobileMenu}
+                      aria-label="Fermer le menu"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+
+                <nav className="mx-auto flex w-full max-w-screen-sm flex-1 flex-col gap-3 px-4 py-5">
+                  <div className="border-b border-border pb-4 dark:border-white/10">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">{storeName}</p>
                     <p className="mt-1 text-sm text-muted-foreground dark:text-white/65">Boutique, Drops et FAZA</p>
                   </div>
