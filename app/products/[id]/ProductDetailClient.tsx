@@ -22,7 +22,7 @@ import {
   getProductColorOptions,
   getProductImageForColor,
 } from "@/lib/pack-offers"
-import { getAvailableColors, getAvailableSizes, getStockForSize, isProductInStock, formatPrice } from "@/lib/utils"
+import { getAvailableColors, getAvailableSizes, isProductInStock, formatPrice } from "@/lib/utils"
 import WishlistButton from "@/components/WishlistButton"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -38,6 +38,16 @@ type ProductDetailClientProps = {
   product: Product
   initialRelatedPack: Pack | null
   initialRelatedProducts: Record<string, Product>
+}
+
+type StockDisplayStatus = "in-stock" | "low-stock" | "sold-out"
+
+const LOW_STOCK_THRESHOLD = 5
+
+function getStockDisplayStatus(availableStock: number): StockDisplayStatus {
+  if (availableStock <= 0) return "sold-out"
+  if (availableStock <= LOW_STOCK_THRESHOLD) return "low-stock"
+  return "in-stock"
 }
 
 function getInitialSelection(product: Product) {
@@ -220,12 +230,11 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   const productInStock = product ? isProductInStock(product) : false
   const availableColors = product ? getAvailableColors(product) : []
   const availableSizes = product ? getAvailableSizes(product, selectedColor) : []
-  const currentStock =
-    productInStock && product && selectedColor && selectedSize ? getStockForSize(product, selectedColor, selectedSize) : 0
   const selectedVariantSize = getVariantSize(currentVariant, selectedSize)
-  const selectedSizeTracked = isSizeTracked(selectedVariantSize)
+  const currentAvailableStock = getAvailableStock(selectedVariantSize)
+  const stockDisplayStatus = getStockDisplayStatus(currentAvailableStock)
   const quantityLimit = getSelectableQuantityLimit(selectedVariantSize)
-  const currentSelectionInStock = Boolean(selectedVariantSize && isSizePurchasable(selectedVariantSize))
+  const currentSelectionInStock = Boolean(selectedVariantSize && isSizePurchasable(selectedVariantSize) && stockDisplayStatus !== "sold-out")
   const canAddCurrentSelection =
     Boolean(productInStock && currentVariant && selectedSize && currentSelectionInStock) &&
     quantity <= quantityLimit
@@ -313,12 +322,20 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
             {/* Stock Status */}
             <div>
-              {currentSelectionInStock ? (
-                <Badge className="bg-green-600 text-white">
-                  {selectedSizeTracked ? `En stock — ${currentStock} disponibles` : "Disponible"}
+              {stockDisplayStatus === "in-stock" && (
+                <Badge className="border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300">
+                  En stock
                 </Badge>
-              ) : (
-                <Badge className="bg-red-600 text-white">Hors stock</Badge>
+              )}
+              {stockDisplayStatus === "low-stock" && (
+                <Badge className="border-gold/40 bg-gold/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-gold hover:bg-gold/10">
+                  Stock faible — bientôt épuisé
+                </Badge>
+              )}
+              {stockDisplayStatus === "sold-out" && (
+                <Badge className="border-red-500/30 bg-red-500/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-700 hover:bg-red-500/10 dark:text-red-300">
+                  Sold out
+                </Badge>
               )}
             </div>
 
@@ -392,7 +409,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                           })
                         }}
                         className={`min-h-11 border px-3 py-2 text-sm font-semibold transition-colors ${
-                          selected
+                          selected && purchasable
                             ? "border-accent bg-accent text-accent-foreground"
                             : purchasable
                               ? "border-border bg-card text-card-foreground hover:border-foreground"
