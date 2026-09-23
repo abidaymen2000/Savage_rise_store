@@ -1,4 +1,4 @@
-import { WishlistService, type WishlistOut } from "./generated"
+import { WishlistService, type WishlistOut } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { WishlistCreate, WishlistItem } from "@/types/api"
 

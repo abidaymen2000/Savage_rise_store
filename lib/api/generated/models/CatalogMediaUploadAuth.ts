@@ -9,5 +9,7 @@ export type CatalogMediaUploadAuth = {
     public_key: string;
     url_endpoint: string;
     folder: string;
+    allowed_mime_types?: Array<string>;
+    max_size?: number;
 };
 

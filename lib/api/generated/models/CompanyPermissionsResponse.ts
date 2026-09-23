@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { InvoiceProvisioningStatus } from './InvoiceProvisioningStatus';
 import type { PlatformPermissionItem } from './PlatformPermissionItem';
 import type { PlatformPermissionModule } from './PlatformPermissionModule';
 export type CompanyPermissionsResponse = {
@@ -10,5 +11,6 @@ export type CompanyPermissionsResponse = {
     company_id: string;
     enabled_modules?: Array<string>;
     enabled_permissions?: Array<string>;
+    invoicing?: (InvoiceProvisioningStatus | null);
 };
 

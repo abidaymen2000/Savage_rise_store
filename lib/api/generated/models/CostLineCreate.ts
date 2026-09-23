@@ -6,6 +6,7 @@ export type CostLineCreate = {
     label: string;
     description?: (string | null);
     category: string;
+    category_id?: (string | null);
     subcategory?: (string | null);
     amount: number;
     currency?: string;
@@ -20,6 +21,9 @@ export type CostLineCreate = {
     supplier_id?: (string | null);
     invoice_ref?: (string | null);
     payment_status?: ('unpaid' | 'partially_paid' | 'paid' | null);
+    source_document_type?: (string | null);
+    source_document_id?: (string | null);
+    source_line_id?: (string | null);
     occurred_at?: (string | null);
 };
 

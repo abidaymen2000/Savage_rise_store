@@ -14,6 +14,7 @@ export type CostCategoryOut = {
     is_active?: boolean;
     is_archived?: boolean;
     attributes?: (Record<string, any> | null);
+    accounting_account_id?: (string | null);
     version?: number;
     created_at: string;
     updated_at: string;

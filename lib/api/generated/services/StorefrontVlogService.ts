@@ -13,6 +13,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class StorefrontVlogService {
     /**
+     * @deprecated
      * Read Storefront Vlog
      * @returns VlogPageOut Successful Response
      * @throws ApiError
@@ -24,6 +25,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * Read Storefront Vlog Chapter
      * @returns VlogChapterWithEpisodesOut Successful Response
      * @throws ApiError
@@ -45,6 +47,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * Track Vlog Episode View
      * @returns VlogEpisodeViewOut Successful Response
      * @throws ApiError
@@ -66,6 +69,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * Like Vlog Episode
      * @returns VlogEpisodeLikeOut Successful Response
      * @throws ApiError
@@ -87,6 +91,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * Unlike Vlog Episode
      * @returns VlogEpisodeLikeOut Successful Response
      * @throws ApiError
@@ -108,6 +113,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * Create Vlog Episode Comment
      * @returns VlogCommentOut Successful Response
      * @throws ApiError
@@ -133,6 +139,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * List Vlog Episode Comments
      * @returns VlogCommentOut Successful Response
      * @throws ApiError
@@ -162,6 +169,7 @@ export class StorefrontVlogService {
         });
     }
     /**
+     * @deprecated
      * Delete Own Vlog Episode Comment
      * @returns void
      * @throws ApiError

@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CategoryAdminPage } from '../models/CategoryAdminPage';
+import type { CategoryAttributeSuggestionsRead } from '../models/CategoryAttributeSuggestionsRead';
 import type { CategoryCreate } from '../models/CategoryCreate';
 import type { CategoryMoveRequest } from '../models/CategoryMoveRequest';
 import type { CategoryRead } from '../models/CategoryRead';
@@ -37,6 +39,45 @@ export class AdminCatalogCategoriesService {
             url: '/admin/catalog/categories',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * List Categories Management
+     * @returns CategoryAdminPage Successful Response
+     * @throws ApiError
+     */
+    public static listCategoriesManagementAdminCatalogCategoriesManageGet({
+        page = 1,
+        pageSize = 20,
+        search,
+        status = 'all',
+        type = 'all',
+        parentId,
+        sort = 'name_asc',
+    }: {
+        page?: number,
+        pageSize?: number,
+        search?: (string | null),
+        status?: string,
+        type?: string,
+        parentId?: (string | null),
+        sort?: string,
+    }): CancelablePromise<CategoryAdminPage> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/catalog/categories/manage',
+            query: {
+                'page': page,
+                'page_size': pageSize,
+                'search': search,
+                'status': status,
+                'type': type,
+                'parent_id': parentId,
+                'sort': sort,
+            },
             errors: {
                 422: `Validation Error`,
             },
@@ -94,6 +135,27 @@ export class AdminCatalogCategoriesService {
             },
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Category Attribute Suggestions
+     * @returns CategoryAttributeSuggestionsRead Successful Response
+     * @throws ApiError
+     */
+    public static getCategoryAttributeSuggestionsAdminCatalogCategoriesCategoryIdAttributeSuggestionsGet({
+        categoryId,
+    }: {
+        categoryId: string,
+    }): CancelablePromise<CategoryAttributeSuggestionsRead> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/catalog/categories/{category_id}/attribute-suggestions',
+            path: {
+                'category_id': categoryId,
+            },
             errors: {
                 422: `Validation Error`,
             },

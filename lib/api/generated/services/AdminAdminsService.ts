@@ -8,6 +8,7 @@ import type { AdminPublic } from '../models/AdminPublic';
 import type { AdminUpdate } from '../models/AdminUpdate';
 import type { DashboardLayoutResponse } from '../models/DashboardLayoutResponse';
 import type { DashboardLayoutSave } from '../models/DashboardLayoutSave';
+import type { TenantPermissionCatalogResponse } from '../models/TenantPermissionCatalogResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -60,6 +61,17 @@ export class AdminAdminsService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * Catalogue permissions tenant assignables
+     * @returns TenantPermissionCatalogResponse Successful Response
+     * @throws ApiError
+     */
+    public static tenantPermissionCatalogAdminAdminsPermissionCatalogGet(): CancelablePromise<TenantPermissionCatalogResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/admins/permission-catalog',
         });
     }
     /**

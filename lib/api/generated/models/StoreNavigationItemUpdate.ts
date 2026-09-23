@@ -6,6 +6,7 @@ import type { CatalogCategoryDestination } from './CatalogCategoryDestination';
 import type { CatalogProductDestination } from './CatalogProductDestination';
 import type { ExternalUrlDestination } from './ExternalUrlDestination';
 import type { InternalPathDestination } from './InternalPathDestination';
+import type { StorePageDestination } from './StorePageDestination';
 import type { SystemRouteDestination } from './SystemRouteDestination';
 export type StoreNavigationItemUpdate = {
     expected_version: number;
@@ -17,6 +18,6 @@ export type StoreNavigationItemUpdate = {
     open_in_new_tab?: (boolean | null);
     icon?: (string | null);
     badge?: (string | null);
-    destination?: ((SystemRouteDestination | CatalogCategoryDestination | CatalogProductDestination | InternalPathDestination | ExternalUrlDestination) | null);
+    destination?: ((SystemRouteDestination | StorePageDestination | CatalogCategoryDestination | CatalogProductDestination | InternalPathDestination | ExternalUrlDestination) | null);
 };
 

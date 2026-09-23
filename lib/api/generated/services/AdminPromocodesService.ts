@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { ApplyRequest } from '../models/ApplyRequest';
+import type { ApplyResponse } from '../models/ApplyResponse';
 import type { PaginatedResponse_PromoOut_ } from '../models/PaginatedResponse_PromoOut_';
 import type { PromoCreate } from '../models/PromoCreate';
 import type { PromoOut } from '../models/PromoOut';
@@ -217,6 +219,26 @@ export class AdminPromocodesService {
             query: {
                 'is_active': isActive,
             },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Preview Promo
+     * @returns ApplyResponse Successful Response
+     * @throws ApiError
+     */
+    public static previewAdminPromoCode({
+        requestBody,
+    }: {
+        requestBody: ApplyRequest,
+    }): CancelablePromise<ApplyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/promocodes/preview',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },

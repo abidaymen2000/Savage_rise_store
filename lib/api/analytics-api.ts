@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./api-client"
+import { getApiBaseUrl, getStorefrontHeaders } from "./gateway-config.mjs"
 import type { StoreAnalyticsEventPayload } from "@/types/api"
 
 export const FALLBACK_STOREFRONT_ANALYTICS_SLUG = "savage-rise"
@@ -19,17 +19,13 @@ export function getStorefrontAnalyticsEndpoint() {
   return `/analytics/${storefrontAnalyticsSlug}/events`
 }
 
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.replace(/\/+$/, "")
-}
-
 export function getAnalyticsApiBaseUrl() {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-  if (configuredBaseUrl) return normalizeBaseUrl(configuredBaseUrl)
+  if (configuredBaseUrl) return getApiBaseUrl()
   if (process.env.NODE_ENV === "development") {
     throw new Error(ANALYTICS_API_BASE_URL_MISSING)
   }
-  return normalizeBaseUrl(API_BASE_URL)
+  return getApiBaseUrl()
 }
 
 export function getStorefrontAnalyticsUrl() {
@@ -95,6 +91,7 @@ export const analyticsApi = {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
+        ...getStorefrontHeaders(),
         "Content-Type": "application/json",
         "Accept": "application/json",
       },

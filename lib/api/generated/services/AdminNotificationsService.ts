@@ -106,4 +106,25 @@ export class AdminNotificationsService {
             url: '/admin/notifications/read-all',
         });
     }
+    /**
+     * Admin Notifications Stream
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static adminNotificationsStreamAdminNotificationsStreamGet({
+        lastEventId,
+    }: {
+        lastEventId?: (string | null),
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/notifications/stream',
+            query: {
+                'last_event_id': lastEventId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
 }

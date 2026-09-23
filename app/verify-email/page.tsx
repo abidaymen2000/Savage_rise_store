@@ -2,7 +2,6 @@
 
 import { useEffect } from "react"
 import Link from "next/link"
-import { API_BASE_URL } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
 export const dynamic = "force-dynamic"
@@ -17,7 +16,7 @@ export default function VerifyEmailPage() {
       return
     }
 
-    const verifyUrl = `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`
+    const verifyUrl = `/api/auth/verify-email?token=${encodeURIComponent(token)}`
     window.location.replace(verifyUrl)
   }, [])
 

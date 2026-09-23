@@ -6,6 +6,7 @@ export type AdminCreate = {
     email: string;
     password: string;
     full_name?: (string | null);
+    role?: (string | null);
     is_superadmin?: boolean;
     permissions?: Array<string>;
     is_active?: boolean;

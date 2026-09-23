@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com"
+import { getApiBaseUrl, getStorefrontHeaders } from "../lib/api/gateway-config.mjs"
+
+const API_BASE_URL = getApiBaseUrl()
 const ADMIN_TOKEN = process.env.SAVAGE_RISE_ADMIN_TOKEN
 const SLUG = "savage-rise-drop-2-pack"
 const EXPECTED_BASE_PRICE = "129.99"
@@ -8,6 +10,7 @@ async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
+      ...getStorefrontHeaders(),
       "Content-Type": "application/json",
       ...(ADMIN_TOKEN ? { Authorization: `Bearer ${ADMIN_TOKEN}` } : {}),
       ...options.headers,

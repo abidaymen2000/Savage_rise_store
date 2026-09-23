@@ -13,6 +13,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AdminCommentsService {
     /**
+     * @deprecated
      * Admin List Comments
      * @returns PaginatedVlogCommentsOut Successful Response
      * @throws ApiError
@@ -52,6 +53,7 @@ export class AdminCommentsService {
         });
     }
     /**
+     * @deprecated
      * Admin List Product Reviews
      * @returns PaginatedReviewsOut Successful Response
      * @throws ApiError
@@ -94,6 +96,7 @@ export class AdminCommentsService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Product Review
      * @returns ReviewOut Successful Response
      * @throws ApiError
@@ -119,6 +122,7 @@ export class AdminCommentsService {
         });
     }
     /**
+     * @deprecated
      * Admin Delete Product Review
      * @returns void
      * @throws ApiError
@@ -140,6 +144,7 @@ export class AdminCommentsService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Comment
      * @returns VlogCommentOut Successful Response
      * @throws ApiError
@@ -165,6 +170,7 @@ export class AdminCommentsService {
         });
     }
     /**
+     * @deprecated
      * Admin Delete Comment
      * @returns void
      * @throws ApiError

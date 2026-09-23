@@ -5,7 +5,7 @@
 export type ErpAccountUpdate = {
     email?: (string | null);
     password?: (string | null);
-    role?: ('platform_admin' | 'company_admin' | null);
+    role?: ('platform_admin' | 'company_admin' | 'employee' | null);
     permissions?: (Array<string> | null);
     is_active?: (boolean | null);
     full_name?: (string | null);

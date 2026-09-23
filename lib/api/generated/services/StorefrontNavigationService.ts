@@ -16,9 +16,11 @@ export class StorefrontNavigationService {
     public static storefrontListNavigationMenus({
         codes,
         surface = 'all',
+        locale,
     }: {
         codes?: (string | null),
         surface?: 'all' | 'desktop' | 'mobile',
+        locale?: (string | null),
     }): CancelablePromise<StoreNavigationPublicMenus> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -26,6 +28,7 @@ export class StorefrontNavigationService {
             query: {
                 'codes': codes,
                 'surface': surface,
+                'locale': locale,
             },
             errors: {
                 422: `Validation Error`,
@@ -40,9 +43,11 @@ export class StorefrontNavigationService {
     public static storefrontGetNavigationMenu({
         code,
         surface = 'all',
+        locale,
     }: {
         code: string,
         surface?: 'all' | 'desktop' | 'mobile',
+        locale?: (string | null),
     }): CancelablePromise<StoreNavigationPublicMenu> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -52,6 +57,7 @@ export class StorefrontNavigationService {
             },
             query: {
                 'surface': surface,
+                'locale': locale,
             },
             errors: {
                 422: `Validation Error`,

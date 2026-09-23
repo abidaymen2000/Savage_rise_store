@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CMSLocalizationCompleteness } from '../models/CMSLocalizationCompleteness';
+import type { CMSLocalizationUpdate } from '../models/CMSLocalizationUpdate';
 import type { PaginatedStorePagesOut } from '../models/PaginatedStorePagesOut';
 import type { StorePageAdminOut } from '../models/StorePageAdminOut';
 import type { StorePageCreate } from '../models/StorePageCreate';
@@ -167,15 +169,20 @@ export class AdminStorePagesService {
     public static adminPublishStorePage({
         pageId,
         requestBody,
+        locale,
     }: {
         pageId: string,
         requestBody: StorePagePublishRequest,
+        locale?: (string | null),
     }): CancelablePromise<StorePageAdminOut> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/admin/cms/store-pages/{page_id}/publish',
             path: {
                 'page_id': pageId,
+            },
+            query: {
+                'locale': locale,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -195,9 +202,11 @@ export class AdminStorePagesService {
     public static adminUnpublishStorePage({
         pageId,
         requestBody,
+        locale,
     }: {
         pageId: string,
         requestBody: StorePagePublishRequest,
+        locale?: (string | null),
     }): CancelablePromise<StorePageAdminOut> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -205,8 +214,69 @@ export class AdminStorePagesService {
             path: {
                 'page_id': pageId,
             },
+            query: {
+                'locale': locale,
+            },
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                403: `Permission insuffisante`,
+                404: `Store page not found`,
+                409: `Version conflict or business conflict`,
+                422: `Validation error`,
+            },
+        });
+    }
+    /**
+     * Admin Update Store Page Localization
+     * @returns StorePageAdminOut Successful Response
+     * @throws ApiError
+     */
+    public static adminUpdateStorePageLocalization({
+        pageId,
+        locale,
+        requestBody,
+    }: {
+        pageId: string,
+        locale: string,
+        requestBody: CMSLocalizationUpdate,
+    }): CancelablePromise<StorePageAdminOut> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/admin/cms/store-pages/{page_id}/localizations/{locale}',
+            path: {
+                'page_id': pageId,
+                'locale': locale,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                403: `Permission insuffisante`,
+                404: `Store page not found`,
+                409: `Version conflict or business conflict`,
+                422: `Validation error`,
+            },
+        });
+    }
+    /**
+     * Admin Get Store Page Localization Completeness
+     * @returns CMSLocalizationCompleteness Successful Response
+     * @throws ApiError
+     */
+    public static adminGetStorePageLocalizationCompleteness({
+        pageId,
+        locale,
+    }: {
+        pageId: string,
+        locale: string,
+    }): CancelablePromise<CMSLocalizationCompleteness> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/cms/store-pages/{page_id}/localizations/{locale}/completeness',
+            path: {
+                'page_id': pageId,
+                'locale': locale,
+            },
             errors: {
                 403: `Permission insuffisante`,
                 404: `Store page not found`,

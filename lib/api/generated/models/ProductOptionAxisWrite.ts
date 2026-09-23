@@ -5,6 +5,6 @@
 export type ProductOptionAxisWrite = {
     attribute_id: string;
     allowed_value_ids?: Array<string>;
-    position?: number;
+    position?: (number | null);
 };
 

@@ -4,7 +4,9 @@
 /* eslint-disable */
 import type { BundleDefinition_Output } from './BundleDefinition_Output';
 import type { CatalogLegacyMediaItem } from './CatalogLegacyMediaItem';
+import type { CMSSEOResolved } from './CMSSEOResolved';
 import type { ProductKind } from './ProductKind';
+import type { ProductPublicOptionAxis } from './ProductPublicOptionAxis';
 import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantRead } from './ProductVariantRead';
 import type { TrackingMethod } from './TrackingMethod';
@@ -14,6 +16,10 @@ export type ProductStorefrontDetail = {
     created_at?: (string | null);
     updated_at?: (string | null);
     name: string;
+    /**
+     * Reference metier stable du produit parent.
+     */
+    reference?: (string | null);
     slug: string;
     description?: (string | null);
     product_kind: ProductKind;
@@ -22,6 +28,7 @@ export type ProductStorefrontDetail = {
     attribute_set_id?: (string | null);
     attribute_values?: Record<string, any>;
     default_currency: string;
+    tax_category_id?: (string | null);
     track_inventory?: (boolean | null);
     tracking_method?: (TrackingMethod | null);
     requires_shipping?: (boolean | null);
@@ -38,5 +45,7 @@ export type ProductStorefrontDetail = {
     status: ProductStatus;
     archived_at?: (string | null);
     archived_by?: (string | null);
+    option_axes?: Array<ProductPublicOptionAxis>;
+    resolved_seo?: (CMSSEOResolved | null);
 };
 

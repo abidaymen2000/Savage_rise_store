@@ -34,6 +34,11 @@ export type OrderOut = {
     loyalty_points_earned?: number;
     loyalty_points_awarded?: boolean;
     shipping_amount?: (number | null);
+    shipping_tax_amount?: number;
+    tax_total?: number;
+    total_excluding_tax?: number;
+    total_including_tax?: number;
+    tax_lines?: Array<Record<string, any>>;
     shipping_rate_id?: (string | null);
     shipping_rate_name?: (string | null);
     total_amount: number;

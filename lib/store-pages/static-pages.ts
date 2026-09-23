@@ -220,5 +220,8 @@ export function getStaticStorePage(slug: string): StorePagePublicOut | null {
 export function enabledBlocks(page: StorePagePublicOut): StorePageBlock[] {
   return (page.content_blocks || [])
     .filter((block) => block.enabled !== false)
+    // Current Core uses props/resolved_props; keep legacy static fallback blocks.
+    .map((block) => ({ ...block, ...block.props, ...block.resolved_props,
+      id: block.id, type: block.type, order: block.order, enabled: block.enabled }))
     .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
 }

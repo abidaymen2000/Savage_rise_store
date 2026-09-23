@@ -12,6 +12,7 @@ export type ProductVariantUpdate = {
     attribute_values?: (Record<string, any> | null);
     base_price?: (number | string | null);
     compare_at_price?: (number | string | null);
+    tax_category_id?: (string | null);
     currency?: (string | null);
     cost_reference?: (Record<string, any> | null);
     weight?: (number | string | null);

@@ -1,4 +1,4 @@
-import { AuthService, type Token, type UserOut } from "./generated"
+import { AuthService, type Token, type UserOut } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { AuthTokens, PasswordReset, PasswordResetRequest, User, UserCreate } from "@/types/api"
 

@@ -12,5 +12,6 @@ export type CatalogMediaAssignmentCreate = {
     target: CatalogMediaTarget;
     replace_target_media?: boolean;
     items?: Array<CatalogMediaAssignmentItemWrite>;
+    idempotency_key?: (string | null);
 };
 

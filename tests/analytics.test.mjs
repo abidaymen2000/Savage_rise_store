@@ -157,14 +157,14 @@ test("initial StoreAnalytics hydration sends session_started and page_view", () 
 
 test("final analytics URL uses NEXT_PUBLIC_API_BASE_URL without double slashes", () => {
   const previousBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-  process.env.NEXT_PUBLIC_API_BASE_URL = "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/"
+  process.env.NEXT_PUBLIC_API_BASE_URL = "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/"
   setStorefrontAnalyticsSlug("savage-rise")
 
   try {
-    assert.equal(getAnalyticsApiBaseUrl(), "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com")
+    assert.equal(getAnalyticsApiBaseUrl(), "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core")
     assert.equal(
       getStorefrontAnalyticsUrl(),
-      "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events",
+      "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/analytics/savage-rise/events",
     )
   } finally {
     if (previousBaseUrl === undefined) {
@@ -197,7 +197,7 @@ test("analytics transport sends a real JSON POST with keepalive and omitted cred
   const previousBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
   const previousFetch = global.fetch
   const calls = []
-  process.env.NEXT_PUBLIC_API_BASE_URL = "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/"
+  process.env.NEXT_PUBLIC_API_BASE_URL = "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/"
   global.fetch = async (url, init) => {
     calls.push({ url, init })
     return new Response(JSON.stringify({ ok: true }), {
@@ -222,7 +222,7 @@ test("analytics transport sends a real JSON POST with keepalive and omitted cred
     })
 
     assert.equal(calls.length, 1)
-    assert.equal(calls[0].url, "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events")
+    assert.equal(calls[0].url, "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/analytics/savage-rise/events")
     assert.equal(calls[0].init.method, "POST")
     assert.equal(calls[0].init.headers["Content-Type"], "application/json")
     assert.equal(calls[0].init.headers["Accept"], "application/json")
@@ -540,7 +540,7 @@ test("analytics debug mode logs safe 422 diagnostics in production", async () =>
   api.trackAnalyticsEvent = async () => {
     throw new AnalyticsTransportError("Analytics request failed with HTTP 422", {
       status: 422,
-      url: "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events",
+      url: "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/analytics/savage-rise/events",
       response: "{\"detail\":\"invalid event_name\"}",
     })
   }
@@ -558,7 +558,7 @@ test("analytics debug mode logs safe 422 diagnostics in production", async () =>
 
     assert.equal(warnings.length, 1)
     assert.match(warnings[0], /\[SR Analytics\] page_view/)
-    assert.match(warnings[0], /POST https:\/\/savage-rise-backend-8f0f0a23c13f\.herokuapp\.com\/analytics\/savage-rise\/events/)
+    assert.match(warnings[0], /POST https:\/\/yovo-api-gateway-a8da1d8e66a3\.herokuapp\.com\/api\/core\/analytics\/savage-rise\/events/)
     assert.match(warnings[0], /status=422/)
     assert.match(warnings[0], /invalid event_name/)
     assert.doesNotMatch(warnings[0], /anonymous_id/)

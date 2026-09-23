@@ -8,7 +8,7 @@
     "lint": "next lint",
     "start": "next start",
     "test": "node --experimental-strip-types --loader ./tests/alias-loader.mjs --test tests/*.test.mjs tests/contract-smoke.mjs",
-    "api:generate": "openapi --input https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/openapi.json --output ./lib/api/generated --client fetch --useOptions --useUnionTypes"
+    "api:generate": "node scripts/generate-api.mjs"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",

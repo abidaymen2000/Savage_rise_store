@@ -11,6 +11,7 @@ export type AdminPublic = {
     role?: (string | null);
     company?: (Record<string, any> | null);
     permissions?: Array<string>;
+    is_verified?: boolean;
     modules?: Array<string>;
     capabilities?: Record<string, boolean>;
     available_permissions?: Array<Record<string, any>>;

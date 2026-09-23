@@ -1,4 +1,4 @@
-import { PromoCodesService, type ApplyResponse } from "./generated"
+import { PromoCodesService, type ApplyResponse } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { OrderItemCreate } from "@/types/api"
 

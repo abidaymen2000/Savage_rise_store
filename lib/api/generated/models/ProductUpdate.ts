@@ -7,6 +7,7 @@ import type { CatalogLegacyMediaItem } from './CatalogLegacyMediaItem';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductUpdate = {
     name?: (string | null);
+    reference?: (string | null);
     slug?: (string | null);
     description?: (string | null);
     primary_category_id?: (string | null);
@@ -14,6 +15,7 @@ export type ProductUpdate = {
     attribute_set_id?: (string | null);
     attribute_values?: (Record<string, any> | null);
     default_currency?: (string | null);
+    tax_category_id?: (string | null);
     track_inventory?: (boolean | null);
     tracking_method?: (TrackingMethod | null);
     requires_shipping?: (boolean | null);

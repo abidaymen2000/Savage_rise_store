@@ -1,30 +1,10 @@
 import { OpenAPI } from "./generated"
+import { getApiBaseUrl, getStorefrontHeaders } from "./gateway-config.mjs"
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  (process.env.NODE_ENV === "development"
-    ? "http://localhost:8000"
-    : "https://savage-rise-backend-8f0f0a23c13f.herokuapp.com")
-
-const SERVER_STOREFRONT_DOMAIN =
-  process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN ??
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://savagerise.com"
-
-function getServerStorefrontHeaders(): Record<string, string> {
-  if (typeof window !== "undefined") return {}
-  try {
-    const url = new URL(SERVER_STOREFRONT_DOMAIN)
-    return {
-      Origin: url.origin,
-      "X-Store-Domain": url.hostname,
-    }
-  } catch {
-    return {
-      "X-Store-Domain": SERVER_STOREFRONT_DOMAIN.replace(/^https?:\/\//, "").split("/")[0],
-    }
-  }
-}
+// Consumers import services through this module so standalone CMS/SSR calls
+// also configure the generated client before their first request.
+export * from "./generated"
+export const API_BASE_URL = getApiBaseUrl()
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null
@@ -35,7 +15,7 @@ export function configureApiClient() {
   OpenAPI.BASE = API_BASE_URL
   OpenAPI.HEADERS = async () => {
     const token = getAuthToken()
-    const headers: Record<string, string> = getServerStorefrontHeaders()
+    const headers: Record<string, string> = getStorefrontHeaders()
     if (token) headers.Authorization = `Bearer ${token}`
     return headers
   }

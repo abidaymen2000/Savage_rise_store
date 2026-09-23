@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
 import { api } from "@/lib/api"
-import type { StorePageMapBlock, StorePagePublicOut } from "@/lib/api/generated"
+import type { CMSMapProps as StorePageMapBlock, StorePagePublicOut } from "@/lib/api/generated"
+import { enabledBlocks } from "@/lib/store-pages/static-pages"
 import { getValidSocialLinks } from "@/lib/store-config-shared"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackEvent } from "@/lib/store-analytics"
@@ -27,7 +28,7 @@ export function ContactPageClient({ page }: { page: StorePagePublicOut | null })
   const { config } = useStoreConfig()
   const whatsapp = getValidSocialLinks(config.social_links).find((social) => social.platform === "whatsapp")
   const mapBlock = useMemo(
-    () => page?.content_blocks?.find((block) => block.type === "map" && "embed_url" in block) as StorePageMapBlock | undefined,
+    () => (page ? enabledBlocks(page) : []).find((block) => block.type === "map" && "embed_url" in block) as StorePageMapBlock | undefined,
     [page?.content_blocks],
   )
 

@@ -45,3 +45,15 @@ test("fallback data covers current static store pages", () => {
     assert.match(fallback, new RegExp(`slug: "${slug}"`))
   }
 })
+
+
+test("current CMS props and resolved bindings reach the renderer while fallback blocks survive", async () => {
+  const { enabledBlocks } = await import("../lib/store-pages/static-pages.ts")
+  const blocks = enabledBlocks({content_blocks: [
+    {id:"new",type:"cards",order:1,props:{title:"raw",items:[]},resolved_props:{title:"resolved"}},
+    {id:"old",type:"rich_text",order:0,content_markdown:"legacy"},
+  ]})
+  assert.equal(blocks[0].content_markdown,"legacy")
+  assert.equal(blocks[1].title,"resolved")
+  assert.equal(blocks[1].type,"cards")
+})

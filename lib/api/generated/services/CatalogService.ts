@@ -21,12 +21,14 @@ export class CatalogService {
         q,
         productKind,
         categoryId,
+        include,
     }: {
         page?: number,
         pageSize?: number,
         q?: (string | null),
         productKind?: (string | null),
         categoryId?: (string | null),
+        include?: (Array<string> | null),
     }): CancelablePromise<PaginatedResponse_ProductListItem_> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -37,6 +39,7 @@ export class CatalogService {
                 'q': q,
                 'product_kind': productKind,
                 'category_id': categoryId,
+                'include': include,
             },
             errors: {
                 422: `Validation Error`,
@@ -95,10 +98,12 @@ export class CatalogService {
         slug,
         page = 1,
         pageSize = 20,
+        include,
     }: {
         slug: string,
         page?: number,
         pageSize?: number,
+        include?: (Array<string> | null),
     }): CancelablePromise<PaginatedResponse_ProductListItem_> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -109,6 +114,7 @@ export class CatalogService {
             query: {
                 'page': page,
                 'page_size': pageSize,
+                'include': include,
             },
             errors: {
                 422: `Validation Error`,

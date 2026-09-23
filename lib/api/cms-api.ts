@@ -15,7 +15,7 @@ import {
   type VlogEpisodeLikeOut,
   type VlogEpisodeViewOut,
   type VlogPageOut,
-} from "./generated"
+} from "./api-client"
 import { withApiErrors } from "./api-error"
 import type {
   ContactMessage,

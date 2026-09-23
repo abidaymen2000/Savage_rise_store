@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { NavigationMenuLocalization } from './NavigationMenuLocalization';
 import type { StoreNavigationItemAdminRead } from './StoreNavigationItemAdminRead';
 export type StoreNavigationMenuAdminRead = {
     id: string;
@@ -11,6 +12,7 @@ export type StoreNavigationMenuAdminRead = {
     is_active: boolean;
     items?: Array<StoreNavigationItemAdminRead>;
     item_tree?: Array<StoreNavigationItemAdminRead>;
+    localizations?: Record<string, NavigationMenuLocalization>;
     version: number;
     created_by?: (string | null);
     updated_by?: (string | null);

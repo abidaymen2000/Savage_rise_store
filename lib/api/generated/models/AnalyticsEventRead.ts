@@ -25,6 +25,8 @@ export type AnalyticsEventRead = {
     device_type?: string;
     currency?: (string | null);
     value?: (number | null);
+    revenue?: (number | null);
+    page_url?: (string | null);
     metadata?: Record<string, any>;
     properties?: Record<string, any>;
     ip_address?: (string | null);

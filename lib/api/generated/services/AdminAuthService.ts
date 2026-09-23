@@ -4,10 +4,14 @@
 /* eslint-disable */
 import type { AdminCompanyOption } from '../models/AdminCompanyOption';
 import type { AdminLogin } from '../models/AdminLogin';
+import type { AdminLoginActivationRequired } from '../models/AdminLoginActivationRequired';
 import type { AdminPasswordChange } from '../models/AdminPasswordChange';
 import type { AdminPublic } from '../models/AdminPublic';
 import type { AdminSwitchCompanyRequest } from '../models/AdminSwitchCompanyRequest';
 import type { AdminSwitchCompanyResponse } from '../models/AdminSwitchCompanyResponse';
+import type { FirstLoginConfirmRequest } from '../models/FirstLoginConfirmRequest';
+import type { FirstLoginConfirmResponse } from '../models/FirstLoginConfirmResponse';
+import type { FirstLoginOtpRequestResponse } from '../models/FirstLoginOtpRequestResponse';
 import type { Token } from '../models/Token';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -15,14 +19,14 @@ import { request as __request } from '../core/request';
 export class AdminAuthService {
     /**
      * Admin Login
-     * @returns Token Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static adminLoginAdminAuthTokenPost({
         requestBody,
     }: {
         requestBody: AdminLogin,
-    }): CancelablePromise<Token> {
+    }): CancelablePromise<(Token | AdminLoginActivationRequired)> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/admin/auth/token',
@@ -99,6 +103,37 @@ export class AdminAuthService {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/admin/auth/change-password',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * First Login Request Otp
+     * @returns FirstLoginOtpRequestResponse Successful Response
+     * @throws ApiError
+     */
+    public static firstLoginRequestOtpAdminAuthFirstLoginRequestOtpPost(): CancelablePromise<FirstLoginOtpRequestResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/auth/first-login/request-otp',
+        });
+    }
+    /**
+     * First Login Confirm
+     * @returns FirstLoginConfirmResponse Successful Response
+     * @throws ApiError
+     */
+    public static firstLoginConfirmAdminAuthFirstLoginConfirmPost({
+        requestBody,
+    }: {
+        requestBody: FirstLoginConfirmRequest,
+    }): CancelablePromise<FirstLoginConfirmResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/auth/first-login/confirm',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

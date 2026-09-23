@@ -8,6 +8,7 @@ import {
   metaProductId,
   metaVariantId,
 } from "../lib/meta-content.ts"
+import { trackMetaPixelEvent } from "../lib/meta-pixel.ts"
 import { trackPurchasePixelOnce } from "../lib/meta-purchase.ts"
 
 class MemoryStorage {
@@ -152,4 +153,40 @@ test("Purchase browser payload preserves variant ids, currency and real total", 
     },
     { eventID: "event-1" },
   ])
+})
+
+test("Meta Pixel ecommerce events force ISO currency and numeric value", () => {
+  const { fbqCalls } = setPixelEnv()
+
+  trackMetaPixelEvent("ViewContent", {
+    content_ids: ["product:prod_1"],
+    content_type: "product_group",
+    contents: [{ id: "product:prod_1", quantity: 1, item_price: 52 }],
+    currency: "52 DT",
+    value: "52 DT",
+  }, {
+    eventID: "viewcontent-1",
+  })
+
+  assert.equal(fbqCalls.length, 1)
+  assert.deepEqual(fbqCalls[0], [
+    "track",
+    "ViewContent",
+    {
+      content_ids: ["product:prod_1"],
+      content_type: "product_group",
+      contents: [{ id: "product:prod_1", quantity: 1, item_price: 52 }],
+      currency: "TND",
+      value: 52,
+    },
+    { eventID: "viewcontent-1" },
+  ])
+})
+
+test("Meta Pixel PageView does not get artificial ecommerce params", () => {
+  const { fbqCalls } = setPixelEnv()
+
+  trackMetaPixelEvent("PageView")
+
+  assert.deepEqual(fbqCalls[0], ["track", "PageView", {}])
 })

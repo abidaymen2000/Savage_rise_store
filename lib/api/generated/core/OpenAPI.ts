@@ -20,7 +20,7 @@ export type OpenAPIConfig = {
 };
 
 export const OpenAPI: OpenAPIConfig = {
-    BASE: 'https://savage-rise-backend-8f0f0a23c13f.herokuapp.com',
+    BASE: 'https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core',
     VERSION: '2.0.0',
     WITH_CREDENTIALS: false,
     CREDENTIALS: 'include',

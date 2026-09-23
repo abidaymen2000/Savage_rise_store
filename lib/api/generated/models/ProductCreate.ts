@@ -9,6 +9,13 @@ import type { ProductVariantCreate } from './ProductVariantCreate';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductCreate = {
     name: string;
+    /**
+     * Reference metier du produit parent. Si omise, elle est generee automatiquement par le backend. Unique dans le catalogue du tenant. Distincte des SKU des variantes.
+     */
+    reference?: (string | null);
+    /**
+     * Optional product slug. When omitted during creation, the backend generates a tenant-unique slug from the product name.
+     */
     slug?: (string | null);
     description?: (string | null);
     product_kind: ProductKind;
@@ -17,6 +24,7 @@ export type ProductCreate = {
     attribute_set_id?: (string | null);
     attribute_values?: Record<string, any>;
     default_currency?: (string | null);
+    tax_category_id?: (string | null);
     track_inventory?: (boolean | null);
     tracking_method?: (TrackingMethod | null);
     requires_shipping?: (boolean | null);

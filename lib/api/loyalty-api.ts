@@ -1,4 +1,4 @@
-import { LoyaltyService, type LoyaltyBalanceOut, type LoyaltyQuoteIn, type LoyaltyQuoteOut } from "./generated"
+import { LoyaltyService, type LoyaltyBalanceOut, type LoyaltyQuoteIn, type LoyaltyQuoteOut } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { LoyaltyBalance, LoyaltyQuote, LoyaltyQuoteRequest } from "@/types/api"
 

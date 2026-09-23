@@ -7,7 +7,7 @@ import {
   type ProductKind,
   type ProductStorefrontDetail,
   type ProductVariantRead,
-} from "./generated"
+} from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { Category, Pack, PackComponent, PackProductSummary, Product, ProductImage, SearchFilters, SizeStock, Variant } from "@/types/api"
 

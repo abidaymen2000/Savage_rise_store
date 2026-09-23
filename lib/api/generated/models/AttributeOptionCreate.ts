@@ -8,6 +8,6 @@ export type AttributeOptionCreate = {
     value: string;
     swatch?: (string | null);
     metadata?: Record<string, any>;
-    position?: number;
+    position?: (number | null);
 };
 

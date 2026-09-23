@@ -13,6 +13,11 @@ export type OrderQuoteOut = {
     promotion_discount: number;
     loyalty_discount: number;
     shipping_amount: number;
+    shipping_tax_amount?: number;
+    tax_total?: number;
+    total_excluding_tax?: number;
+    total_including_tax?: number;
+    tax_lines?: Array<Record<string, any>>;
     total: number;
     items?: Array<OrderQuoteLineOut>;
     promotion?: (PromotionQuoteOut | null);

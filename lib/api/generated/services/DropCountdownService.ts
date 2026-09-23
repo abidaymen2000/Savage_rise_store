@@ -11,50 +11,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DropCountdownService {
     /**
-     * Read Storefront Drop Countdown
-     * @returns DropCountdownOut Successful Response
-     * @throws ApiError
-     */
-    public static readStorefrontDropCountdownStorefrontDropCountdownGet(): CancelablePromise<DropCountdownOut> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/storefront/drop-countdown',
-        });
-    }
-    /**
-     * Read Drop Notification Status
-     * @returns DropNotificationStatus Successful Response
-     * @throws ApiError
-     */
-    public static readDropNotificationStatusStorefrontDropCountdownNotificationStatusGet(): CancelablePromise<DropNotificationStatus> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/storefront/drop-countdown/notification-status',
-        });
-    }
-    /**
-     * Subscribe Drop Notification
-     * @returns DropNotificationStatus Successful Response
-     * @throws ApiError
-     */
-    public static subscribeDropNotificationStorefrontDropCountdownNotifyMePost(): CancelablePromise<DropNotificationStatus> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/storefront/drop-countdown/notify-me',
-        });
-    }
-    /**
-     * Unsubscribe Drop Notification
-     * @returns DropNotificationStatus Successful Response
-     * @throws ApiError
-     */
-    public static unsubscribeDropNotificationStorefrontDropCountdownNotifyMeDelete(): CancelablePromise<DropNotificationStatus> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/storefront/drop-countdown/notify-me',
-        });
-    }
-    /**
+     * @deprecated
      * Admin Get Drop Countdown
      * @returns DropCountdownOut Successful Response
      * @throws ApiError
@@ -66,6 +23,7 @@ export class DropCountdownService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Drop Countdown
      * @returns DropCountdownOut Successful Response
      * @throws ApiError
@@ -86,6 +44,7 @@ export class DropCountdownService {
         });
     }
     /**
+     * @deprecated
      * Admin List Drop Subscribers
      * @returns DropSubscribersPage Successful Response
      * @throws ApiError
@@ -116,6 +75,54 @@ export class DropCountdownService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * @deprecated
+     * Read Storefront Drop Countdown
+     * @returns DropCountdownOut Successful Response
+     * @throws ApiError
+     */
+    public static readStorefrontDropCountdownStorefrontDropCountdownGet(): CancelablePromise<DropCountdownOut> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/storefront/drop-countdown',
+        });
+    }
+    /**
+     * @deprecated
+     * Read Drop Notification Status
+     * @returns DropNotificationStatus Successful Response
+     * @throws ApiError
+     */
+    public static readDropNotificationStatusStorefrontDropCountdownNotificationStatusGet(): CancelablePromise<DropNotificationStatus> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/storefront/drop-countdown/notification-status',
+        });
+    }
+    /**
+     * @deprecated
+     * Subscribe Drop Notification
+     * @returns DropNotificationStatus Successful Response
+     * @throws ApiError
+     */
+    public static subscribeDropNotificationStorefrontDropCountdownNotifyMePost(): CancelablePromise<DropNotificationStatus> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/storefront/drop-countdown/notify-me',
+        });
+    }
+    /**
+     * @deprecated
+     * Unsubscribe Drop Notification
+     * @returns DropNotificationStatus Successful Response
+     * @throws ApiError
+     */
+    public static unsubscribeDropNotificationStorefrontDropCountdownNotifyMeDelete(): CancelablePromise<DropNotificationStatus> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/storefront/drop-countdown/notify-me',
         });
     }
 }

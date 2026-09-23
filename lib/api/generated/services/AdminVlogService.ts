@@ -2,8 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Body_admin_upload_vlog_media_admin_vlog_media_upload_post } from '../models/Body_admin_upload_vlog_media_admin_vlog_media_upload_post';
-import type { ImageKitDirectUploadAuth } from '../models/ImageKitDirectUploadAuth';
+import type { app__schemas__vlog__ImageKitDirectUploadAuth } from '../models/app__schemas__vlog__ImageKitDirectUploadAuth';
 import type { ShortFilmUpdate } from '../models/ShortFilmUpdate';
 import type { VlogChapterCreate } from '../models/VlogChapterCreate';
 import type { VlogChapterOut } from '../models/VlogChapterOut';
@@ -12,7 +11,6 @@ import type { VlogChapterWithEpisodesOut } from '../models/VlogChapterWithEpisod
 import type { VlogEpisodeCreate } from '../models/VlogEpisodeCreate';
 import type { VlogEpisodeOut } from '../models/VlogEpisodeOut';
 import type { VlogEpisodeUpdate } from '../models/VlogEpisodeUpdate';
-import type { VlogMediaAsset } from '../models/VlogMediaAsset';
 import type { VlogMediaOut } from '../models/VlogMediaOut';
 import type { VlogMediaRegister } from '../models/VlogMediaRegister';
 import type { VlogSettingsOut } from '../models/VlogSettingsOut';
@@ -22,6 +20,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AdminVlogService {
     /**
+     * @deprecated
      * Admin Get Vlog Settings
      * @returns VlogSettingsOut Successful Response
      * @throws ApiError
@@ -33,6 +32,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Vlog Settings
      * @returns VlogSettingsOut Successful Response
      * @throws ApiError
@@ -53,40 +53,16 @@ export class AdminVlogService {
         });
     }
     /**
-     * Admin Upload Vlog Media
-     * @returns VlogMediaAsset Successful Response
-     * @throws ApiError
-     */
-    public static adminUploadVlogMediaAdminVlogMediaUploadPost({
-        mediaType,
-        formData,
-    }: {
-        mediaType: 'concept-image' | 'concept-video' | 'chapter-cover' | 'chapter-trailer' | 'episode-video' | 'episode-thumbnail' | 'short-film',
-        formData: Body_admin_upload_vlog_media_admin_vlog_media_upload_post,
-    }): CancelablePromise<VlogMediaAsset> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/admin/vlog/media/upload',
-            query: {
-                'media_type': mediaType,
-            },
-            formData: formData,
-            mediaType: 'multipart/form-data',
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
+     * @deprecated
      * Admin Get Vlog Media Upload Auth
-     * @returns ImageKitDirectUploadAuth Successful Response
+     * @returns app__schemas__vlog__ImageKitDirectUploadAuth Successful Response
      * @throws ApiError
      */
     public static adminGetVlogMediaUploadAuthAdminVlogMediaUploadAuthGet({
         mediaType,
     }: {
         mediaType: 'concept-image' | 'concept-video' | 'chapter-cover' | 'chapter-trailer' | 'episode-video' | 'episode-thumbnail' | 'short-film',
-    }): CancelablePromise<ImageKitDirectUploadAuth> {
+    }): CancelablePromise<app__schemas__vlog__ImageKitDirectUploadAuth> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/admin/vlog/media/upload-auth',
@@ -99,6 +75,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Register Uploaded Vlog Media
      * @returns VlogMediaOut Successful Response
      * @throws ApiError
@@ -119,6 +96,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin List Vlog Media
      * @returns VlogMediaOut Successful Response
      * @throws ApiError
@@ -146,6 +124,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin List Vlog Chapters
      * @returns VlogChapterWithEpisodesOut Successful Response
      * @throws ApiError
@@ -157,6 +136,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Create Vlog Chapter
      * @returns VlogChapterOut Successful Response
      * @throws ApiError
@@ -177,6 +157,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Get Vlog Chapter
      * @returns VlogChapterWithEpisodesOut Successful Response
      * @throws ApiError
@@ -198,6 +179,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Vlog Chapter
      * @returns VlogChapterOut Successful Response
      * @throws ApiError
@@ -223,6 +205,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Delete Vlog Chapter
      * @returns void
      * @throws ApiError
@@ -249,6 +232,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Chapter Short Film
      * @returns VlogChapterOut Successful Response
      * @throws ApiError
@@ -274,6 +258,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Create Vlog Episode
      * @returns VlogEpisodeOut Successful Response
      * @throws ApiError
@@ -299,6 +284,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin List Vlog Episodes
      * @returns VlogEpisodeOut Successful Response
      * @throws ApiError
@@ -320,6 +306,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Vlog Episode
      * @returns VlogEpisodeOut Successful Response
      * @throws ApiError
@@ -345,6 +332,7 @@ export class AdminVlogService {
         });
     }
     /**
+     * @deprecated
      * Admin Delete Vlog Episode
      * @returns void
      * @throws ApiError

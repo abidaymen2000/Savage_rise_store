@@ -3,13 +3,13 @@
 The storefront sends internal analytics events to the backend endpoint:
 
 ```txt
-POST https://savage-rise-backend-8f0f0a23c13f.herokuapp.com/analytics/savage-rise/events
+POST https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/analytics/savage-rise/events
 ```
 
 Vercel must define:
 
 ```txt
-NEXT_PUBLIC_API_BASE_URL=https://savage-rise-backend-8f0f0a23c13f.herokuapp.com
+NEXT_PUBLIC_API_BASE_URL=https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core
 ```
 
 All event calls should go through the centralized helper:

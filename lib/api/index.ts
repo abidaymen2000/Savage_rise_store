@@ -14,8 +14,6 @@ import { storeConfigApi } from "./store-config-api"
 import { analyticsApi } from "./analytics-api"
 import { loyaltyApi } from "./loyalty-api"
 import { storeNavigationApi } from "./store-navigation-api"
-import { DefaultService, type HealthStatus } from "./generated"
-import { withApiErrors } from "./api-error"
 
 export { API_BASE_URL, ApiError }
 
@@ -37,7 +35,4 @@ export const api = {
     return analyticsApi.trackEvent(payload)
   },
 
-  async checkHealth(): Promise<HealthStatus> {
-    return withApiErrors(DefaultService.checkHealth())
-  },
 }

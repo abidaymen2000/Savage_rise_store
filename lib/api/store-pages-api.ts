@@ -1,5 +1,5 @@
-import { StorefrontPagesService } from "./generated"
-import type { StorePagePublicOut, StorePageSummaryOut, StorePageType } from "./generated"
+import { StorefrontPagesService } from "./api-client"
+import type { StorePagePublicOut, StorePageSummaryOut, StorePageType } from "./api-client"
 import { withApiErrors } from "./api-error"
 
 export function getStorePage(slug: string): Promise<StorePagePublicOut> {

@@ -6,6 +6,7 @@ import type { CatalogCategoryDestination } from './CatalogCategoryDestination';
 import type { CatalogProductDestination } from './CatalogProductDestination';
 import type { ExternalUrlDestination } from './ExternalUrlDestination';
 import type { InternalPathDestination } from './InternalPathDestination';
+import type { StorePageDestination } from './StorePageDestination';
 import type { SystemRouteDestination } from './SystemRouteDestination';
 export type StoreNavigationItemAdminRead = {
     parent_id?: (string | null);
@@ -16,7 +17,7 @@ export type StoreNavigationItemAdminRead = {
     open_in_new_tab?: boolean;
     icon?: (string | null);
     badge?: (string | null);
-    destination: (SystemRouteDestination | CatalogCategoryDestination | CatalogProductDestination | InternalPathDestination | ExternalUrlDestination);
+    destination: (SystemRouteDestination | StorePageDestination | CatalogCategoryDestination | CatalogProductDestination | InternalPathDestination | ExternalUrlDestination);
     id: string;
     children?: Array<StoreNavigationItemAdminRead>;
 };

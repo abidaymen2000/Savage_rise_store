@@ -8,6 +8,7 @@ export type AttributeCreate = {
     code: string;
     name: string;
     description?: (string | null);
+    input_type?: string;
     data_type: AttributeDataType;
     scope: AttributeScope;
     is_required?: boolean;

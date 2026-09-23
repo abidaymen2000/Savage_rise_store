@@ -12,6 +12,7 @@ export type AttributeOptionRead = {
     id: string;
     attribute_id: string;
     is_active: boolean;
+    merged_into_value_id?: (string | null);
     created_at: string;
     updated_at: string;
 };

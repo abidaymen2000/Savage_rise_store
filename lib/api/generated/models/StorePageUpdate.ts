@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CMSLocalizationPayload_Input } from './CMSLocalizationPayload_Input';
 import type { StorePageSeo } from './StorePageSeo';
 import type { StorePageType } from './StorePageType';
 export type StorePageUpdate = {
@@ -13,5 +14,6 @@ export type StorePageUpdate = {
     subtitle?: (string | null);
     content_blocks?: null;
     seo?: (StorePageSeo | null);
+    localizations?: (Record<string, CMSLocalizationPayload_Input> | null);
 };
 

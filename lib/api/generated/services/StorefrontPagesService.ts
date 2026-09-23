@@ -18,10 +18,12 @@ export class StorefrontPagesService {
         keys,
         slugs,
         pageType,
+        locale,
     }: {
         keys?: (string | null),
         slugs?: (string | null),
         pageType?: (StorePageType | null),
+        locale?: (string | null),
     }): CancelablePromise<Array<StorePageSummaryOut>> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -30,6 +32,7 @@ export class StorefrontPagesService {
                 'keys': keys,
                 'slugs': slugs,
                 'page_type': pageType,
+                'locale': locale,
             },
             errors: {
                 422: `Validation Error`,
@@ -43,14 +46,19 @@ export class StorefrontPagesService {
      */
     public static storefrontGetStorePage({
         slug,
+        locale,
     }: {
         slug: string,
+        locale?: (string | null),
     }): CancelablePromise<StorePagePublicOut> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/storefront/pages/{slug}',
             path: {
                 'slug': slug,
+            },
+            query: {
+                'locale': locale,
             },
             errors: {
                 422: `Validation Error`,

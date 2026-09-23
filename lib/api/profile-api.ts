@@ -1,4 +1,4 @@
-import { ProfileService, type OrderOut, type ReviewOut, type UserOut, type UserUpdate } from "./generated"
+import { ProfileService, type OrderOut, type ReviewOut, type UserOut, type UserUpdate } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { Order, PasswordChange, Review, User } from "@/types/api"
 

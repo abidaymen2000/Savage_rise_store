@@ -2,13 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Body_adminCatalogUploadMediaAssets } from '../models/Body_adminCatalogUploadMediaAssets';
 import type { CatalogMediaAssetRead } from '../models/CatalogMediaAssetRead';
-import type { CatalogMediaAssetUploadResponse } from '../models/CatalogMediaAssetUploadResponse';
 import type { CatalogMediaAssignmentCreate } from '../models/CatalogMediaAssignmentCreate';
 import type { CatalogMediaAssignmentCreateResponse } from '../models/CatalogMediaAssignmentCreateResponse';
 import type { CatalogMediaAssignmentPatch } from '../models/CatalogMediaAssignmentPatch';
 import type { CatalogMediaAssignmentRead } from '../models/CatalogMediaAssignmentRead';
+import type { CatalogMediaPrimaryRequest } from '../models/CatalogMediaPrimaryRequest';
 import type { CatalogMediaRegister } from '../models/CatalogMediaRegister';
 import type { CatalogMediaTarget } from '../models/CatalogMediaTarget';
 import type { CatalogMediaTargetPreviewResponse } from '../models/CatalogMediaTargetPreviewResponse';
@@ -366,26 +365,6 @@ export class AdminCatalogProductsService {
         });
     }
     /**
-     * Upload Catalog Media Assets
-     * @returns CatalogMediaAssetUploadResponse Successful Response
-     * @throws ApiError
-     */
-    public static adminCatalogUploadMediaAssets({
-        formData,
-    }: {
-        formData: Body_adminCatalogUploadMediaAssets,
-    }): CancelablePromise<CatalogMediaAssetUploadResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/admin/catalog/media/assets/upload',
-            formData: formData,
-            mediaType: 'multipart/form-data',
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
      * Get Catalog Media Upload Auth
      * @returns CatalogMediaUploadAuth Successful Response
      * @throws ApiError
@@ -509,6 +488,31 @@ export class AdminCatalogProductsService {
             url: '/admin/catalog/products/{product_id}/media-targets/preview',
             path: {
                 'product_id': productId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Set Media Primary
+     * @returns CatalogMediaAssignmentCreateResponse Successful Response
+     * @throws ApiError
+     */
+    public static adminCatalogSetMediaPrimary({
+        assignmentId,
+        requestBody,
+    }: {
+        assignmentId: string,
+        requestBody: CatalogMediaPrimaryRequest,
+    }): CancelablePromise<CatalogMediaAssignmentCreateResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/catalog/media-assignments/{assignment_id}/primary',
+            path: {
+                'assignment_id': assignmentId,
             },
             body: requestBody,
             mediaType: 'application/json',

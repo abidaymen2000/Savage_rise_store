@@ -4,7 +4,10 @@
 /* eslint-disable */
 export type ErpAccountCreate = {
     email: string;
-    password: string;
+    /**
+     * @deprecated
+     */
+    password?: (string | null);
     role?: string;
     permissions?: Array<string>;
     is_active?: boolean;

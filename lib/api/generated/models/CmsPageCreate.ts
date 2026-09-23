@@ -3,6 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CmsPageCreate = {
+    /**
+     * Cle permission unique. Format recommande: module.action ou module.resource.action.
+     */
     key: string;
     label: string;
     section: string;
@@ -13,5 +16,8 @@ export type CmsPageCreate = {
     requires_permission?: boolean;
     surface?: 'erp' | 'cms';
     show_in_nav?: boolean;
+    classification?: (string | null);
+    feature?: (string | null);
+    action?: (string | null);
 };
 

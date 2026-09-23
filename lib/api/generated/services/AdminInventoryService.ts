@@ -2,7 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { InventoryAdjustmentCreate } from '../models/InventoryAdjustmentCreate';
 import type { InventoryAdjustmentIn } from '../models/InventoryAdjustmentIn';
+import type { InventoryAdjustmentOut } from '../models/InventoryAdjustmentOut';
+import type { InventoryBulkAdjustmentIn } from '../models/InventoryBulkAdjustmentIn';
+import type { InventoryBulkAdjustmentOut } from '../models/InventoryBulkAdjustmentOut';
 import type { InventoryFacetsOut } from '../models/InventoryFacetsOut';
 import type { InventoryMovementOut } from '../models/InventoryMovementOut';
 import type { PaginatedResponse_InventoryItemOut_ } from '../models/PaginatedResponse_InventoryItemOut_';
@@ -234,6 +238,112 @@ export class AdminInventoryService {
             url: '/admin/inventory/adjust',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Admin Bulk Adjust Inventory
+     * @returns InventoryBulkAdjustmentOut Successful Response
+     * @throws ApiError
+     */
+    public static adminBulkAdjustInventoryAdminInventoryAdjustBulkPost({
+        requestBody,
+    }: {
+        requestBody: InventoryBulkAdjustmentIn,
+    }): CancelablePromise<InventoryBulkAdjustmentOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/inventory/adjust/bulk',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Admin List Inventory Adjustments
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static adminListInventoryAdjustmentsAdminInventoryAdjustmentsGet({
+        page = 1,
+        pageSize = 20,
+    }: {
+        page?: number,
+        pageSize?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/inventory/adjustments',
+            query: {
+                'page': page,
+                'page_size': pageSize,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Admin Create Inventory Adjustment
+     * @returns InventoryAdjustmentOut Successful Response
+     * @throws ApiError
+     */
+    public static adminCreateInventoryAdjustmentAdminInventoryAdjustmentsPost({
+        requestBody,
+    }: {
+        requestBody: InventoryAdjustmentCreate,
+    }): CancelablePromise<InventoryAdjustmentOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/inventory/adjustments',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Admin Post Inventory Adjustment
+     * @returns InventoryAdjustmentOut Successful Response
+     * @throws ApiError
+     */
+    public static adminPostInventoryAdjustmentAdminInventoryAdjustmentsAdjustmentIdPostPost({
+        adjustmentId,
+    }: {
+        adjustmentId: string,
+    }): CancelablePromise<InventoryAdjustmentOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/inventory/adjustments/{adjustment_id}/post',
+            path: {
+                'adjustment_id': adjustmentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Admin Cancel Inventory Adjustment
+     * @returns InventoryAdjustmentOut Successful Response
+     * @throws ApiError
+     */
+    public static adminCancelInventoryAdjustmentAdminInventoryAdjustmentsAdjustmentIdCancelPost({
+        adjustmentId,
+    }: {
+        adjustmentId: string,
+    }): CancelablePromise<InventoryAdjustmentOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/inventory/adjustments/{adjustment_id}/cancel',
+            path: {
+                'adjustment_id': adjustmentId,
+            },
             errors: {
                 422: `Validation Error`,
             },

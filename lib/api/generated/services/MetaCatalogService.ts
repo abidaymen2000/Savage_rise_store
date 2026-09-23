@@ -7,14 +7,16 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class MetaCatalogService {
     /**
-     * Flux CSV catalogue Meta
-     * @returns any Successful Response
+     * Flux CSV catalogue Meta multi-tenant
+     * @returns string Flux CSV catalogue Meta
      * @throws ApiError
      */
-    public static metaCatalogCsvMetaCatalogCsvGet({
+    public static metaCatalogCsvForCompanyMetaCompanySlugCatalogCsvGet({
+        companySlug,
         includeOutOfStock = true,
         includeMissingImages = false,
     }: {
+        companySlug: string,
         /**
          * Inclure les articles hors stock dans le feed Meta
          */
@@ -23,10 +25,13 @@ export class MetaCatalogService {
          * Inclure les lignes sans image_link
          */
         includeMissingImages?: boolean,
-    }): CancelablePromise<any> {
+    }): CancelablePromise<string> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/meta/catalog.csv',
+            url: '/meta/{company_slug}/catalog.csv',
+            path: {
+                'company_slug': companySlug,
+            },
             query: {
                 'include_out_of_stock': includeOutOfStock,
                 'include_missing_images': includeMissingImages,

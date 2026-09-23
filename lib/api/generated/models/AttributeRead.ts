@@ -12,6 +12,7 @@ export type AttributeRead = {
     code: string;
     name: string;
     description?: (string | null);
+    input_type?: string;
     data_type: AttributeDataType;
     scope: AttributeScope;
     is_required?: boolean;
@@ -23,6 +24,7 @@ export type AttributeRead = {
     unit_code?: (string | null);
     validation_rules?: Record<string, any>;
     position?: number;
+    system_key?: (string | null);
     is_active: boolean;
 };
 

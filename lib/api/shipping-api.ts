@@ -1,4 +1,4 @@
-import { ShippingRatesService, type ShippingQuoteRequest, type ShippingQuoteResponse } from "./generated"
+import { ShippingRatesService, type ShippingQuoteRequest, type ShippingQuoteResponse } from "./api-client"
 import { withApiErrors } from "./api-error"
 
 export const shippingApi = {

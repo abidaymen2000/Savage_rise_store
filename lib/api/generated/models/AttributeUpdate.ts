@@ -2,9 +2,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AttributeDataType } from './AttributeDataType';
+import type { AttributeScope } from './AttributeScope';
 export type AttributeUpdate = {
     name?: (string | null);
     description?: (string | null);
+    input_type?: (string | null);
+    data_type?: (AttributeDataType | null);
+    scope?: (AttributeScope | null);
     is_required?: (boolean | null);
     is_variant_axis?: (boolean | null);
     is_filterable?: (boolean | null);

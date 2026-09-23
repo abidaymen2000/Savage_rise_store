@@ -4,15 +4,15 @@ import type React from "react"
 import { ArrowLeft, CheckCircle, HelpCircle, Mail, MapPin, MessageCircle, Package, PackageCheck, PackageOpen, RefreshCcw, Ruler, Truck } from "lucide-react"
 
 import type {
-  StorePageCardsBlock,
-  StorePageContactInfoBlock,
-  StorePageFaqBlock,
-  StorePageHeroBlock,
-  StorePageImageBlock,
-  StorePageMapBlock,
+  CMSCardsProps as StorePageCardsBlock,
+  CMSContactInfoProps as StorePageContactInfoBlock,
+  CMSFaqProps as StorePageFaqBlock,
+  CMSHeroProps as StorePageHeroBlock,
+  CMSImageProps as StorePageImageBlock,
+  CMSMapProps as StorePageMapBlock,
   StorePagePublicOut,
-  StorePageRichTextBlock,
-  StorePageTableBlock,
+  CMSRichTextProps as StorePageRichTextBlock,
+  CMSTableProps as StorePageTableBlock,
 } from "@/lib/api/generated"
 import { enabledBlocks } from "@/lib/store-pages/static-pages"
 import { cn } from "@/lib/utils"

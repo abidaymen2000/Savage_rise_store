@@ -5,6 +5,6 @@
 import type { StoreNavigationDestinationRegistryItem } from './StoreNavigationDestinationRegistryItem';
 export type StoreNavigationDestinationRegistry = {
     system_routes?: Array<StoreNavigationDestinationRegistryItem>;
-    destination_types?: Array<'system_route' | 'catalog_category' | 'catalog_product' | 'internal_path' | 'external_url'>;
+    destination_types?: Array<'system_route' | 'store_page' | 'catalog_category' | 'catalog_product' | 'internal_path' | 'external_url'>;
 };
 

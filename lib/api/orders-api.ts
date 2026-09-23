@@ -1,4 +1,4 @@
-import { OrdersService, ProfileService, type OrderCreate, type OrderOut, type OrderQuoteOut } from "./generated"
+import { OrdersService, ProfileService, type OrderCreate, type OrderOut, type OrderQuoteOut } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { Order, OrderActionReasonIn, OrderCreatePayload, OrderQuoteOut as StoreOrderQuoteOut } from "@/types/api"
 

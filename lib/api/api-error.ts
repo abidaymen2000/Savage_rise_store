@@ -1,4 +1,4 @@
-import { ApiError as GeneratedApiError } from "./generated"
+import { ApiError as GeneratedApiError } from "./api-client"
 
 export class ApiError extends Error {
   status: number

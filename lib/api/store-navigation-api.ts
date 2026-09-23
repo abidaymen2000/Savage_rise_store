@@ -2,7 +2,7 @@ import {
   StorefrontNavigationService,
   type StoreNavigationPublicMenu,
   type StoreNavigationPublicMenus,
-} from "./generated"
+} from "./api-client"
 import { withApiErrors } from "./api-error"
 
 export type StoreNavigationSurface = "all" | "desktop" | "mobile"

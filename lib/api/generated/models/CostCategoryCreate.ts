@@ -11,5 +11,6 @@ export type CostCategoryCreate = {
     parent_key?: (string | null);
     is_active?: boolean;
     attributes?: (Record<string, any> | null);
+    accounting_account_id?: (string | null);
 };
 

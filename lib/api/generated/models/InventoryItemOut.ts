@@ -5,6 +5,7 @@
 export type InventoryItemOut = {
     product_id: string;
     product_name: string;
+    product_reference?: (string | null);
     product_status?: string;
     product_kind?: (string | null);
     variant_id: string;
@@ -14,6 +15,7 @@ export type InventoryItemOut = {
     sku?: (string | null);
     barcode?: (string | null);
     option_values_snapshot?: Record<string, string>;
+    option_value_labels?: Record<string, string>;
     track_inventory?: boolean;
     tracking_method?: string;
     status?: string;

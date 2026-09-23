@@ -2,9 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ProductOptionAxisWrite } from './ProductOptionAxisWrite';
+import type { ProductOptionAxisRead } from './ProductOptionAxisRead';
 export type ProductOptionsRead = {
     product_id: string;
-    option_axes?: Array<ProductOptionAxisWrite>;
+    option_axes?: Array<ProductOptionAxisRead>;
 };
 

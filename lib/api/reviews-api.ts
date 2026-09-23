@@ -1,4 +1,4 @@
-import { ReviewsService, type ReviewOut, type ReviewStats as GeneratedReviewStats } from "./generated"
+import { ReviewsService, type ReviewOut, type ReviewStats as GeneratedReviewStats } from "./api-client"
 import { withApiErrors } from "./api-error"
 import type { Review, ReviewCreate, ReviewStats, ReviewUpdate } from "@/types/api"
 

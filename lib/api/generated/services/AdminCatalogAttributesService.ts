@@ -5,8 +5,14 @@
 import type { AttributeCreate } from '../models/AttributeCreate';
 import type { AttributeOptionCreate } from '../models/AttributeOptionCreate';
 import type { AttributeOptionRead } from '../models/AttributeOptionRead';
+import type { AttributeOptionUpdate } from '../models/AttributeOptionUpdate';
 import type { AttributeRead } from '../models/AttributeRead';
 import type { AttributeUpdate } from '../models/AttributeUpdate';
+import type { AttributeValueMergeRequest } from '../models/AttributeValueMergeRequest';
+import type { AttributeValueMergeResult } from '../models/AttributeValueMergeResult';
+import type { AttributeValueMutationResult } from '../models/AttributeValueMutationResult';
+import type { AttributeValueRenameRequest } from '../models/AttributeValueRenameRequest';
+import type { AttributeValueUsageRead } from '../models/AttributeValueUsageRead';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -196,7 +202,7 @@ export class AdminCatalogAttributesService {
         requestBody,
     }: {
         valueId: string,
-        requestBody: Record<string, any>,
+        requestBody: AttributeOptionUpdate,
     }): CancelablePromise<AttributeOptionRead> {
         return __request(OpenAPI, {
             method: 'PATCH',
@@ -212,21 +218,118 @@ export class AdminCatalogAttributesService {
         });
     }
     /**
+     * Get Attribute Value Usage
+     * @returns AttributeValueUsageRead Successful Response
+     * @throws ApiError
+     */
+    public static getAttributeValueUsageAdminCatalogAttributeValuesValueIdUsageGet({
+        valueId,
+        targetValueId,
+    }: {
+        valueId: string,
+        targetValueId?: (string | null),
+    }): CancelablePromise<AttributeValueUsageRead> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/catalog/attribute-values/{value_id}/usage',
+            path: {
+                'value_id': valueId,
+            },
+            query: {
+                'target_value_id': targetValueId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Rename Attribute Value
+     * @returns AttributeValueMutationResult Successful Response
+     * @throws ApiError
+     */
+    public static renameAttributeValueAdminCatalogAttributeValuesValueIdRenamePost({
+        valueId,
+        requestBody,
+    }: {
+        valueId: string,
+        requestBody: AttributeValueRenameRequest,
+    }): CancelablePromise<AttributeValueMutationResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/catalog/attribute-values/{value_id}/rename',
+            path: {
+                'value_id': valueId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Archive Attribute Value
-     * @returns AttributeOptionRead Successful Response
+     * @returns AttributeValueMutationResult Successful Response
      * @throws ApiError
      */
     public static archiveAttributeValueAdminCatalogAttributeValuesValueIdArchivePost({
         valueId,
     }: {
         valueId: string,
-    }): CancelablePromise<AttributeOptionRead> {
+    }): CancelablePromise<AttributeValueMutationResult> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/admin/catalog/attribute-values/{value_id}/archive',
             path: {
                 'value_id': valueId,
             },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Restore Attribute Value
+     * @returns AttributeValueMutationResult Successful Response
+     * @throws ApiError
+     */
+    public static restoreAttributeValueAdminCatalogAttributeValuesValueIdRestorePost({
+        valueId,
+    }: {
+        valueId: string,
+    }): CancelablePromise<AttributeValueMutationResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/catalog/attribute-values/{value_id}/restore',
+            path: {
+                'value_id': valueId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Merge Attribute Value
+     * @returns AttributeValueMergeResult Successful Response
+     * @throws ApiError
+     */
+    public static mergeAttributeValueAdminCatalogAttributeValuesValueIdMergePost({
+        valueId,
+        requestBody,
+    }: {
+        valueId: string,
+        requestBody: AttributeValueMergeRequest,
+    }): CancelablePromise<AttributeValueMergeResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/catalog/attribute-values/{value_id}/merge',
+            path: {
+                'value_id': valueId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },

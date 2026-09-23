@@ -14,6 +14,10 @@ export type ProductRead = {
     created_at?: (string | null);
     updated_at?: (string | null);
     name: string;
+    /**
+     * Reference metier stable du produit parent.
+     */
+    reference?: (string | null);
     slug: string;
     description?: (string | null);
     product_kind: ProductKind;
@@ -22,6 +26,7 @@ export type ProductRead = {
     attribute_set_id?: (string | null);
     attribute_values?: Record<string, any>;
     default_currency: string;
+    tax_category_id?: (string | null);
     track_inventory?: (boolean | null);
     tracking_method?: (TrackingMethod | null);
     requires_shipping?: (boolean | null);

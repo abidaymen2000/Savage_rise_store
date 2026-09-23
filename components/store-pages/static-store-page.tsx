@@ -23,9 +23,9 @@ export async function generateStorePageMetadata(slug: string): Promise<Metadata>
     alternates: { canonical },
     robots: { index: !noIndex, follow: !noIndex },
     openGraph: {
-      title: seo?.og_title || seo?.title || page?.title || SITE_NAME,
-      description: seo?.og_description || seo?.description || page?.subtitle || fallbackDescription || undefined,
-      images: seo?.og_image_url ? [{ url: seo.og_image_url }] : undefined,
+      title: seo?.open_graph?.title || seo?.title || page?.title || SITE_NAME,
+      description: seo?.open_graph?.description || seo?.description || page?.subtitle || fallbackDescription || undefined,
+      images: seo?.open_graph?.image_url ? [{ url: seo.open_graph.image_url }] : undefined,
       url: canonical,
       type: "website",
       siteName: SITE_NAME,

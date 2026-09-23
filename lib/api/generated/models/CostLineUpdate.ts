@@ -6,6 +6,7 @@ export type CostLineUpdate = {
     label?: (string | null);
     description?: (string | null);
     category?: (string | null);
+    category_id?: (string | null);
     subcategory?: (string | null);
     amount?: (number | null);
     currency?: (string | null);
@@ -20,6 +21,9 @@ export type CostLineUpdate = {
     supplier_id?: (string | null);
     invoice_ref?: (string | null);
     payment_status?: ('unpaid' | 'partially_paid' | 'paid' | null);
+    source_document_type?: (string | null);
+    source_document_id?: (string | null);
+    source_line_id?: (string | null);
     occurred_at?: (string | null);
     expected_version?: (number | null);
 };

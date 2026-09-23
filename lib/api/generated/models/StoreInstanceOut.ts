@@ -2,11 +2,15 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CMSTheme } from './CMSTheme';
 import type { StoreBranding } from './StoreBranding';
 import type { StoreCatalogSettings } from './StoreCatalogSettings';
 import type { StoreCommerceSettings } from './StoreCommerceSettings';
 import type { StoreFooterSettings } from './StoreFooterSettings';
+import type { StoreLocaleConfig } from './StoreLocaleConfig';
 import type { StorePhysicalLocation } from './StorePhysicalLocation';
+import type { StoreRobotsSettings } from './StoreRobotsSettings';
+import type { StoreSEODefaults } from './StoreSEODefaults';
 export type StoreInstanceOut = {
     name: string;
     slug: string;
@@ -16,6 +20,7 @@ export type StoreInstanceOut = {
     default_currency: string;
     timezone: string;
     locale: string;
+    locales?: Array<StoreLocaleConfig>;
     contact_email?: (string | null);
     contact_phone?: (string | null);
     domain?: (string | null);
@@ -28,6 +33,9 @@ export type StoreInstanceOut = {
     social_links?: Record<string, string>;
     footer?: StoreFooterSettings;
     physical_stores?: Array<StorePhysicalLocation>;
+    theme?: CMSTheme;
+    seo_defaults?: StoreSEODefaults;
+    robots?: StoreRobotsSettings;
     id: string;
     version?: number;
     created_at: string;

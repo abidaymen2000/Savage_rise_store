@@ -10,6 +10,7 @@ export type CostCategoryUpdate = {
     parent_key?: (string | null);
     is_active?: (boolean | null);
     attributes?: (Record<string, any> | null);
+    accounting_account_id?: (string | null);
     expected_version?: (number | null);
 };
 

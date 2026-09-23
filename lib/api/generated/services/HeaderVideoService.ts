@@ -2,29 +2,19 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Body_admin_upload_header_image_admin_header_image_upload_post } from '../models/Body_admin_upload_header_image_admin_header_image_upload_post';
-import type { Body_admin_upload_header_video_admin_header_video_upload_post } from '../models/Body_admin_upload_header_video_admin_header_video_upload_post';
+import type { app__schemas__media__ImageKitDirectUploadAuth } from '../models/app__schemas__media__ImageKitDirectUploadAuth';
 import type { HeaderVideoAsset } from '../models/HeaderVideoAsset';
 import type { HeaderVideoConfig } from '../models/HeaderVideoConfig';
 import type { HeaderVideoListOut } from '../models/HeaderVideoListOut';
 import type { HeaderVideoUpdate } from '../models/HeaderVideoUpdate';
 import type { HeaderVideoUploadOut } from '../models/HeaderVideoUploadOut';
+import type { MediaRegisterRequest } from '../models/MediaRegisterRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class HeaderVideoService {
     /**
-     * Read Storefront Header Video
-     * @returns HeaderVideoConfig Successful Response
-     * @throws ApiError
-     */
-    public static readStorefrontHeaderVideoStorefrontHeaderVideoGet(): CancelablePromise<HeaderVideoConfig> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/storefront/header-video',
-        });
-    }
-    /**
+     * @deprecated
      * Admin List Header Videos
      * @returns HeaderVideoListOut Successful Response
      * @throws ApiError
@@ -49,6 +39,7 @@ export class HeaderVideoService {
         });
     }
     /**
+     * @deprecated
      * Admin Get Header Video
      * @returns HeaderVideoConfig Successful Response
      * @throws ApiError
@@ -60,6 +51,7 @@ export class HeaderVideoService {
         });
     }
     /**
+     * @deprecated
      * Admin Update Header Video
      * @returns HeaderVideoConfig Successful Response
      * @throws ApiError
@@ -80,34 +72,40 @@ export class HeaderVideoService {
         });
     }
     /**
-     * Admin Upload Header Video
+     * @deprecated
+     * Admin Get Header Video Upload Auth
+     * @returns app__schemas__media__ImageKitDirectUploadAuth Successful Response
+     * @throws ApiError
+     */
+    public static adminGetHeaderVideoUploadAuthAdminHeaderVideoUploadAuthPost(): CancelablePromise<app__schemas__media__ImageKitDirectUploadAuth> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/header-video/upload-auth',
+        });
+    }
+    /**
+     * @deprecated
+     * Admin Register Header Video
      * @returns HeaderVideoUploadOut Successful Response
      * @throws ApiError
      */
-    public static adminUploadHeaderVideoAdminHeaderVideoUploadPost({
-        formData,
-        setActive = true,
+    public static adminRegisterHeaderVideoAdminHeaderVideoRegisterPost({
+        requestBody,
     }: {
-        formData: Body_admin_upload_header_video_admin_header_video_upload_post,
-        /**
-         * Definir cette video comme video active du header
-         */
-        setActive?: boolean,
+        requestBody: MediaRegisterRequest,
     }): CancelablePromise<HeaderVideoUploadOut> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/admin/header-video/upload',
-            query: {
-                'set_active': setActive,
-            },
-            formData: formData,
-            mediaType: 'multipart/form-data',
+            url: '/admin/header-video/register',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },
         });
     }
     /**
+     * @deprecated
      * Admin List Header Images
      * @returns HeaderVideoListOut Successful Response
      * @throws ApiError
@@ -132,34 +130,40 @@ export class HeaderVideoService {
         });
     }
     /**
-     * Admin Upload Header Image
+     * @deprecated
+     * Admin Get Header Image Upload Auth
+     * @returns app__schemas__media__ImageKitDirectUploadAuth Successful Response
+     * @throws ApiError
+     */
+    public static adminGetHeaderImageUploadAuthAdminHeaderImageUploadAuthPost(): CancelablePromise<app__schemas__media__ImageKitDirectUploadAuth> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/header-image/upload-auth',
+        });
+    }
+    /**
+     * @deprecated
+     * Admin Register Header Image
      * @returns HeaderVideoUploadOut Successful Response
      * @throws ApiError
      */
-    public static adminUploadHeaderImageAdminHeaderImageUploadPost({
-        formData,
-        setActive = true,
+    public static adminRegisterHeaderImageAdminHeaderImageRegisterPost({
+        requestBody,
     }: {
-        formData: Body_admin_upload_header_image_admin_header_image_upload_post,
-        /**
-         * Definir cette image comme image active du hero
-         */
-        setActive?: boolean,
+        requestBody: MediaRegisterRequest,
     }): CancelablePromise<HeaderVideoUploadOut> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/admin/header-image/upload',
-            query: {
-                'set_active': setActive,
-            },
-            formData: formData,
-            mediaType: 'multipart/form-data',
+            url: '/admin/header-image/register',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },
         });
     }
     /**
+     * @deprecated
      * Admin Select Header Image
      * @returns HeaderVideoConfig Successful Response
      * @throws ApiError
@@ -180,6 +184,7 @@ export class HeaderVideoService {
         });
     }
     /**
+     * @deprecated
      * Admin Delete Header Video
      * @returns void
      * @throws ApiError
@@ -201,6 +206,7 @@ export class HeaderVideoService {
         });
     }
     /**
+     * @deprecated
      * Admin Delete Header Image
      * @returns void
      * @throws ApiError
@@ -219,6 +225,18 @@ export class HeaderVideoService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * @deprecated
+     * Read Storefront Header Video
+     * @returns HeaderVideoConfig Successful Response
+     * @throws ApiError
+     */
+    public static readStorefrontHeaderVideoStorefrontHeaderVideoGet(): CancelablePromise<HeaderVideoConfig> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/storefront/header-video',
         });
     }
 }

@@ -4,6 +4,7 @@
 /* eslint-disable */
 export type AdminUpdate = {
     full_name?: (string | null);
+    role?: (string | null);
     is_superadmin?: (boolean | null);
     permissions?: (Array<string> | null);
     is_active?: (boolean | null);
