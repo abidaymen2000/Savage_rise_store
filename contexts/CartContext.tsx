@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect, useState } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
-import { getSelectableQuantityLimit, getVariantPrice, getVariantSize } from "@/lib/inventory"
+import { getSelectableQuantityLimit, getVariantSize } from "@/lib/inventory"
 import { getProductCartKey, matchesCartItem, resolveVariantItemId } from "@/lib/cart-identity"
 import { buildMetaCartItemContent, buildMetaPackSelectionContent } from "@/lib/meta-content"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -94,7 +94,6 @@ function buildPackAnalyticsItems(pack: Pack, selections: PackOrderComponent[], q
 }
 
 function calculateCart(items: CartItem[], packItems: CartPackItem[]) {
-  items = items.map((item) => ({ ...item, product: { ...item.product, price: getVariantPrice(item.product, item.selectedVariant) } }))
   const productTotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   const packTotal = packItems.reduce((sum, item) => sum + getPackLineTotal(item), 0)
   const productCount = items.reduce((sum, item) => sum + item.quantity, 0)
@@ -291,10 +290,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    product = { ...product, price: getVariantPrice(product, variant) }
-    dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
-    openCart()
-
     const items = [buildProductAnalyticsItem(product, variant, size, quantity)]
     const pixelContent = buildMetaCartItemContent({
       product,
@@ -329,14 +324,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         eventID: analyticsEvent.eventId ?? undefined,
       })
     }
+    dispatch({ type: "ADD_ITEM", payload: { product, variant, size, quantity } })
+    openCart()
   }
 
   const addPackToCart = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
     if (!pack || selections.length < 2) {
       return
     }
-    dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
-    openCart()
 
     const value =
       (pack.pack_price ?? selections.reduce((sum, selection) => sum + selection.unit_price * (selection.qty ?? 1), 0)) *
@@ -370,6 +365,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         eventID: analyticsEvent.eventId ?? undefined,
       })
     }
+    dispatch({ type: "ADD_PACK", payload: { pack, selections, quantity } })
+    openCart()
   }
 
   const removeFromCart = (productId: string, color: string, size: string, variantItemId?: string | null) => {

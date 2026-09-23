@@ -2,10 +2,8 @@ import type { MetaEventContext } from "@/types/api"
 
 function getCookie(name: string) {
   if (typeof document === "undefined") return null
-  try {
-    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
-    return match ? decodeURIComponent(match[1]) : null
-  } catch { return null }
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
 }
 
 export function getMetaEventContext(eventId?: string | null): MetaEventContext {
@@ -20,3 +18,4 @@ export function getMetaEventContext(eventId?: string | null): MetaEventContext {
     consent: "granted",
   }
 }
+

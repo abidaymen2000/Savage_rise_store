@@ -27,7 +27,6 @@ export default function CategoryPage() {
 
   const [products, setProducts] = useState<Product[]>([])
   const [packs, setPacks] = useState<Pack[]>([])
-  const [packsUnavailable, setPacksUnavailable] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -45,13 +44,12 @@ export default function CategoryPage() {
       setError(null)
       const [productsData, packsData] = await Promise.all([
         api.getProductsByCategory(categoryName, 0, 50),
-        api.getPacks(0, 50).catch(() => null),
+        api.getPacks(0, 50).catch(() => [] as Pack[]),
       ])
       setProducts(productsData)
-      setPacks(packsData ?? [])
-      setPacksUnavailable(packsData === null)
+      setPacks(packsData)
     } catch (err) {
-      setError("Les produits de cette catégorie sont momentanément indisponibles. Votre panier est conservé.")
+      setError(err instanceof Error ? err.message : "Error loading products")
     } finally {
       setLoading(false)
     }
@@ -166,9 +164,9 @@ export default function CategoryPage() {
       <div className="min-h-screen bg-background text-foreground pt-20">
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <p role="alert" className="text-red-400 mb-4">{error}</p>
+            <p className="text-red-400 mb-4">Error: {error}</p>
             <Button onClick={() => fetchCategoryProducts()} className="bg-accent text-accent-foreground hover:bg-accent/90">
-              Réessayer
+              Try again
             </Button>
           </div>
         </div>
@@ -198,7 +196,6 @@ export default function CategoryPage() {
         </div>
 
         {/* Filters */}
-        {packsUnavailable && <p role="status" className="mb-4 text-muted-foreground">Les offres de packs sont momentanément indisponibles. Les produits restent accessibles.</p>}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />

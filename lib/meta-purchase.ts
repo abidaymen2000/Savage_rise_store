@@ -1,7 +1,6 @@
 "use client"
 
 import { trackMetaPixelEvent } from "./meta-pixel"
-import { getAnalyticsStorage } from "./analytics-storage"
 
 const META_PURCHASE_PREFIX = "meta_purchase_sent:"
 
@@ -11,12 +10,12 @@ function getPurchaseStorageKey(orderId: string, metaEventId: string) {
 
 export function hasMetaPurchaseBeenSent(orderId: string, metaEventId: string): boolean {
   if (typeof window === "undefined") return false
-  return getAnalyticsStorage("localStorage").getItem(getPurchaseStorageKey(orderId, metaEventId)) === "1"
+  return window.localStorage.getItem(getPurchaseStorageKey(orderId, metaEventId)) === "1"
 }
 
 export function markMetaPurchaseSent(orderId: string, metaEventId: string): void {
   if (typeof window === "undefined") return
-  getAnalyticsStorage("localStorage").setItem(getPurchaseStorageKey(orderId, metaEventId), "1")
+  window.localStorage.setItem(getPurchaseStorageKey(orderId, metaEventId), "1")
 }
 
 export function trackPurchasePixelOnce(params: {
@@ -41,3 +40,4 @@ export function trackPurchasePixelOnce(params: {
   markMetaPurchaseSent(params.orderId, params.metaEventId)
   return true
 }
+

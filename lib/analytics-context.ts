@@ -1,7 +1,6 @@
 "use client"
 
 import type { AnalyticsContext } from "@/types/api"
-import { getAnalyticsStorage } from "./analytics-storage"
 
 const ANON_KEY = "savage-rise-anonymous-id"
 const SESSION_KEY = "savage-rise-session-id"
@@ -28,11 +27,11 @@ function getOrCreateStorageValue(storage: Storage, key: string, prefix: string) 
 }
 
 function localStore() {
-  return typeof window === "undefined" ? null : getAnalyticsStorage("localStorage")
+  return typeof window === "undefined" ? null : window.localStorage
 }
 
 function sessionStore() {
-  return typeof window === "undefined" ? null : getAnalyticsStorage("sessionStorage")
+  return typeof window === "undefined" ? null : window.sessionStorage
 }
 
 export function createEventId() {
@@ -206,10 +205,8 @@ export function getAnalyticsContext(options?: { includeCheckoutId?: boolean }): 
 
 function getCookie(name: string) {
   if (typeof document === "undefined") return null
-  try {
-    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
-    return match ? decodeURIComponent(match[1]) : null
-  } catch { return null }
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
 }
 
 export function hasDeduplicationKeyBeenSent(key: string) {

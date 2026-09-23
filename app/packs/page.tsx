@@ -5,16 +5,15 @@ import { isActiveBundlePack } from "@/lib/product-kind"
 import type { Pack, Product } from "@/types/api"
 import CollectionViewTracker from "@/app/components/CollectionViewTracker"
 import PackCardClient from "./pack-card-client"
-import CatalogError from "@/components/storefront/catalog-error"
 
 export const revalidate = 60
 
 const getPacksPageData = unstable_cache(async () => {
-  const packs = (await api.getPacks(0, 20)).filter(isActiveBundlePack)
+  const packs = (await api.getPacks(0, 20).catch(() => [] as Pack[])).filter(isActiveBundlePack)
   const packProductIds = Array.from(
     new Set(packs.flatMap((pack) => pack.components?.map((component) => component.product_id) ?? [])),
   )
-  const products = await Promise.all(packProductIds.map((productId) => api.getProduct(productId)))
+  const products = await Promise.all(packProductIds.map((productId) => api.getProduct(productId).catch(() => null)))
   const productLookup = products.reduce<Record<string, Product>>((map, product) => {
     if (product) map[product.id] = product
     return map
@@ -34,10 +33,7 @@ function PackCard({ pack, productLookup }: { pack: Pack; productLookup: Record<s
 }
 
 export default async function PacksPage() {
-  // Keep failed API reads out of the data cache and render an explicit outage.
-  const data = await getPacksPageData().catch(() => null)
-  if (!data) return <CatalogError />
-  const { packs, productLookup } = data
+  const { packs, productLookup } = await getPacksPageData()
 
   return (
     <main className="min-h-screen bg-background pt-24 text-foreground">

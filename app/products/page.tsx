@@ -17,7 +17,7 @@ type SearchParams = Record<string, string | string[] | undefined>
 const PAGE_SIZE = 24
 
 const getProductsPageData = unstable_cache(async (q: string, categoryFilter: string) => {
-  const categories = await api.getCategories()
+  const categories = await api.getCategories().catch(() => [])
   const resolvedCategory = categoryFilter === "all" ? null : resolveCategoryFilter(categories, categoryFilter)
   const resolvedCategoryIds = resolvedCategory ? getCategoryAndDescendantIds(categories, resolvedCategory.id) : []
   const productBatches = categoryFilter !== "all" && !resolvedCategory

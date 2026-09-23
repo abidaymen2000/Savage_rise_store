@@ -98,7 +98,6 @@ export const analyticsApi = {
       body,
       keepalive: true,
       credentials: "omit",
-      signal: AbortSignal.timeout(5000),
     })
 
     const responseBody = await readSafeResponse(response)

@@ -96,7 +96,7 @@ export default function PackDetailPage() {
         const data = await api.getPack(packId)
         const components = data.components ?? []
         const fullProducts = await Promise.all(
-          components.map((component) => api.getProduct(component.product_id)),
+          components.map((component) => api.getProduct(component.product_id).catch(() => null)),
         )
 
         if (!isMounted) return
