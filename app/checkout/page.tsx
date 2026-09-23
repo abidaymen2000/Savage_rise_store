@@ -13,6 +13,7 @@ import { ArrowLeft, Coins, Truck, Shield, CreditCard, Loader2, Ticket, X } from 
 import { useCart } from "@/contexts/CartContext"
 import { useAuth } from "@/contexts/AuthContext"
 import { ApiError, api } from "@/lib/api"
+import { isGatewayRoutingError } from "@/lib/api/api-error"
 import { clearCheckoutId, createEventId, getAnalyticsContext, getOrCreateCheckoutId } from "@/lib/analytics-context"
 import { clearCheckoutIdempotencyKey, getOrCreateCheckoutIdempotencyKey, getStoredCheckoutIdempotencyKey } from "@/lib/checkout-idempotency"
 import { buildCheckoutFingerprint, buildQuoteSignature } from "@/lib/checkout-fingerprint"
@@ -272,6 +273,7 @@ export default function CheckoutPage() {
   }
 
   const getFriendlyCheckoutError = (err: unknown) => {
+    if (isGatewayRoutingError(err)) return "Le service de commande est momentanément indisponible. Votre panier est conservé. Réessayez dans quelques instants."
     if (err instanceof ApiError) {
       const detail = err.message || "Unable to create your order."
       const lowerDetail = detail.toLowerCase()
@@ -600,6 +602,9 @@ export default function CheckoutPage() {
   ])
 
   useEffect(() => {
+    const requestId = ++quoteRequestIdRef.current
+    setOrderQuote(null)
+    setQuoteLoading(false)
     if (!validateShippingInfo() || cartState.itemCount === 0) {
       setOrderQuote(null)
       setQuoteError(null)
@@ -607,7 +612,9 @@ export default function CheckoutPage() {
       return
     }
 
-    const requestId = ++quoteRequestIdRef.current
+    setCheckoutStatus("quoting")
+    setQuoteLoading(true)
+    setQuoteError(null)
     const timeout = setTimeout(async () => {
       setCheckoutStatus("quoting")
       setQuoteLoading(true)
@@ -621,7 +628,9 @@ export default function CheckoutPage() {
       } catch (err) {
         if (requestId === quoteRequestIdRef.current) {
           setOrderQuote(null)
-          setQuoteError(err instanceof Error ? err.message : "Unable to validate your order total right now.")
+          setQuoteError(isGatewayRoutingError(err) || !(err instanceof ApiError) || err.status >= 500
+            ? "Le calcul du total est momentanément indisponible. Votre panier est conservé ; aucune commande n’a été envoyée."
+            : getFriendlyCheckoutError(err))
           setCheckoutStatus("error")
         }
       } finally {
@@ -631,7 +640,10 @@ export default function CheckoutPage() {
       }
     }, 400)
 
-    return () => clearTimeout(timeout)
+    return () => {
+      clearTimeout(timeout)
+      ++quoteRequestIdRef.current
+    }
   }, [cartState.itemCount, orderPayload, validateShippingInfo])
 
   const shipping = orderQuote?.shipping_amount ?? 0

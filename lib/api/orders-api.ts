@@ -1,17 +1,19 @@
 import { OrdersService, ProfileService, type OrderCreate, type OrderOut, type OrderQuoteOut } from "./api-client"
 import { withApiErrors } from "./api-error"
+import { quoteContract, validateApiResponse } from "./response-contracts"
 import type { Order, OrderActionReasonIn, OrderCreatePayload, OrderQuoteOut as StoreOrderQuoteOut } from "@/types/api"
 
 function normalizeQuote(quote: OrderQuoteOut): StoreOrderQuoteOut {
+  validateApiResponse(quote, quoteContract, { method: "POST", path: "/orders/quote" })
   return {
     ...quote,
-    pack_discount: quote.bundle_discount_value ?? 0,
-    promotion_discount: quote.discount_value ?? 0,
-    loyalty_discount: quote.loyalty_discount_value ?? 0,
+    pack_discount: quote.bundle_discount ?? quote.bundle_discount_value ?? 0,
+    promotion_discount: quote.promotion_discount ?? quote.discount_value ?? 0,
+    loyalty_discount: quote.loyalty_discount ?? quote.loyalty_discount_value ?? 0,
     shipping_amount: quote.shipping_amount ?? 0,
     subtotal: quote.subtotal ?? 0,
-    total: quote.total_amount,
-    total_amount: quote.total_amount,
+    total: quote.total ?? quote.total_amount,
+    total_amount: quote.total_amount ?? quote.total,
     warnings: quote.warnings ?? [],
   } as StoreOrderQuoteOut
 }
@@ -32,6 +34,7 @@ function normalizeOrderPayload(payload: OrderCreatePayload): OrderCreate {
         variant_id: item.variant_id ?? item.variant_item_id ?? null,
         sku: item.sku ?? null,
         qty: item.qty,
+        ...(item.bundle_selection ? { bundle_selection: item.bundle_selection } : {}),
       })),
       ...(source.pack_items ?? []).map((pack) => ({
         product_id: pack.pack_id,
@@ -54,7 +57,7 @@ function normalizeOrderPayload(payload: OrderCreatePayload): OrderCreate {
 
 export const ordersApi = {
   async quoteOrder(payload: OrderCreatePayload): Promise<StoreOrderQuoteOut> {
-    return normalizeQuote(await withApiErrors(OrdersService.apiQuoteOrderOrdersQuotePost({ requestBody: normalizeOrderPayload(payload) })))
+    return normalizeQuote(await withApiErrors(OrdersService.apiQuoteOrderOrdersQuotePost({ requestBody: normalizeOrderPayload(payload) }), { method: "POST", path: "/orders/quote" }))
   },
 
   async createOrder(payload: OrderCreatePayload, idempotencyKey: string): Promise<Order> {

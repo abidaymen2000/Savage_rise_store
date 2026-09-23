@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product, Variant } from "@/types/api"
-import { getAvailableStock, getProductVariantForSelection, getSelectableQuantityLimit, getVariantSize, isSizePurchasable, isSizeTracked } from "@/lib/inventory"
+import { getAvailableStock, getProductVariantForSelection, getSelectableQuantityLimit, getVariantPrice, getVariantSize, isSizePurchasable, isSizeTracked } from "@/lib/inventory"
 import { buildMetaProductContent, metaProductId } from "@/lib/meta-content"
 import {
   buildPackSelections,
@@ -38,6 +38,7 @@ type ProductDetailClientProps = {
   product: Product
   initialRelatedPack: Pack | null
   initialRelatedProducts: Record<string, Product>
+  relatedUnavailable?: boolean
 }
 
 type StockDisplayStatus = "in-stock" | "low-stock" | "sold-out"
@@ -63,7 +64,7 @@ function getInitialSelection(product: Product) {
   }
 }
 
-export default function ProductDetailClient({ product, initialRelatedPack, initialRelatedProducts }: ProductDetailClientProps) {
+export default function ProductDetailClient({ product, initialRelatedPack, initialRelatedProducts, relatedUnavailable }: ProductDetailClientProps) {
   const { config } = useStoreConfig()
   const packsEnabled = isFeatureEnabled(config, "packs", true)
   const wishlistEnabled = isFeatureEnabled(config, "wishlist", true)
@@ -75,6 +76,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   const [selectedSize, setSelectedSize] = useState<string>(initialSelection.size)
   const [quantity, setQuantity] = useState(1)
   const [currentVariant, setCurrentVariant] = useState<Variant | null>(initialSelection.variant)
+  const selectedPrice = getVariantPrice(product, currentVariant)
   const relatedPack = packsEnabled ? initialRelatedPack : null
   const relatedProducts = initialRelatedProducts
   const [relatedPackSizes, setRelatedPackSizes] = useState<Record<string, string>>({})
@@ -317,7 +319,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             <div>
               <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-2">{product.name}</h1>
               <p className="mb-4 text-xl text-muted-foreground">{product.full_name}</p>
-              <p className="text-3xl font-bold text-gold">{formatPrice(product.price, config)}</p>
+              <p className="text-3xl font-bold text-gold">{formatPrice(selectedPrice, config)}</p>
             </div>
 
             {/* Stock Status */}
@@ -453,11 +455,12 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 className="w-full flex-1 bg-accent px-4 py-3 font-semibold leading-snug text-accent-foreground hover:bg-accent/90 whitespace-normal text-center"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
-                {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? "Epuise" : "Choisir une taille"}
+                {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(selectedPrice * quantity, config)}` : selectedSize ? "Epuise" : "Choisir une taille"}
               </Button>
               {wishlistEnabled && <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />}
             </div>
 
+            {packsEnabled && relatedUnavailable && <p role="status" className="text-sm text-muted-foreground">Les packs associés sont momentanément indisponibles. Ce produit reste disponible à l’unité.</p>}
             {packsEnabled && relatedPack && companionComponents.length > 0 && (
               <div className="rounded-2xl border border-accent/25 bg-card p-5 text-card-foreground dark:bg-gradient-to-br dark:from-gold/10 dark:via-black dark:to-black">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Completer le look</p>
@@ -580,10 +583,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 </div>
               )}
 
-              {product.sku && (
+              {(currentVariant?.sku ?? product.sku) && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">SKU:</span>
-                  <span>{product.sku}</span>
+                  <span>{currentVariant?.sku ?? product.sku}</span>
                 </div>
               )}
             </div>

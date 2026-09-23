@@ -159,7 +159,7 @@ function logAnalyticsDebug(payload: StoreAnalyticsEventPayload, error: unknown) 
   )
 }
 
-export function trackStoreEvent(eventName: StoreAnalyticsEventName | string, options: TrackOptions = {}): TrackResult {
+function trackStoreEventUnsafe(eventName: StoreAnalyticsEventName | string, options: TrackOptions = {}): TrackResult {
   if (typeof window === "undefined") return { eventId: options.event_id ?? null, payload: null, request: null }
   initializeAnalytics()
   if (!SUPPORTED_INTERNAL_EVENTS.has(eventName)) {
@@ -184,6 +184,16 @@ export function trackStoreEvent(eventName: StoreAnalyticsEventName | string, opt
     if (options.throw_errors) throw error
   })
   return { eventId: payload.event_id ?? null, payload, request }
+}
+
+export function trackStoreEvent(eventName: StoreAnalyticsEventName | string, options: TrackOptions = {}): TrackResult {
+  // Context/storage/serialization can fail synchronously, before fetch returns a
+  // promise. Such a failure must not interrupt add-to-cart or order confirmation.
+  try {
+    return trackStoreEventUnsafe(eventName, options)
+  } catch {
+    return { eventId: options.event_id ?? null, payload: null, request: null }
+  }
 }
 
 export const trackEvent = trackStoreEvent

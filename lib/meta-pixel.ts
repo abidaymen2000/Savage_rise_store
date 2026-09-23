@@ -66,10 +66,12 @@ export function trackMetaPixelEvent(eventName: string, params?: MetaPixelEventPa
   if (typeof window === "undefined" || !window.fbq) return
   const method = STANDARD_META_PIXEL_EVENTS.has(eventName) ? "track" : "trackCustom"
   const sanitizedParams = sanitizeMetaPixelParams(eventName, params)
-  options ? window.fbq(method, eventName, sanitizedParams, options) : window.fbq(method, eventName, sanitizedParams)
+  try {
+    options ? window.fbq(method, eventName, sanitizedParams, options) : window.fbq(method, eventName, sanitizedParams)
+  } catch { /* Analytics cannot prevent cart updates or order confirmation. */ }
 }
 
 export function trackMetaPixelCustomEvent(eventName: string, params?: MetaPixelEventParams) {
   if (typeof window === "undefined" || !window.fbq) return
-  window.fbq("trackCustom", eventName, params ?? {})
+  try { window.fbq("trackCustom", eventName, params ?? {}) } catch { /* optional analytics */ }
 }

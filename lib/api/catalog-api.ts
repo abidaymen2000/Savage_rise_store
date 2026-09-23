@@ -3,12 +3,12 @@ import {
   type BundleComponent,
   type CategoryRead,
   type PaginatedResponse_ProductListItem_,
-  type ProductListItem,
   type ProductKind,
   type ProductStorefrontDetail,
   type ProductVariantRead,
 } from "./api-client"
-import { withApiErrors } from "./api-error"
+import { ApiError, isResourceNotFound, reportApiFailure, withApiErrors } from "./api-error"
+import { catalogPageContract, categoriesContract, productDetailContract, validateApiResponse } from "./response-contracts"
 import type { Category, Pack, PackComponent, PackProductSummary, Product, ProductImage, SearchFilters, SizeStock, Variant } from "@/types/api"
 
 export type CatalogProductPage = {
@@ -74,8 +74,8 @@ function legacySizeInStock(size: SizeStock) {
 function variantToLegacy(variant: ProductVariantRead, productPrice: number, productKind?: string): Variant {
   const entries = optionEntries(variant)
   const bundleWithoutOptions = productKind === "bundle" && !hasDisplayableOptionValues(variant)
-  const first = bundleWithoutOptions ? "" : entries[0]?.[1] ?? variant.title
-  const second = bundleWithoutOptions ? "" : entries[1]?.[1] ?? "default"
+  const first = bundleWithoutOptions ? "" : variant.option_values?.color ?? entries[0]?.[1] ?? variant.title
+  const second = bundleWithoutOptions ? "" : variant.option_values?.size ?? entries[1]?.[1] ?? "default"
   const inventory = variant.inventory ?? null
   const trackInventory = inventory?.track_inventory ?? variant.track_inventory ?? true
   const stockOnHand = inventory?.stock_on_hand ?? 0
@@ -95,7 +95,7 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
     variant_item_id: variant.id,
     meta_content_id: variant.id,
   }
-  const variantPrice = toNumber(variant.base_price, productPrice)
+  const variantPrice = toNumber(variant.effective_price ?? variant.base_price ?? productPrice, productPrice)
   const compareAtPrice = toNumber(variant.compare_at_price, 0) || null
 
   return {
@@ -135,13 +135,20 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
 }
 
 function detailToProduct(detail: ProductStorefrontDetail): Product {
+  validateApiResponse(detail, productDetailContract, { method: "GET", path: "/catalog/products/{slug}" })
   const productMedia = mediaToImages(detail.media)
   const firstVariant = detail.variants?.[0]
-  const price = toNumber(firstVariant?.base_price, toNumber(detail.attribute_values?.price))
+  const rawPrice = firstVariant?.effective_price ?? firstVariant?.base_price ?? detail.bundle_definition?.pricing_policy?.fixed_price ?? detail.attribute_values?.price
+  if (rawPrice === null || rawPrice === undefined || !Number.isFinite(Number(rawPrice))) {
+    const error = new ApiError(502, { code: "INVALID_API_RESPONSE" }, "Le prix du produit est indisponible. Réessayez plus tard.", { method: "GET", path: "/catalog/products/{slug}" })
+    reportApiFailure(error)
+    throw error
+  }
+  const price = Number(rawPrice)
   const compareAtPrice = toNumber(firstVariant?.compare_at_price, 0) || null
   const variants = (detail.variants ?? []).map((variant) => variantToLegacy(variant, price, detail.product_kind))
   const images = productMedia.length > 0 ? productMedia : variants.flatMap((variant) => variant.images)
-  const inStock = detail.product_kind === "bundle" ? detail.status === "active" : variants.length === 0 || variants.some((variant) => variant.sizes.some(legacySizeInStock))
+  const inStock = detail.product_kind === "bundle" ? detail.status === "active" : variants.some((variant) => variant.sizes.some(legacySizeInStock))
 
   return {
     id: detail.id,
@@ -164,24 +171,6 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
     option_values: detail.variants?.filter(hasDisplayableOptionValues).map((variant) => variant.option_values ?? {}) ?? [],
     media: detail.media ?? [],
     bundle_definition: detail.bundle_definition ?? null,
-  } as Product
-}
-
-function listItemToProduct(item: ProductListItem): Product {
-  return {
-    id: item.id,
-    style_id: item.slug,
-    name: item.name,
-    full_name: item.name,
-    sku: null,
-    categories: item.primary_category_id ? [item.primary_category_id] : [],
-    primary_category_id: item.primary_category_id ?? null,
-    category_ids: item.primary_category_id ? [item.primary_category_id] : [],
-    price: 0,
-    in_stock: item.status === "active",
-    variants: [],
-    slug: item.slug,
-    product_kind: item.product_kind,
   } as Product
 }
 
@@ -281,8 +270,10 @@ export const catalogApi = {
         productKind: query.productKind,
         categoryId: query.categoryId,
       }),
+      { method: "GET", path: "/catalog/products" },
     )
-    const details = await Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
+    validateApiResponse(response, catalogPageContract, { method: "GET", path: "/catalog/products" })
+    const details = await Promise.all(response.items!.map((item) => this.getProduct(item.slug)))
     return {
       items: details,
       total: response.total,
@@ -300,10 +291,12 @@ export const catalogApi = {
 
   async getProduct(slugOrId: string): Promise<Product> {
     try {
-      return detailToProduct(await withApiErrors(CatalogService.getProductCatalogProductsSlugGet({ slug: slugOrId })))
+      return detailToProduct(await withApiErrors(CatalogService.getProductCatalogProductsSlugGet({ slug: slugOrId }), { method: "GET", path: "/catalog/products/{slug}" }))
     } catch (error) {
-      const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({ page: 1, pageSize: 100 }))
-      const item = (response.items ?? []).find((product) => product.id === slugOrId || product.slug === slugOrId)
+      if (!isResourceNotFound(error)) throw error
+      const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({ page: 1, pageSize: 100 }), { method: "GET", path: "/catalog/products" })
+      validateApiResponse(response, catalogPageContract, { method: "GET", path: "/catalog/products" })
+      const item = response.items!.find((product) => product.id === slugOrId || product.slug === slugOrId)
       if (!item) throw error
       return detailToProduct(await withApiErrors(CatalogService.getProductCatalogProductsSlugGet({ slug: item.slug })))
     }
@@ -317,7 +310,8 @@ export const catalogApi = {
   },
 
   async getCategories(): Promise<Category[]> {
-    return (await withApiErrors(CatalogService.listCategoriesCatalogCategoriesGet())).map(categoryToLegacy)
+    const response = await withApiErrors(CatalogService.listCategoriesCatalogCategoriesGet(), { method: "GET", path: "/catalog/categories" })
+    return validateApiResponse(response, categoriesContract, { method: "GET", path: "/catalog/categories" }).map(categoryToLegacy)
   },
 
   async getCategory(categoryId: string): Promise<Category> {
@@ -330,20 +324,24 @@ export const catalogApi = {
   async getProductsByCategory(categorySlug: string, skip = 0, limit = 10): Promise<Product[]> {
     const page = Math.floor(skip / limit) + 1
     const response = await withApiErrors(CatalogService.productsByCategoryCatalogCategoriesSlugProductsGet({ slug: categorySlug, page, pageSize: limit }))
-    return Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
+    validateApiResponse(response, catalogPageContract, { method: "GET", path: "/catalog/categories/{slug}/products" })
+    return Promise.all(response.items!.map((item) => this.getProduct(item.slug)))
   },
 
   async getPacks(skip = 0, limit = 20): Promise<Pack[]> {
     const page = Math.floor(skip / limit) + 1
     const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({ page, pageSize: limit, productKind: "bundle" }))
-    const products = await Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug)))
-    return products.map((product) => productToPack(product, products))
+    validateApiResponse(response, catalogPageContract, { method: "GET", path: "/catalog/products" })
+    const products = await Promise.all(response.items!.map((item) => this.getProduct(item.slug)))
+    const componentIds = Array.from(new Set(products.flatMap((product) => product.bundle_definition?.components?.map((component) => component.product_id) ?? [])))
+    const componentProducts = await Promise.all(componentIds.map((id) => this.getProduct(id)))
+    return products.map((product) => productToPack(product, componentProducts))
   },
 
   async getPack(packId: string): Promise<Pack> {
     const product = await this.getProduct(packId)
-    const componentProducts = await Promise.all((product.bundle_definition?.components ?? []).map((component) => this.getProduct(component.product_id).catch(() => null)))
-    return productToPack(product, componentProducts.filter(Boolean) as Product[])
+    const componentProducts = await Promise.all((product.bundle_definition?.components ?? []).map((component) => this.getProduct(component.product_id)))
+    return productToPack(product, componentProducts)
   },
 
   formatOptionLabel(axis: string) {

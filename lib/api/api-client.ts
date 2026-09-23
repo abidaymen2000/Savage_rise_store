@@ -8,7 +8,7 @@ export const API_BASE_URL = getApiBaseUrl()
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null
-  return localStorage.getItem("savage_rise_token")
+  try { return localStorage.getItem("savage_rise_token") } catch { return null }
 }
 
 export function configureApiClient() {

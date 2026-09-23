@@ -2,6 +2,10 @@ import type { Product, SizeStock, Variant } from "@/types/api"
 
 const UNTRACKED_SELECTION_LIMIT = 1
 
+export function getVariantPrice(product: Product, variant: Variant | null | undefined): number {
+  return variant?.price != null && Number.isFinite(variant.price) && variant.price >= 0 ? variant.price : product.price
+}
+
 function sizeRows(variant: Variant | null | undefined): SizeStock[] {
   if (!variant) return []
   if (variant.sizes?.length) return variant.sizes
