@@ -78,9 +78,11 @@ export function buildPackSelections(
     overrides?: Record<string, { color?: string | null; size?: string | null }>
   },
 ) {
+  if (pack.in_stock === false) return null
   const selections: PackOrderComponent[] = []
   for (const component of getPackComponents(pack)) {
     const product = productsById[component.product_id]
+    if (product?.in_stock === false) return null
     const override = options?.overrides?.[component.product_id]
     const color = resolveColor(product, component, options?.preferredColor, override?.color)
     const size = resolveSize(product, component, color, options?.preferredSize, override?.size)

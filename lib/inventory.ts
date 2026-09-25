@@ -32,9 +32,9 @@ export function getAvailableStock(size: SizeStock | null | undefined): number {
 }
 
 export function isSizePurchasable(size: SizeStock | null | undefined): boolean {
-  if (!size) return false
+  if (!size || size.in_stock === false) return false
   if (size.status && !["active", "in_stock", "available"].includes(size.status)) return false
-  if (size.track_inventory === false) return size.in_stock !== false
+  if (size.track_inventory === false) return true
   return getAvailableStock(size) > 0
 }
 
@@ -61,6 +61,7 @@ export function variantHasPurchasableSize(variant: Variant | null | undefined): 
 }
 
 export function productHasPurchasableVariant(product: Product | null | undefined): boolean {
+  if (product?.in_stock === false) return false
   if (!product?.variants?.length) return Boolean(product?.in_stock)
   return product.variants.some(variantHasPurchasableSize)
 }

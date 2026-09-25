@@ -248,6 +248,7 @@ export default function PackDetailPage() {
   }
 
   const packAvailable =
+    pack?.in_stock !== false &&
     components.length >= 2 &&
     components.every((component) => {
       const product = products[component.product_id]
@@ -588,7 +589,7 @@ export default function PackDetailPage() {
               className="w-full bg-accent py-6 text-base font-semibold text-accent-foreground hover:bg-accent/90"
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
-              {added ? "Pack added" : packAvailable ? "Add pack to cart" : "Complete available selections"}
+              {pack?.in_stock === false ? "Sold out" : added ? "Pack added" : packAvailable ? "Add pack to cart" : "Complete available selections"}
             </Button>
           </div>
         </div>

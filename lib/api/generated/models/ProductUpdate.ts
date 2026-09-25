@@ -6,6 +6,8 @@ import type { BundleDefinition_Input } from './BundleDefinition_Input';
 import type { CatalogLegacyMediaItem } from './CatalogLegacyMediaItem';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductUpdate = {
+    /** Manual permission in admin writes/reads; effective availability in storefront detail. */
+    in_stock?: boolean;
     name?: (string | null);
     reference?: (string | null);
     slug?: (string | null);

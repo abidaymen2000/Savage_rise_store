@@ -9,6 +9,10 @@ import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantRead } from './ProductVariantRead';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductRead = {
+    /** Manual permission in admin writes/reads; effective availability in storefront detail. */
+    in_stock?: boolean;
+    /** Read-only projection of persisted in_stock=false; never stored separately. */
+    forced_sold_out?: boolean;
     id: string;
     version: number;
     created_at?: (string | null);

@@ -9,6 +9,8 @@ import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantListSummary } from './ProductVariantListSummary';
 import type { PromotionPricing } from './PromotionPricing';
 export type ProductListItem = {
+    /** Read-only projection of persisted in_stock=false; never stored separately. */
+    forced_sold_out?: boolean;
     id: string;
     name: string;
     reference?: (string | null);

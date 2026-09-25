@@ -232,7 +232,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   const availableSizes = product ? getAvailableSizes(product, selectedColor) : []
   const selectedVariantSize = getVariantSize(currentVariant, selectedSize)
   const currentAvailableStock = getAvailableStock(selectedVariantSize)
-  const stockDisplayStatus = getStockDisplayStatus(currentAvailableStock)
+  const stockDisplayStatus = !productInStock || selectedVariantSize?.in_stock === false ? "sold-out" : getStockDisplayStatus(currentAvailableStock)
   const quantityLimit = getSelectableQuantityLimit(selectedVariantSize)
   const currentSelectionInStock = Boolean(selectedVariantSize && isSizePurchasable(selectedVariantSize) && stockDisplayStatus !== "sold-out")
   const canAddCurrentSelection =

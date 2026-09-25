@@ -286,7 +286,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = (product: Product, variant: Variant, size: string, quantity = 1) => {
     // Validate inputs
-    if (!product || !variant || !size) {
+    if (!product || product.in_stock === false || !variant || !size) {
       return
     }
 
@@ -329,7 +329,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   const addPackToCart = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
-    if (!pack || selections.length < 2) {
+    if (!pack || pack.in_stock === false || selections.length < 2) {
       return
     }
 

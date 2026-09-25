@@ -8,6 +8,8 @@ import type { ProductKind } from './ProductKind';
 import type { ProductVariantCreate } from './ProductVariantCreate';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductCreate = {
+    /** Manual permission in admin writes/reads; effective availability in storefront detail. */
+    in_stock?: boolean;
     name: string;
     /**
      * Reference metier du produit parent. Si omise, elle est generee automatiquement par le backend. Unique dans le catalogue du tenant. Distincte des SKU des variantes.

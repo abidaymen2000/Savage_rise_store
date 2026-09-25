@@ -67,7 +67,8 @@ function hasDisplayableOptionValues(variant: ProductVariantRead) {
 }
 
 function legacySizeInStock(size: SizeStock) {
-  if (size.track_inventory === false) return size.in_stock !== false
+  if (size.in_stock === false) return false
+  if (size.track_inventory === false) return true
   return (size.stock_available ?? size.stock ?? 0) > 0
 }
 
@@ -141,7 +142,7 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   const compareAtPrice = toNumber(firstVariant?.compare_at_price, 0) || null
   const variants = (detail.variants ?? []).map((variant) => variantToLegacy(variant, price, detail.product_kind))
   const images = productMedia.length > 0 ? productMedia : variants.flatMap((variant) => variant.images)
-  const inStock = detail.product_kind === "bundle" ? detail.status === "active" : variants.length === 0 || variants.some((variant) => variant.sizes.some(legacySizeInStock))
+  const inStock = detail.in_stock ?? variants.some((variant) => variant.sizes.some(legacySizeInStock))
 
   return {
     id: detail.id,
@@ -178,7 +179,7 @@ function listItemToProduct(item: ProductListItem): Product {
     primary_category_id: item.primary_category_id ?? null,
     category_ids: item.primary_category_id ? [item.primary_category_id] : [],
     price: 0,
-    in_stock: item.status === "active",
+    in_stock: item.in_stock === true,
     variants: [],
     slug: item.slug,
     product_kind: item.product_kind,
@@ -250,6 +251,7 @@ function productToPack(product: Product, componentProducts: Product[] = []): Pac
   return {
     id: product.id,
     title: product.name,
+    in_stock: product.in_stock,
     description: product.description ?? null,
     product_ids: components.map((component) => component.product_id),
     components,

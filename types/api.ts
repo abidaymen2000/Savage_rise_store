@@ -534,6 +534,7 @@ export interface PackComponent {
 }
 
 export interface Pack {
+  in_stock?: boolean
   id: string
   title: string
   description?: string | null

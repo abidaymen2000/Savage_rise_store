@@ -76,6 +76,7 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
           <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-gold">The set offer</p>
             <h2 className="text-2xl font-semibold transition-colors group-hover:text-accent">{pack.title}</h2>
+            {pack.in_stock === false && <p className="mt-2 text-sm font-semibold">Sold out</p>}
             {pack.description && <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{pack.description}</p>}
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-full border border-border bg-muted px-3 py-1">Choose each item&apos;s size separately</span>
