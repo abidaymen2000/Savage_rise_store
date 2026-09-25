@@ -1,22 +1,22 @@
 import Link from "next/link"
-import { unstable_cache } from "next/cache"
 import ProductCard from "@/components/storefront/product-card"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { SHOP_PRODUCT_KIND, isShopProduct } from "@/lib/product-kind"
 import { getStorefrontContent } from "@/lib/storefront/content"
 import { getCategoryAndDescendantIds, productMatchesCategoryIds, resolveCategoryFilter } from "@/lib/storefront/catalog"
-import { getAvailableColors, getAvailableSizes, sortProductsByStockStatus } from "@/lib/utils"
+import { getAvailableColors, getAvailableSizes, isProductInStock, sortProductsByStockStatus } from "@/lib/utils"
 import ProductsControls, { type ProductsFilterState } from "./products-controls"
 import type { Product } from "@/types/api"
 
-export const revalidate = 60
+// Availability can change without a stock movement (manual in_stock override).
+export const dynamic = "force-dynamic"
 
 type SearchParams = Record<string, string | string[] | undefined>
 
 const PAGE_SIZE = 24
 
-const getProductsPageData = unstable_cache(async (q: string, categoryFilter: string) => {
+async function getProductsPageData(q: string, categoryFilter: string) {
   const categories = await api.getCategories().catch(() => [])
   const resolvedCategory = categoryFilter === "all" ? null : resolveCategoryFilter(categories, categoryFilter)
   const resolvedCategoryIds = resolvedCategory ? getCategoryAndDescendantIds(categories, resolvedCategory.id) : []
@@ -46,7 +46,7 @@ const getProductsPageData = unstable_cache(async (q: string, categoryFilter: str
   }
 
   return { products, resolvedCategoryIds }
-}, ["storefront-products-page"], { revalidate: 60, tags: ["store-products"] })
+}
 
 function getParam(searchParams: SearchParams, key: string, fallback = "") {
   const value = searchParams[key]
@@ -74,8 +74,8 @@ function filterProducts(products: Product[], filters: ProductsFilterState, categ
     if (!productMatchesCategoryIds(product, categoryIds)) return false
     if (filters.color !== "all" && !getAvailableColors(product).some((item) => item.toLowerCase() === filters.color.toLowerCase())) return false
     if (filters.size !== "all" && !getAvailableSizes(product).some((item) => item.toLowerCase() === filters.size.toLowerCase())) return false
-    if (filters.availability === "available" && !product.in_stock) return false
-    if (filters.availability === "sold-out" && product.in_stock) return false
+    if (filters.availability === "available" && !isProductInStock(product)) return false
+    if (filters.availability === "sold-out" && isProductInStock(product)) return false
     return true
   })
 

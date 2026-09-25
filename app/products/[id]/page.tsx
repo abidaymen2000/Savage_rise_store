@@ -1,26 +1,27 @@
 import type { Metadata } from "next"
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import { notFound } from "next/navigation"
 import ProductDetailClient from "./ProductDetailClient"
 import { api } from "@/lib/api"
 import { findCompanionComponents, findRelatedPack } from "@/lib/pack-offers"
 import type { Pack, Product } from "@/types/api"
 
-export const revalidate = 60
+export const dynamic = "force-dynamic"
 
 type ProductPageProps = {
   params: { id: string }
 }
 
-const getProductOrNull = unstable_cache(async (id: string) => {
+// Share metadata/page reads within a request, never across availability changes.
+const getProductOrNull = cache(async (id: string) => {
   try {
     return await api.getProduct(id)
   } catch {
     return null
   }
-}, ["storefront-product-detail"], { revalidate: 60, tags: ["store-products"] })
+})
 
-const getRelatedData = unstable_cache(async (productId: string) => {
+async function getRelatedData(productId: string) {
   const packs = await api.getPacks(0, 50).catch(() => [] as Pack[])
   const relatedPack = findRelatedPack(productId, packs)
   if (!relatedPack) return { relatedPack: null, relatedProducts: {} }
@@ -32,7 +33,7 @@ const getRelatedData = unstable_cache(async (productId: string) => {
     return map
   }, {})
   return { relatedPack, relatedProducts }
-}, ["storefront-product-related"], { revalidate: 60, tags: ["store-products", "store-packs"] })
+}
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const product = await getProductOrNull(params.id)
