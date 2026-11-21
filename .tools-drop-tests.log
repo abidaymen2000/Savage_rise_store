@@ -1,0 +1,245 @@
+TAP version 13
+# (node:2156) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:2156) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:2156) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:2156) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/lib/api/catalog-api.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\package.json.
+# Subtest: Shop excludes product_kind bundle and keeps physical products
+ok 1 - Shop excludes product_kind bundle and keeps physical products
+  ---
+  duration_ms: 17.2952
+  type: 'test'
+  ...
+# Subtest: Packs keeps active bundles and excludes physical products
+ok 2 - Packs keeps active bundles and excludes physical products
+  ---
+  duration_ms: 1.1795
+  type: 'test'
+  ...
+# Subtest: Catalog wrapper uses server-side product_kind for Shop pagination and total
+ok 3 - Catalog wrapper uses server-side product_kind for Shop pagination and total
+  ---
+  duration_ms: 2.5902
+  type: 'test'
+  ...
+# Subtest: Catalog wrapper preserves search query with product_kind filtering
+ok 4 - Catalog wrapper preserves search query with product_kind filtering
+  ---
+  duration_ms: 0.8059
+  type: 'test'
+  ...
+# Subtest: Empty states receive empty Shop products and empty Packs from selectors
+ok 5 - Empty states receive empty Shop products and empty Packs from selectors
+  ---
+  duration_ms: 0.584
+  type: 'test'
+  ...
+# (node:9708) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:9708) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:9708) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:9708) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/lib/inventory.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\package.json.
+# Subtest: positive stock cannot override an explicit Sold out decision
+ok 6 - positive stock cannot override an explicit Sold out decision
+  ---
+  duration_ms: 2.9137
+  type: 'test'
+  ...
+# Subtest: forced parent pack cannot produce purchase selections
+ok 7 - forced parent pack cannot produce purchase selections
+  ---
+  duration_ms: 0.6498
+  type: 'test'
+  ...
+# (node:21828) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:21828) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:21828) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:21828) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/lib/api/store-pages-api.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\package.json.
+# Subtest: explicit deployment domain is normalized; missing configuration never selects a default merchant
+ok 8 - explicit deployment domain is normalized; missing configuration never selects a default merchant
+  ---
+  duration_ms: 4.7526
+  type: 'test'
+  ...
+# Subtest: gateway base accepts origin or Core base, rejecting malformed/doubled prefixes and credentials
+ok 9 - gateway base accepts origin or Core base, rejecting malformed/doubled prefixes and credentials
+  ---
+  duration_ms: 1.4735
+  type: 'test'
+  ...
+# Subtest: normalization preserves operation IDs, schemas and parameters with exactly one public prefix
+ok 10 - normalization preserves operation IDs, schemas and parameters with exactly one public prefix
+  ---
+  duration_ms: 4.711
+  type: 'test'
+  ...
+# Subtest: schema download authenticates only to the discovered docs URL and fails on HTTP errors
+ok 11 - schema download authenticates only to the discovered docs URL and fails on HTTP errors
+  ---
+  duration_ms: 68.7063
+  type: 'test'
+  ...
+# Subtest: failed downloads and incomplete schemas leave the existing client untouched
+ok 12 - failed downloads and incomplete schemas leave the existing client untouched
+  ---
+  duration_ms: 219.2707
+  type: 'test'
+  ...
+# Subtest: generation validates storefront routes used across all wrappers
+ok 13 - generation validates storefront routes used across all wrappers
+  ---
+  duration_ms: 76.4528
+  type: 'test'
+  ...
+# Generated ./lib/api/generated from https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/docs/schemas/core.json
+# Subtest: successful staged generation uses the existing fetch generator and replaces the client only after success
+ok 14 - successful staged generation uses the existing fetch generator and replaces the client only after success
+  ---
+  duration_ms: 1626.3822
+  type: 'test'
+  ...
+# Subtest: standalone CMS SSR and browser requests use Core with public store selection, preserving token, query and idempotency
+ok 15 - standalone CMS SSR and browser requests use Core with public store selection, preserving token, query and idempotency
+  ---
+  duration_ms: 16.0417
+  type: 'test'
+  ...
+# Subtest: verification navigation relays store context and accepts only the store auth redirect
+ok 16 - verification navigation relays store context and accepts only the store auth redirect
+  ---
+  duration_ms: 45.7795
+  type: 'test'
+  ...
+# (node:22572) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:22572) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# Subtest: uses the generated public storefront config endpoint
+ok 17 - uses the generated public storefront config endpoint
+  ---
+  duration_ms: 158.1957
+  type: 'test'
+  ...
+# Subtest: store surfaces do not call the admin instance endpoint
+ok 18 - store surfaces do not call the admin instance endpoint
+  ---
+  duration_ms: 292.703
+  type: 'test'
+  ...
+# Subtest: store config is fresh per request and fails closed without a merchant fallback
+ok 19 - store config is fresh per request and fails closed without a merchant fallback
+  ---
+  duration_ms: 1.4141
+  type: 'test'
+  ...
+# Subtest: feature flags preserve explicit false values
+ok 20 - feature flags preserve explicit false values
+  ---
+  duration_ms: 0.4739
+  type: 'test'
+  ...
+# Subtest: branding variables accept valid colors and reject invalid values
+ok 21 - branding variables accept valid colors and reject invalid values
+  ---
+  duration_ms: 2.9545
+  type: 'test'
+  ...
+# Subtest: social links keep only valid URLs
+ok 22 - social links keep only valid URLs
+  ---
+  duration_ms: 0.9662
+  type: 'test'
+  ...
+# Subtest: shared price formatter uses configured locale and currency
+ok 23 - shared price formatter uses configured locale and currency
+  ---
+  duration_ms: 67.7662
+  type: 'test'
+  ...
+# Subtest: layout metadata, status page and branding are driven by PublicStoreConfig
+ok 24 - layout metadata, status page and branding are driven by PublicStoreConfig
+  ---
+  duration_ms: 2.2584
+  type: 'test'
+  ...
+# Subtest: header, footer and contact consume dynamic store config
+ok 25 - header, footer and contact consume dynamic store config
+  ---
+  duration_ms: 6.687
+  type: 'test'
+  ...
+# (node:22572) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:23064) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:23064) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:23064) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: consumers reject partial, wrong-tenant and third-mode configurations
+ok 26 - consumers reject partial, wrong-tenant and third-mode configurations
+  ---
+  duration_ms: 4.8716
+  type: 'test'
+  ...
+# Subtest: old responses and invalid addresses cannot restore a usable quote
+ok 27 - old responses and invalid addresses cannot restore a usable quote
+  ---
+  duration_ms: 0.9
+  type: 'test'
+  ...
+# Subtest: same intention survives refreshed quotes and telemetry; cart or address changes create a new one
+ok 28 - same intention survives refreshed quotes and telemetry; cart or address changes create a new one
+  ---
+  duration_ms: 57.8821
+  type: 'test'
+  ...
+# Subtest: TND preserves three decimals and public availability does not require exact stock
+ok 29 - TND preserves three decimals and public availability does not require exact stock
+  ---
+  duration_ms: 30.1998
+  type: 'test'
+  ...
+# (node:16288) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:16288) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:16288) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:16288) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/lib/api/catalog-api.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\package.json.
+# Subtest: list, detail, search and category keep availability through force/release without changing stock
+ok 30 - list, detail, search and category keep availability through force/release without changing stock
+  ---
+  duration_ms: 360.0715
+  type: 'test'
+  ...
+# Subtest: all card routes read fresh products while the badge and purchase guard share availability
+ok 31 - all card routes read fresh products while the badge and purchase guard share availability
+  ---
+  duration_ms: 32.3861
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6920.2138

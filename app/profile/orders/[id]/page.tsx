@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -24,6 +25,7 @@ import { formatPrice } from "@/lib/utils"
 import { trackEvent } from "@/lib/store-analytics"
 
 export default function OrderDetailPage() {
+  const formatPrice = useStorePrice()
   const params = useParams()
   const router = useRouter()
   const orderId = params.id as string

@@ -21,6 +21,7 @@ export class AdminInventoryService {
      * @throws ApiError
      */
     public static adminListInventoryAdminInventoryGet({
+        locationId = 'default',
         q,
         productId,
         variantId,
@@ -49,6 +50,7 @@ export class AdminInventoryService {
         page = 1,
         pageSize = 20,
     }: {
+        locationId?: string,
         q?: (string | null),
         productId?: (string | null),
         variantId?: (string | null),
@@ -92,6 +94,7 @@ export class AdminInventoryService {
             method: 'GET',
             url: '/admin/inventory',
             query: {
+                'location_id': locationId,
                 'q': q,
                 'product_id': productId,
                 'variant_id': variantId,
@@ -131,6 +134,7 @@ export class AdminInventoryService {
      * @throws ApiError
      */
     public static adminInventoryFacetsAdminInventoryFacetsGet({
+        locationId = 'default',
         q,
         productId,
         variantId,
@@ -155,6 +159,7 @@ export class AdminInventoryService {
         size,
         color,
     }: {
+        locationId?: string,
         q?: (string | null),
         productId?: (string | null),
         variantId?: (string | null),
@@ -194,6 +199,7 @@ export class AdminInventoryService {
             method: 'GET',
             url: '/admin/inventory/facets',
             query: {
+                'location_id': locationId,
                 'q': q,
                 'product_id': productId,
                 'variant_id': variantId,

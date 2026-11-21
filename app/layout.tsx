@@ -1,7 +1,7 @@
 import type React from "react"
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import { Playfair_Display, Inter } from 'next/font/google'
 import Image from "next/image"
 import "./globals.css"
@@ -114,7 +114,7 @@ function StoreStatusPage({ statusConfig }: { statusConfig: Awaited<ReturnType<ty
   )
 }
 
-const getServerNavigation = unstable_cache(async (): Promise<{
+const getServerNavigation = cache(async (): Promise<{
   headerItems: StoreNavigationPublicItem[]
   mobileItems: StoreNavigationPublicItem[]
 }> => {
@@ -139,7 +139,9 @@ const getServerNavigation = unstable_cache(async (): Promise<{
       mobileItems: [],
     }
   }
-}, ["storefront-navigation"], { revalidate: 60, tags: ["storefront-navigation"] })
+})
+
+export const dynamic = "force-dynamic"
 
 export default async function RootLayout({
   children,
@@ -151,7 +153,7 @@ export default async function RootLayout({
     getServerNavigation(),
   ])
   const { config } = storeConfig
-  const isPublicUnavailable = config.status === "maintenance" || config.status === "inactive"
+  const isPublicUnavailable = storeConfig.unavailable || config.status === "maintenance" || config.status === "inactive"
 
   return (
     <html lang={config.locale} className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>

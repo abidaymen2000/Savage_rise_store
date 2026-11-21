@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { InvoiceInlineTax } from './InvoiceInlineTax';
 export type InvoiceLineCreate = {
     kind?: 'product' | 'variant' | 'service' | 'free' | 'shipping' | 'charge';
     product_id?: (string | null);
@@ -16,6 +17,7 @@ export type InvoiceLineCreate = {
     discount_percent?: (number | string);
     discount_amount?: (number | string);
     tax_ids?: Array<string>;
+    inline_taxes?: Array<InvoiceInlineTax>;
     cost_center_id?: (string | null);
     cost_category_id?: (string | null);
     revenue_account_id?: (string | null);

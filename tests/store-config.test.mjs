@@ -35,14 +35,14 @@ test("store surfaces do not call the admin instance endpoint", () => {
   }
 })
 
-test("store config helper caches and falls back only for API unavailability", () => {
+test("store config is fresh per request and fails closed without a merchant fallback", () => {
   const helper = read("lib/store-config.ts")
 
   assert.equal(STORE_CONFIG_REVALIDATE_SECONDS, 60)
-  assert.match(helper, /unstable_cache/)
+  assert.doesNotMatch(helper, /unstable_cache/)
   assert.match(helper, /cache\(async/)
-  assert.equal(FALLBACK_STORE_CONFIG.locale, "fr-TN")
-  assert.equal(FALLBACK_STORE_CONFIG.default_currency, "TND")
+  assert.equal(FALLBACK_STORE_CONFIG.status, "inactive")
+  assert.equal(FALLBACK_STORE_CONFIG.slug, "")
 })
 
 test("feature flags preserve explicit false values", () => {

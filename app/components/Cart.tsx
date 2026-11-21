@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
@@ -28,6 +29,7 @@ import type { ApplyResponse, CartPackItem, OrderItem, Pack, Product } from "@/ty
 import { formatPrice } from "@/lib/utils"
 
 export default function Cart() {
+  const formatPrice = useStorePrice()
   const router = useRouter()
   const {
     state,
@@ -397,13 +399,13 @@ export default function Cart() {
       <div className="mt-4 space-y-2">
         <div className="flex justify-between gap-4 text-sm">
           <span className="text-muted-foreground">Subtotal</span>
-          <span className="text-right">{subtotal.toFixed(2)} TND</span>
+          <span className="text-right">{formatPrice(subtotal)}</span>
         </div>
 
         {promo?.valid && (
           <div className="flex justify-between gap-4 text-sm text-green-500">
             <span>Discount ({promo.code})</span>
-            <span className="text-right">-{discount.toFixed(2)} TND</span>
+            <span className="text-right">-{formatPrice(discount)}</span>
           </div>
         )}
 
@@ -430,7 +432,7 @@ export default function Cart() {
 
         <div className="flex justify-between gap-4 text-lg font-semibold">
           <span>Estimated total</span>
-          <span className="text-right text-gold">{grandTotal.toFixed(2)} TND</span>
+          <span className="text-right text-gold">{formatPrice(grandTotal)}</span>
         </div>
       </div>
 
@@ -538,7 +540,7 @@ export default function Cart() {
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
                               <p className="text-right text-base font-semibold text-gold sm:text-lg">
-                                {(item.product.price * item.quantity).toFixed(2)} TND
+                                {formatPrice(item.product.price * item.quantity)}
                               </p>
                               <Button
                                 variant="ghost"
@@ -622,7 +624,7 @@ export default function Cart() {
                               </div>
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
-                              <p className="text-right text-base font-semibold text-gold sm:text-lg">{linePrice.toFixed(2)} TND</p>
+                              <p className="text-right text-base font-semibold text-gold sm:text-lg">{formatPrice(linePrice)}</p>
                               <Button
                                 variant="ghost"
                                 size="icon"

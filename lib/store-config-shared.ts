@@ -11,14 +11,13 @@ export type StoreConfigResult = {
 export const STORE_CONFIG_REVALIDATE_SECONDS = 60
 
 export const FALLBACK_STORE_CONFIG: PublicStoreConfig = {
-  name: "Savage Rise",
-  slug: "savage-rise",
-  status: "active",
-  country_code: "TN",
-  default_currency: "TND",
-  timezone: "Africa/Tunis",
-  locale: "fr-TN",
-  domain: "https://savagerise.com",
+  name: "Boutique indisponible",
+  slug: "",
+  status: "inactive",
+  country_code: "",
+  default_currency: "EUR",
+  timezone: "UTC",
+  locale: "fr-FR",
   favicon_url: "/icon.svg",
   branding: {
     primary_color: "#D4AF37",
@@ -58,7 +57,6 @@ export function formatStorePrice(
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
-      minimumFractionDigits: 2,
     }).format(Number(price || 0))
   } catch {
     return `${Number(price || 0).toFixed(2)} ${currency}`

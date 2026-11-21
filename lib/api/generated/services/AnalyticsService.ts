@@ -22,6 +22,53 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AnalyticsService {
     /**
+     * Recevoir un evenement analytics public multi-tenant
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static createTenantAnalyticsEventAnalyticsCompanySlugEventsPost({
+        companySlug,
+        requestBody,
+    }: {
+        companySlug: string,
+        requestBody: AnalyticsEventCreate,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/analytics/{company_slug}/events',
+            path: {
+                'company_slug': companySlug,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Recevoir un evenement analytics public
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static createAnalyticsEventAnalyticsEventsPost(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/analytics/events',
+        });
+    }
+    /**
+     * Analytics Event Catalog
+     * @returns AnalyticsEventDefinition Successful Response
+     * @throws ApiError
+     */
+    public static analyticsEventCatalogAnalyticsEventsCatalogGet(): CancelablePromise<Array<AnalyticsEventDefinition>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/analytics/events/catalog',
+        });
+    }
+    /**
      * Admin Analytics Event Catalog
      * @returns AnalyticsEventDefinition Successful Response
      * @throws ApiError
@@ -825,42 +872,6 @@ export class AnalyticsService {
             errors: {
                 422: `Validation Error`,
             },
-        });
-    }
-    /**
-     * Recevoir un evenement analytics public multi-tenant
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static createTenantAnalyticsEventAnalyticsCompanySlugEventsPost({
-        companySlug,
-        requestBody,
-    }: {
-        companySlug: string,
-        requestBody: AnalyticsEventCreate,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/analytics/{company_slug}/events',
-            path: {
-                'company_slug': companySlug,
-            },
-            body: requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
-     * Analytics Event Catalog
-     * @returns AnalyticsEventDefinition Successful Response
-     * @throws ApiError
-     */
-    public static analyticsEventCatalogAnalyticsEventsCatalogGet(): CancelablePromise<Array<AnalyticsEventDefinition>> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/analytics/events/catalog',
         });
     }
 }

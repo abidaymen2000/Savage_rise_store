@@ -10,8 +10,10 @@ import type { CompanyPublic } from '../models/CompanyPublic';
 import type { CompanyStatusUpdate } from '../models/CompanyStatusUpdate';
 import type { CompanyUpdate } from '../models/CompanyUpdate';
 import type { ErpAccountCreate } from '../models/ErpAccountCreate';
+import type { ErpAccountEmailInvitation } from '../models/ErpAccountEmailInvitation';
 import type { ErpAccountPublic } from '../models/ErpAccountPublic';
 import type { ErpAccountUpdate } from '../models/ErpAccountUpdate';
+import type { PlatformAccountListResponse } from '../models/PlatformAccountListResponse';
 import type { PlatformPermissionCreate } from '../models/PlatformPermissionCreate';
 import type { PlatformPermissionListResponse } from '../models/PlatformPermissionListResponse';
 import type { PlatformPermissionOut } from '../models/PlatformPermissionOut';
@@ -46,6 +48,52 @@ export class PlatformService {
             url: '/platform/companies',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Platform Accounts
+     * Central registry; summary and company facets cover all company-bound accounts.
+     *
+     * Filters apply to items and total only. Orphaned and unbound accounts are excluded.
+     * Database failures fail the entire request; no partial totals are returned.
+     * @returns PlatformAccountListResponse Successful Response
+     * @throws ApiError
+     */
+    public static getPlatformAccountsPlatformAccountsGet({
+        q,
+        companyId,
+        status = 'all',
+        role,
+        sortBy = 'company_name',
+        sortDir = 'asc',
+        page = 1,
+        pageSize = 12,
+    }: {
+        q?: (string | null),
+        companyId?: (string | null),
+        status?: 'all' | 'active' | 'pending' | 'inactive',
+        role?: ('platform_admin' | 'company_admin' | 'employee' | null),
+        sortBy?: 'company_name' | 'full_name' | 'email',
+        sortDir?: 'asc' | 'desc',
+        page?: number,
+        pageSize?: number,
+    }): CancelablePromise<PlatformAccountListResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/platform/accounts',
+            query: {
+                'q': q,
+                'company_id': companyId,
+                'status': status,
+                'role': role,
+                'sort_by': sortBy,
+                'sort_dir': sortDir,
+                'page': page,
+                'page_size': pageSize,
+            },
             errors: {
                 422: `Validation Error`,
             },
@@ -418,6 +466,34 @@ export class PlatformService {
                 'company_id': companyId,
                 'account_id': accountId,
             },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Change Company Account Email Invitation
+     * @returns ErpAccountPublic Successful Response
+     * @throws ApiError
+     */
+    public static changeCompanyAccountEmailInvitationPlatformCompaniesCompanyIdAccountsAccountIdChangeEmailInvitationPost({
+        companyId,
+        accountId,
+        requestBody,
+    }: {
+        companyId: string,
+        accountId: string,
+        requestBody: ErpAccountEmailInvitation,
+    }): CancelablePromise<ErpAccountPublic> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/platform/companies/{company_id}/accounts/{account_id}/change-email-invitation',
+            path: {
+                'company_id': companyId,
+                'account_id': accountId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },

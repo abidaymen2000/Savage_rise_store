@@ -112,7 +112,7 @@ export class AdminCustomerInvoicesService {
         paymentStatus?: ('unpaid' | 'partially_paid' | 'paid' | 'partially_refunded' | 'refunded' | null),
         overdue?: (boolean | null),
         customerId?: (string | null),
-        source?: ('manual' | 'order' | 'credit' | null),
+        source?: ('manual' | 'order' | 'credit' | 'pos' | null),
         currency?: (string | null),
         orderId?: (string | null),
         createdBy?: (string | null),
@@ -489,14 +489,19 @@ export class AdminCustomerInvoicesService {
      */
     public static documentAdminFinanceInvoicesInvoiceIdDocumentGet({
         invoiceId,
+        format = 'json',
     }: {
         invoiceId: string,
+        format?: 'json' | 'pdf',
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/admin/finance/invoices/{invoice_id}/document',
             path: {
                 'invoice_id': invoiceId,
+            },
+            query: {
+                'format': format,
             },
             errors: {
                 422: `Validation Error`,

@@ -1,24 +1,19 @@
 import { cache } from "react"
-import { unstable_cache } from "next/cache"
 import { api } from "@/lib/api"
 import {
   FALLBACK_STORE_CONFIG,
-  STORE_CONFIG_REVALIDATE_SECONDS,
   type StoreConfigResult,
 } from "@/lib/store-config-shared"
 
-const loadApiStoreConfig = unstable_cache(
-  async () => api.getStoreConfig(),
-  ["storefront-config"],
-  { revalidate: STORE_CONFIG_REVALIDATE_SECONDS, tags: ["storefront-config"] },
-)
+import { declaredStoreConfig } from "@/lib/store-contract"
+import { getStorefrontHeaders } from "@/lib/api/gateway-config.mjs"
 
 let hasLoggedStoreConfigFailure = false
 
 export const getStoreConfig = cache(async (): Promise<StoreConfigResult> => {
   try {
     return {
-      config: await loadApiStoreConfig(),
+      config: declaredStoreConfig(await api.getStoreConfig(), { engine: "custom", domain: getStorefrontHeaders()["X-Store-Domain"] }),
       unavailable: false,
     }
   } catch (error) {

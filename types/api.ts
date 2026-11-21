@@ -317,6 +317,7 @@ export interface OrderPackQuoteOut {
 }
 
 export interface OrderQuoteOut {
+  quote_token?: string | null
   currency?: string
   subtotal: number
   pack_discount: number
@@ -372,6 +373,7 @@ export type FulfillmentStatus =
   | "cancelled"
 
 export interface Order {
+  currency?: string | null
   id: string
   user_id?: string | null
   user_email?: string | null
@@ -711,6 +713,7 @@ export interface HealthStatus {
   status: "online" | "offline"
 }
 export interface OrderCreatePayload {
+  quote_token?: string | null
   items: OrderItem[]          // liste des produits/quantités
   shipping: ShippingInfo      // infos de livraison
   payment_method?: "cod" | "stripe" | "paypal"

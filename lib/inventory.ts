@@ -1,7 +1,5 @@
 import type { Product, SizeStock, Variant } from "@/types/api"
 
-const UNTRACKED_SELECTION_LIMIT = 1
-
 function sizeRows(variant: Variant | null | undefined): SizeStock[] {
   if (!variant) return []
   if (variant.sizes?.length) return variant.sizes
@@ -35,6 +33,7 @@ export function isSizePurchasable(size: SizeStock | null | undefined): boolean {
   if (!size || size.in_stock === false) return false
   if (size.status && !["active", "in_stock", "available"].includes(size.status)) return false
   if (size.track_inventory === false) return true
+  if (size.in_stock === true && size.stock_available === undefined && size.stock === undefined && size.stock_on_hand === undefined) return true
   return getAvailableStock(size) > 0
 }
 
@@ -44,7 +43,8 @@ export function isSizeTracked(size: SizeStock | null | undefined): boolean {
 
 export function getSelectableQuantityLimit(size: SizeStock | null | undefined): number {
   if (!size || !isSizePurchasable(size)) return 0
-  return isSizeTracked(size) ? getAvailableStock(size) : UNTRACKED_SELECTION_LIMIT
+  // UI cap only: the server validates real quantities without revealing stock.
+  return getAvailableStock(size) > 0 ? getAvailableStock(size) : 99
 }
 
 export function getVariantSize(variant: Variant | null | undefined, sizeName: string | null | undefined) {

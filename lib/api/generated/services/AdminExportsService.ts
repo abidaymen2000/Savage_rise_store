@@ -100,11 +100,21 @@ export class AdminExportsService {
         email,
         dateFrom,
         dateTo,
+        q,
+        orderStatuses,
+        paymentStatuses,
+        fulfillmentStatuses,
+        view = 'all',
     }: {
         status?: (string | null),
         email?: (string | null),
         dateFrom?: (string | null),
         dateTo?: (string | null),
+        q?: (string | null),
+        orderStatuses?: Array<string>,
+        paymentStatuses?: Array<string>,
+        fulfillmentStatuses?: Array<string>,
+        view?: string,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -114,6 +124,11 @@ export class AdminExportsService {
                 'email': email,
                 'date_from': dateFrom,
                 'date_to': dateTo,
+                'q': q,
+                'order_statuses': orderStatuses,
+                'payment_statuses': paymentStatuses,
+                'fulfillment_statuses': fulfillmentStatuses,
+                'view': view,
             },
             errors: {
                 422: `Validation Error`,

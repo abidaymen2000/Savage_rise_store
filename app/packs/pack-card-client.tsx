@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
@@ -9,11 +10,12 @@ import { getColorSwatch } from "@/lib/color-swatches"
 import { formatPrice } from "@/lib/utils"
 import type { Pack, Product } from "@/types/api"
 
-function getDiscountLabel(pack: Pack) {
+function getDiscountLabel(pack: Pack, formatPrice: (value: number) => string) {
   return (pack.savings_value ?? 0) > 0 ? `${formatPrice(pack.savings_value ?? 0)} off` : null
 }
 
 export default function PackCardClient({ pack, productLookup }: { pack: Pack; productLookup: Record<string, Product> }) {
+  const formatPrice = useStorePrice()
   const colorOptions = useMemo(() => getBundleColorOptions(pack, productLookup), [pack, productLookup])
   const [selectedColor, setSelectedColor] = useState("")
 
@@ -25,7 +27,7 @@ export default function PackCardClient({ pack, productLookup }: { pack: Pack; pr
   }, [colorOptions, selectedColor])
 
   const previewItems = getBundlePreviewItems(pack, productLookup, selectedColor || colorOptions[0])
-  const discountLabel = getDiscountLabel(pack)
+  const discountLabel = getDiscountLabel(pack, formatPrice)
   const mediaItems =
     previewItems.length > 0
       ? previewItems

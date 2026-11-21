@@ -9,7 +9,9 @@ import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantListSummary } from './ProductVariantListSummary';
 import type { PromotionPricing } from './PromotionPricing';
 export type ProductListItem = {
-    /** Read-only projection of persisted in_stock=false; never stored separately. */
+    /**
+     * Read-only projection of the persisted manual in_stock=false flag; in_stock is effective availability.
+     */
     forced_sold_out?: boolean;
     id: string;
     name: string;

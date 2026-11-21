@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
@@ -71,6 +72,7 @@ function EpisodeCard({
   onEpisodeUpdate: (episodeId: string, updates: Partial<VlogEpisode>) => void
   onRequireAuth: () => void
 }) {
+  const formatPrice = useStorePrice()
   const releaseDate = formatDate(episode.release_date)
   const hasVideo = Boolean(episode.video_url)
   const { user, isAuthenticated } = useAuth()

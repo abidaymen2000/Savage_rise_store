@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import { Package } from "lucide-react"
 import { api } from "@/lib/api"
 import { isActiveBundlePack } from "@/lib/product-kind"
@@ -8,7 +8,7 @@ import PackCardClient from "./pack-card-client"
 
 export const revalidate = 60
 
-const getPacksPageData = unstable_cache(async () => {
+const getPacksPageData = cache(async () => {
   const packs = (await api.getPacks(0, 20).catch(() => [] as Pack[])).filter(isActiveBundlePack)
   const packProductIds = Array.from(
     new Set(packs.flatMap((pack) => pack.components?.map((component) => component.product_id) ?? [])),
@@ -22,7 +22,7 @@ const getPacksPageData = unstable_cache(async () => {
     packs: [...packs].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     productLookup,
   }
-}, ["storefront-packs"], { revalidate: 60, tags: ["store-packs", "store-products"] })
+})
 
 function PackCard({ pack, productLookup }: { pack: Pack; productLookup: Record<string, Product> }) {
   return (

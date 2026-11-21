@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "next/navigation"
@@ -20,6 +21,7 @@ import { getAvailableSizes, getFirstProductImage, getProductImageAlt, isProductI
 import { trackStoreEvent } from "@/lib/store-analytics"
 
 export default function CategoryPage() {
+  const formatPrice = useStorePrice()
   const params = useParams()
   const categoryName = decodeURIComponent(params.name as string)
   const { isAuthenticated, isLoading: authLoading } = useAuth()

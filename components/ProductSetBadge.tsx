@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import Image from "next/image"
 import Link from "next/link"
@@ -22,6 +23,7 @@ function getPreviewItems(pack: Pack) {
 }
 
 export default function ProductSetBadge({ pack }: ProductSetBadgeProps) {
+  const formatPrice = useStorePrice()
   const previewItems = getPreviewItems(pack).slice(0, 2)
 
   if ((pack.savings_value ?? 0) <= 0) return null

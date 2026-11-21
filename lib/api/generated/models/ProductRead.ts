@@ -9,14 +9,14 @@ import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantRead } from './ProductVariantRead';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductRead = {
-    /** Manual permission in admin writes/reads; effective availability in storefront detail. */
-    in_stock?: boolean;
-    /** Read-only projection of persisted in_stock=false; never stored separately. */
-    forced_sold_out?: boolean;
     id: string;
     version: number;
     created_at?: (string | null);
     updated_at?: (string | null);
+    /**
+     * Manual sale permission: false forces Sold out without changing inventory; true restores automatic availability.
+     */
+    in_stock?: boolean;
     name: string;
     /**
      * Reference metier stable du produit parent.
@@ -44,6 +44,10 @@ export type ProductRead = {
     published_at?: (string | null);
     created_by?: (string | null);
     variants?: Array<ProductVariantRead>;
+    /**
+     * Read-only projection of the persisted manual in_stock=false flag.
+     */
+    forced_sold_out?: boolean;
     status: ProductStatus;
     archived_at?: (string | null);
     archived_by?: (string | null);

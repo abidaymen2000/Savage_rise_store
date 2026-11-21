@@ -8,13 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { api } from "@/lib/api"
 import type { Order } from "@/types/api"
-import { formatPrice } from "@/lib/utils"
+import { useStoreConfig } from "@/contexts/StoreConfigContext"
+import { formatStorePrice } from "@/lib/store-config-shared"
+import { readOrderConfirmation, type OrderConfirmation } from "@/lib/order-confirmation"
 
 function CheckoutSuccessContent() {
+  const { config } = useStoreConfig()
   const searchParams = useSearchParams()
   const orderId = searchParams.get("order_id")
 
-  const [order, setOrder] = useState<Order | null>(null)
+  const [order, setOrder] = useState<OrderConfirmation | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,7 +34,7 @@ function CheckoutSuccessContent() {
       try {
         setLoading(true)
         setError(null)
-        const nextOrder = await api.getOrder(orderId)
+        const nextOrder = readOrderConfirmation(orderId) || await api.getOrder(orderId)
         if (isMounted) {
           setOrder(nextOrder)
         }
@@ -97,7 +100,7 @@ function CheckoutSuccessContent() {
                 <ShieldCheck className="h-10 w-10" />
               </div>
             </div>
-            <CardTitle className="text-center text-3xl text-foreground dark:text-white">Order confirmed</CardTitle>
+            <CardTitle className="text-center text-3xl text-foreground dark:text-white">Commande reçue</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5 text-center">
             <p className="text-muted-foreground">
@@ -116,8 +119,8 @@ function CheckoutSuccessContent() {
               <p className="text-sm text-muted-foreground">
                 {order.shipping.postal_code} {order.shipping.city}, {order.shipping.country}
               </p>
-              <p className="mt-3 text-sm text-muted-foreground">Total confirmed by backend</p>
-              <p className="text-xl font-semibold text-accent">{formatPrice(order.total_amount)}</p>
+              <p className="mt-3 text-sm text-muted-foreground">Total validé · paiement à la livraison</p>
+              <p className="text-xl font-semibold text-accent">{formatStorePrice(order.total_amount, { ...config, default_currency: order.currency || config.default_currency })}</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               {!order.is_guest && (

@@ -22,6 +22,7 @@ runInNewContext(ts.transpileModule(cardSource, {
   require: (name) => {
     if (name === "react/jsx-runtime") return jsxRuntime
     if (name === "@/lib/utils") return utils
+    if (name === "@/hooks/use-store-price") return { useStorePrice: () => (value) => utils.formatPrice(value) }
     if (name === "@/lib/color-swatches") return swatches
     if (name === "next/link") return ({ children, href, ...props }) => createElement("a", { href, ...props }, children)
     if (name === "next/image") return ({ fill, priority, ...props }) => createElement("img", props)

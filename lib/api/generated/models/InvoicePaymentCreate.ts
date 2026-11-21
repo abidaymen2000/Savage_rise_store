@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type InvoicePaymentCreate = {
-    financial_account_id: string;
+    financial_account_id?: (string | null);
     amount: (number | string);
     payment_method: string;
     external_reference?: (string | null);

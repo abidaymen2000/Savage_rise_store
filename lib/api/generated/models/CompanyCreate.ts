@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CompanyCreate = {
+    order_notification_email?: (string | null);
     name: string;
     slug: string;
     database_name: string;

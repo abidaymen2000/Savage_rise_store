@@ -7,17 +7,6 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class IvaService {
     /**
-     * Create Conversation
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static createConversationIvaV1ConversationsPost(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/iva/v1/conversations',
-        });
-    }
-    /**
      * Conversations
      * @returns any Successful Response
      * @throws ApiError
@@ -25,6 +14,17 @@ export class IvaService {
     public static conversationsIvaV1ConversationsGet(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
+            url: '/iva/v1/conversations',
+        });
+    }
+    /**
+     * Create Conversation
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static createConversationIvaV1ConversationsPost(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
             url: '/iva/v1/conversations',
         });
     }

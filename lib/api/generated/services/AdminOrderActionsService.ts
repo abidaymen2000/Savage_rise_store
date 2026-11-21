@@ -4,6 +4,10 @@
 /* eslint-disable */
 import type { OrderActionReasonIn } from '../models/OrderActionReasonIn';
 import type { OrderAssignIn } from '../models/OrderAssignIn';
+import type { OrderBulkIn } from '../models/OrderBulkIn';
+import type { OrderBulkOut } from '../models/OrderBulkOut';
+import type { OrderFulfillmentOut } from '../models/OrderFulfillmentOut';
+import type { OrderFulfillmentWrite } from '../models/OrderFulfillmentWrite';
 import type { OrderNoteIn } from '../models/OrderNoteIn';
 import type { OrderNoteOut } from '../models/OrderNoteOut';
 import type { OrderOut } from '../models/OrderOut';
@@ -14,6 +18,84 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AdminOrderActionsService {
+    /**
+     * Disponibilités et allocations de préparation
+     * @returns OrderFulfillmentOut Successful Response
+     * @throws ApiError
+     */
+    public static getOrderFulfillmentAdminOrdersOrderIdFulfillmentGet({
+        orderId,
+    }: {
+        orderId: string,
+    }): CancelablePromise<OrderFulfillmentOut> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/admin/orders/{order_id}/fulfillment',
+            path: {
+                'order_id': orderId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Réaffecter les réservations de toute la commande atomiquement
+     * @returns OrderOut Successful Response
+     * @throws ApiError
+     */
+    public static putOrderFulfillmentAdminOrdersOrderIdFulfillmentPut({
+        orderId,
+        idempotencyKey,
+        requestBody,
+    }: {
+        orderId: string,
+        idempotencyKey: string,
+        requestBody: OrderFulfillmentWrite,
+    }): CancelablePromise<OrderOut> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/admin/orders/{order_id}/fulfillment',
+            path: {
+                'order_id': orderId,
+            },
+            headers: {
+                'Idempotency-Key': idempotencyKey,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Appliquer une action a 1-50 commandes
+     * @returns OrderBulkOut Un resultat par commande, avec succes partiels
+     * @throws ApiError
+     */
+    public static apiBulkOrdersAdminOrdersBulkPost({
+        idempotencyKey,
+        requestBody,
+    }: {
+        idempotencyKey: string,
+        requestBody: OrderBulkIn,
+    }): CancelablePromise<OrderBulkOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/orders/bulk',
+            headers: {
+                'Idempotency-Key': idempotencyKey,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                403: `Permission orders requise`,
+                409: `Idempotency-Key reutilisee pour un autre lot`,
+                422: `Lot ou action invalide`,
+            },
+        });
+    }
     /**
      * Lire une commande par son ID
      * @returns OrderOut Successful Response
@@ -146,6 +228,34 @@ export class AdminOrderActionsService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Livrer sans enregistrer de paiement (contrat v2)
+     * @returns OrderOut Successful Response
+     * @throws ApiError
+     */
+    public static apiDeliverWithoutCollectionAdminOrdersOrderIdDeliverWithoutCollectionPost({
+        orderId,
+        requestBody,
+    }: {
+        orderId: string,
+        requestBody: (OrderActionReasonIn | null),
+    }): CancelablePromise<OrderOut> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/orders/{order_id}/deliver-without-collection',
+            path: {
+                'order_id': orderId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                403: `Permission orders requise`,
+                404: `Commande introuvable`,
+                409: `Transition impossible`,
                 422: `Validation Error`,
             },
         });
@@ -376,29 +486,36 @@ export class AdminOrderActionsService {
     }
     /**
      * Rembourser une commande
-     * @returns any Successful Response
+     * @returns OrderOut Successful Response
      * @throws ApiError
      */
     public static apiRefundOrderAdminOrdersOrderIdRefundPost({
         orderId,
         requestBody,
+        idempotencyKey,
     }: {
         /**
          * ID de la commande
          */
         orderId: string,
         requestBody: OrderRefundIn,
-    }): CancelablePromise<any> {
+        idempotencyKey?: (string | null),
+    }): CancelablePromise<OrderOut> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/admin/orders/{order_id}/refund',
             path: {
                 'order_id': orderId,
             },
+            headers: {
+                'Idempotency-Key': idempotencyKey,
+            },
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                403: `Permission orders requise`,
+                409: `Solde insuffisant, conflit concurrent ou cle reutilisee`,
+                422: `Montant ou cle d'idempotence invalide`,
             },
         });
     }

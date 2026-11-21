@@ -7,7 +7,7 @@ export type PaymentOut = {
     id: string;
     reference: string;
     direction: 'in' | 'out';
-    financial_account_id: string;
+    financial_account_id?: (string | null);
     supplier_id?: (string | null);
     source_document_type?: (string | null);
     source_document_id?: (string | null);

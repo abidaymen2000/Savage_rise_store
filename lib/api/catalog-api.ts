@@ -67,7 +67,7 @@ function hasDisplayableOptionValues(variant: ProductVariantRead) {
 }
 
 function legacySizeInStock(size: SizeStock) {
-  if (size.in_stock === false) return false
+  if (typeof size.in_stock === "boolean") return size.in_stock
   if (size.track_inventory === false) return true
   return (size.stock_available ?? size.stock ?? 0) > 0
 }
@@ -79,10 +79,10 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
   const second = bundleWithoutOptions ? "" : entries[1]?.[1] ?? "default"
   const inventory = variant.inventory ?? null
   const trackInventory = inventory?.track_inventory ?? variant.track_inventory ?? true
-  const stockOnHand = inventory?.stock_on_hand ?? 0
-  const stockReserved = inventory?.stock_reserved ?? 0
-  const stockAvailable = trackInventory ? Math.max(toNumber(inventory?.stock_available, stockOnHand - stockReserved), 0) : 0
-  const inStock = inventory?.in_stock ?? (trackInventory ? stockAvailable > 0 : variant.status !== "inactive" && variant.status !== "archived")
+  const stockOnHand = inventory?.stock_on_hand
+  const stockReserved = inventory?.stock_reserved
+  const stockAvailable = inventory?.stock_available ?? (typeof stockOnHand === "number" && typeof stockReserved === "number" ? Math.max(stockOnHand - stockReserved, 0) : undefined)
+  const inStock = inventory?.in_stock ?? (trackInventory ? (stockAvailable ?? 0) > 0 : variant.status !== "inactive" && variant.status !== "archived")
   const size: SizeStock | null = bundleWithoutOptions ? null : {
     size: second,
     track_inventory: trackInventory,
@@ -96,7 +96,7 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
     variant_item_id: variant.id,
     meta_content_id: variant.id,
   }
-  const variantPrice = toNumber(variant.base_price, productPrice)
+  const variantPrice = toNumber(variant.effective_price ?? variant.base_price, productPrice)
   const compareAtPrice = toNumber(variant.compare_at_price, 0) || null
 
   return {
@@ -181,6 +181,7 @@ function listItemToProduct(item: ProductListItem): Product {
     price: 0,
     in_stock: item.in_stock === true,
     variants: [],
+    images: mediaToImages(item.primary_image ? [item.primary_image] : []),
     slug: item.slug,
     product_kind: item.product_kind,
   } as Product

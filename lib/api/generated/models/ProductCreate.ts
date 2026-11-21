@@ -8,7 +8,9 @@ import type { ProductKind } from './ProductKind';
 import type { ProductVariantCreate } from './ProductVariantCreate';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductCreate = {
-    /** Manual permission in admin writes/reads; effective availability in storefront detail. */
+    /**
+     * Manual sale permission: false forces Sold out without changing inventory; true restores automatic availability.
+     */
     in_stock?: boolean;
     name: string;
     /**

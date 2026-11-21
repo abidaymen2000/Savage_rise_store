@@ -10,6 +10,7 @@ import type { OrderNoteOut } from './OrderNoteOut';
 import type { OrderQuoteLineOut } from './OrderQuoteLineOut';
 import type { ShippingInfo } from './ShippingInfo';
 export type OrderOut = {
+    fulfillment_revision?: number;
     id: string;
     user_id?: (string | null);
     user_email?: (string | null);
@@ -43,6 +44,8 @@ export type OrderOut = {
     shipping_rate_name?: (string | null);
     total_amount: number;
     refunded_amount?: number;
+    paid_amount?: (number | null);
+    currency?: (string | null);
     notes?: Array<OrderNoteOut>;
     marketing_attribution?: (MarketingAttributionOut | null);
     analytics_session_id?: (string | null);

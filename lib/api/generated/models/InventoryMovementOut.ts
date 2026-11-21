@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type InventoryMovementOut = {
+    location_id?: string;
     id: string;
     product_id: string;
     variant_id: string;

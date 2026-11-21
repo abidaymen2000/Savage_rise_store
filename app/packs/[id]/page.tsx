@@ -1,4 +1,5 @@
 "use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
@@ -71,6 +72,7 @@ function getEffectiveSize(
 }
 
 export default function PackDetailPage() {
+  const formatPrice = useStorePrice()
   const params = useParams()
   const packId = params.id as string
   const { addPackToCart } = useCart()

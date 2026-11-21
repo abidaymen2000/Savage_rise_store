@@ -17,6 +17,7 @@ function getErrorMessage(body: unknown, fallback: string) {
   if (body && typeof body === "object") {
     const detail = (body as Record<string, unknown>).detail
     if (typeof detail === "string" && detail.trim()) return detail
+    if (detail && typeof detail === "object" && "message" in detail && typeof detail.message === "string") return detail.message
     if (Array.isArray(detail)) {
       const first = detail.find((item) => item && typeof item === "object" && typeof (item as Record<string, unknown>).msg === "string")
       if (first && typeof (first as Record<string, unknown>).msg === "string") {

@@ -12,6 +12,8 @@ import type { AdminSwitchCompanyResponse } from '../models/AdminSwitchCompanyRes
 import type { FirstLoginConfirmRequest } from '../models/FirstLoginConfirmRequest';
 import type { FirstLoginConfirmResponse } from '../models/FirstLoginConfirmResponse';
 import type { FirstLoginOtpRequestResponse } from '../models/FirstLoginOtpRequestResponse';
+import type { InvitationActivationRequest } from '../models/InvitationActivationRequest';
+import type { PosLogin } from '../models/PosLogin';
 import type { Token } from '../models/Token';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -25,7 +27,7 @@ export class AdminAuthService {
     public static adminLoginAdminAuthTokenPost({
         requestBody,
     }: {
-        requestBody: AdminLogin,
+        requestBody: (AdminLogin | PosLogin),
     }): CancelablePromise<(Token | AdminLoginActivationRequired)> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -111,6 +113,27 @@ export class AdminAuthService {
         });
     }
     /**
+     * Activate Account Invitation
+     * @returns FirstLoginConfirmResponse Successful Response
+     * @throws ApiError
+     */
+    public static activateAccountInvitationAdminAuthFirstLoginActivatePost({
+        requestBody,
+    }: {
+        requestBody: InvitationActivationRequest,
+    }): CancelablePromise<FirstLoginConfirmResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/admin/auth/first-login/activate',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * @deprecated
      * First Login Request Otp
      * @returns FirstLoginOtpRequestResponse Successful Response
      * @throws ApiError
@@ -122,6 +145,7 @@ export class AdminAuthService {
         });
     }
     /**
+     * @deprecated
      * First Login Confirm
      * @returns FirstLoginConfirmResponse Successful Response
      * @throws ApiError

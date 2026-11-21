@@ -13,7 +13,9 @@ function stableStringify(value: unknown): string {
 
 export function buildCheckoutFingerprint(params: any, quoteSignature?: string | null) {
   if (!params || !Array.isArray(params.items) || !("packItems" in params) || (params.items[0] && !("product" in params.items[0]))) {
-    return stableStringify({ payload: params, quoteSignature: quoteSignature ?? null })
+    // Stable purchase intention: quote expiry and analytics change on retries.
+    const fields = ["items", "pack_items", "shipping", "payment_method", "promo_code", "loyalty_points_to_use", "user_id"]
+    return stableStringify(Object.fromEntries(fields.map(key => [key, params?.[key] ?? null])))
   }
   const cartParams = params as {
     items: CartItem[]

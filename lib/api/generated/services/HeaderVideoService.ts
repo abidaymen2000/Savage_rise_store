@@ -15,6 +15,18 @@ import { request as __request } from '../core/request';
 export class HeaderVideoService {
     /**
      * @deprecated
+     * Read Storefront Header Video
+     * @returns HeaderVideoConfig Successful Response
+     * @throws ApiError
+     */
+    public static readStorefrontHeaderVideoStorefrontHeaderVideoGet(): CancelablePromise<HeaderVideoConfig> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/storefront/header-video',
+        });
+    }
+    /**
+     * @deprecated
      * Admin List Header Videos
      * @returns HeaderVideoListOut Successful Response
      * @throws ApiError
@@ -225,18 +237,6 @@ export class HeaderVideoService {
             errors: {
                 422: `Validation Error`,
             },
-        });
-    }
-    /**
-     * @deprecated
-     * Read Storefront Header Video
-     * @returns HeaderVideoConfig Successful Response
-     * @throws ApiError
-     */
-    public static readStorefrontHeaderVideoStorefrontHeaderVideoGet(): CancelablePromise<HeaderVideoConfig> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/storefront/header-video',
         });
     }
 }

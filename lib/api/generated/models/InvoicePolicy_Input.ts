@@ -3,7 +3,11 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { PartySnapshot } from './PartySnapshot';
+import type { SimpleInvoiceTax_Input } from './SimpleInvoiceTax_Input';
 export type InvoicePolicy_Input = {
+    mode?: 'simple' | 'integrated';
+    simple_taxes?: Array<SimpleInvoiceTax_Input>;
+    stamp_amount?: (number | string);
     enabled?: boolean;
     seller?: (PartySnapshot | null);
     currency_precisions?: Record<string, number>;

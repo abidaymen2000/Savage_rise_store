@@ -1,0 +1,8 @@
+app/checkout/page.tsx(437,33): error TS2345: Argument of type 'Order' is not assignable to parameter of type 'OrderConfirmation'.
+  Property 'currency' is missing in type 'Order' but required in type 'OrderConfirmation'.
+app/checkout/success/page.tsx(39,20): error TS2345: Argument of type 'Order | OrderConfirmation' is not assignable to parameter of type 'SetStateAction<OrderConfirmation | null>'.
+  Type 'Order' is not assignable to type 'SetStateAction<OrderConfirmation | null>'.
+    Property 'currency' is missing in type 'Order' but required in type 'OrderConfirmation'.
+app/checkout/success/page.tsx(123,115): error TS2322: Type '{}' is not assignable to type 'string'.
+lib/order-confirmation.ts(5,3): error TS2344: Type '"currency" | "shipping" | "payment_method" | "id" | "total_amount" | "is_guest"' does not satisfy the constraint 'keyof Order'.
+  Type '"currency"' is not assignable to type 'keyof Order'.

@@ -3,7 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { OrderOut } from './OrderOut';
-export type PaginatedResponse_OrderOut_ = {
+import type { OrderSummary } from './OrderSummary';
+export type OrderAdminPage = {
     items?: Array<OrderOut>;
     total: number;
     page: number;
@@ -13,5 +14,10 @@ export type PaginatedResponse_OrderOut_ = {
     has_prev?: boolean;
     sort?: (Record<string, any> | null);
     filters?: (Record<string, any> | null);
+    next_cursor?: (string | null);
+    /**
+     * Compteurs et montants sur les filtres globaux, hors vue et page; null si include_summary=false
+     */
+    summary?: (OrderSummary | null);
 };
 

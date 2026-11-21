@@ -13,6 +13,26 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AdminPromocodesService {
     /**
+     * Preview Promo
+     * @returns ApplyResponse Successful Response
+     * @throws ApiError
+     */
+    public static previewAdminPromoCode({
+        requestBody,
+    }: {
+        requestBody: ApplyRequest,
+    }): CancelablePromise<ApplyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/promocodes/preview',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Creer un code promo (admin)
      * @returns PromoOut Successful Response
      * @throws ApiError
@@ -219,26 +239,6 @@ export class AdminPromocodesService {
             query: {
                 'is_active': isActive,
             },
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
-     * Preview Promo
-     * @returns ApplyResponse Successful Response
-     * @throws ApiError
-     */
-    public static previewAdminPromoCode({
-        requestBody,
-    }: {
-        requestBody: ApplyRequest,
-    }): CancelablePromise<ApplyResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/promocodes/preview',
-            body: requestBody,
-            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },

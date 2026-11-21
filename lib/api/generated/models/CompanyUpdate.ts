@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CompanyUpdate = {
+    order_notification_email?: (string | null);
     name?: (string | null);
     slug?: (string | null);
     database_name?: (string | null);

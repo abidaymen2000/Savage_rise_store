@@ -2,7 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { OrderNotificationConfiguration } from './OrderNotificationConfiguration';
 export type CompanyPublic = {
+    order_notification_email?: (string | null);
+    order_notification_configuration?: (OrderNotificationConfiguration | null);
     id: string;
     name: string;
     slug: string;

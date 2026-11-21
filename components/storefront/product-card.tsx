@@ -1,3 +1,5 @@
+"use client"
+import { useStorePrice } from "@/hooks/use-store-price"
 import Image from "next/image"
 import Link from "next/link"
 import ProductCardActions from "@/components/storefront/product-card-actions"
@@ -21,6 +23,7 @@ function getColors(product: Product) {
 }
 
 export default function ProductCard({ product, compact = false, priority = false }: { product: Product; compact?: boolean; priority?: boolean }) {
+  const formatPrice = useStorePrice()
   const inStock = isProductInStock(product)
   const colors = getColors(product)
   const first = getFirstProductImage(product)

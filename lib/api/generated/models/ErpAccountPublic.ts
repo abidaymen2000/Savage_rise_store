@@ -12,6 +12,7 @@ export type ErpAccountPublic = {
     is_verified?: boolean;
     invitation_delivery_status?: (string | null);
     invitation_sent_at?: (string | null);
+    invitation_expires_at?: (string | null);
     full_name?: (string | null);
 };
 

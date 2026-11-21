@@ -10,6 +10,19 @@ import { getStorePage } from "../lib/api/store-pages-api.ts"
 import { api } from "../lib/api.ts"
 
 const coreBase = "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core"
+
+test("explicit deployment domain is normalized; missing configuration never selects a default merchant", () => {
+  const previous = process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN
+  try {
+    process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN = " HTTPS://SHOP.EXAMPLE.TEST/ "
+    assert.equal(getStorefrontHeaders()["X-Store-Domain"], "shop.example.test")
+    delete process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN
+    assert.throws(getStorefrontHeaders, /Missing required env/)
+  } finally {
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN
+    else process.env.NEXT_PUBLIC_STOREFRONT_DOMAIN = previous
+  }
+})
 const schema = () => ({
   openapi: "3.1.0", info: { title: "Core", version: "2" }, servers: [{ url: "/" }],
   paths: { "/api/core/catalog/products": { get: { operationId: "listProducts", responses: { 200: { description: "OK" } } } } },
@@ -107,7 +120,7 @@ test("standalone CMS SSR and browser requests use Core with public store selecti
     delete globalThis.window
     await getStorePage("about")
     assert.equal(calls[0].url, `${coreBase}/storefront/pages/about`)
-    assert.equal(calls[0].options.headers.get("Origin"), null)
+    assert.equal(calls[0].options.headers.get("Origin"), "https://savagerise.com")
     assert.equal(calls[0].options.headers.get("X-Store-Domain"), "savagerise.com")
     globalThis.window = {}
     globalThis.localStorage = { getItem: () => "customer-token" }

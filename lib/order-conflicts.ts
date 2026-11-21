@@ -28,7 +28,7 @@ export function isIdempotencyConflict(error: unknown) {
 
 export function isQuoteConflict(error: unknown) {
   const code = getBackendConflictCode(error)
-  return code === "quote_mismatch" || code === "QUOTE_MISMATCH"
+  return code === "quote_mismatch" || code === "QUOTE_MISMATCH" || code === "QUOTE_CHANGED"
 }
 
 export function isStockConflict(error: unknown) {

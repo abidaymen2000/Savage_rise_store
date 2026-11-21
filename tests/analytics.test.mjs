@@ -336,6 +336,9 @@ test("storefront source has no remaining direct event post to the legacy analyti
 
   const offenders = sourceFiles.filter((file) => {
     if (file.endsWith(path.join("tests", "analytics.test.mjs"))) return false
+    // Generated declarations mirror all Core contracts; only application calls
+    // must avoid the legacy endpoint. Codegen does not issue a request.
+    if (file.includes(path.join("lib", "api", "generated") + path.sep)) return false
     const content = fs.readFileSync(file, "utf8")
     return /url:\s*["']\/analytics\/events["']/.test(content) || /POST \/analytics\/events\b/.test(content)
   })

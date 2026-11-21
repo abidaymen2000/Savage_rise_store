@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { ApiError, api } from "@/lib/api"
 import { clearCheckoutId, createEventId, getAnalyticsContext, getOrCreateCheckoutId } from "@/lib/analytics-context"
 import { clearCheckoutIdempotencyKey, getOrCreateCheckoutIdempotencyKey, getStoredCheckoutIdempotencyKey } from "@/lib/checkout-idempotency"
-import { buildCheckoutFingerprint, buildQuoteSignature } from "@/lib/checkout-fingerprint"
+import { buildCheckoutFingerprint } from "@/lib/checkout-fingerprint"
 import { getMetaEventContext } from "@/lib/meta-event-context"
 import { trackPurchasePixelOnce } from "@/lib/meta-purchase"
 import { getBackendConflictBody, getBackendConflictCode, getBackendConflictMessage, isIdempotencyConflict, isQuoteConflict, isStockConflict } from "@/lib/order-conflicts"
@@ -29,7 +29,10 @@ import { buildMetaCartItemContent, buildMetaPackSelectionContent } from "@/lib/m
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
 import { trackStoreEvent } from "@/lib/store-analytics"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
-import { isFeatureEnabled } from "@/lib/store-config-shared"
+import { isFeatureEnabled, formatStorePrice } from "@/lib/store-config-shared"
+
+import { rememberOrderConfirmation } from "@/lib/order-confirmation"
+import { useCheckoutQuote } from "@/hooks/use-checkout-quote"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
@@ -39,7 +42,8 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { state: cartState, clearCart, refreshCartProducts } = useCart()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const { config } = useStoreConfig()
+  const { config, unavailable } = useStoreConfig()
+  const formatPrice = (amount: number) => formatStorePrice(amount, config)
   const loyaltyFeatureEnabled = isFeatureEnabled(config, "loyalty", true)
 
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -58,7 +62,7 @@ export default function CheckoutPage() {
     address_line2: "",
     postal_code: "",
     city: "",
-    country: "Tunisia",
+    country: config.country_code,
   })
 
   // --- Promo state ---
@@ -66,9 +70,6 @@ export default function CheckoutPage() {
   const [promoResult, setPromoResult] = useState<ApplyResponse | null>(null)
   const [promoLoading, setPromoLoading] = useState(false)
   const [promoError, setPromoError] = useState<string | null>(null)
-  const [orderQuote, setOrderQuote] = useState<OrderQuoteOut | null>(null)
-  const [quoteLoading, setQuoteLoading] = useState(false)
-  const [quoteError, setQuoteError] = useState<string | null>(null)
   const [loyaltyBalance, setLoyaltyBalance] = useState<LoyaltyBalance | null>(null)
   const [loyaltyQuote, setLoyaltyQuote] = useState<LoyaltyQuote | null>(null)
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false)
@@ -77,7 +78,7 @@ export default function CheckoutPage() {
   const [loyaltyError, setLoyaltyError] = useState<string | null>(null)
   const lastAttemptFingerprintRef = useRef<string | null>(null)
   const lastAttemptHadUnknownFailureRef = useRef(false)
-  const quoteRequestIdRef = useRef(0)
+  const submissionInFlight = useRef(false)
   const purchaseEventIdRef = useRef<string | null>(null)
 
   // Redirect if cart is empty
@@ -154,7 +155,6 @@ export default function CheckoutPage() {
     ],
   )
 
-  const quoteSignature = useMemo(() => buildQuoteSignature(orderQuote), [orderQuote])
 
   // (Re)valider un code promo sauvegardé
   const revalidatePromo = async (code: string) => {
@@ -260,6 +260,8 @@ export default function CheckoutPage() {
     return required.every((field) => shippingInfo[field as keyof ShippingInfo]?.toString().trim())
   }, [isAuthenticated, shippingInfo])
 
+  const { quote: orderQuote, loading: quoteLoading, error: quoteError, refresh: refreshQuote } = useCheckoutQuote(orderPayload, !unavailable && validateShippingInfo() && cartState.itemCount > 0, api.quoteOrder, config.default_currency)
+
   const refreshCheckoutProducts = async () => {
     const uniqueProductIds = Array.from(new Set(cartState.items.map((item) => item.product.id)))
     if (uniqueProductIds.length === 0) return
@@ -330,7 +332,7 @@ export default function CheckoutPage() {
   }
 
   const handlePlaceOrder = async () => {
-    if (isProcessing) return
+    if (submissionInFlight.current || isProcessing) return
 
     if (isAuthenticated && !user?.is_active) {
       setShowEmailVerification(true)
@@ -342,11 +344,12 @@ export default function CheckoutPage() {
       return
     }
 
-    if (!orderQuote || quoteLoading) {
-      setError("Please wait while your final total is confirmed.")
+    if (!orderQuote?.quote_token || quoteLoading || unavailable) {
+      setError("Patientez pendant le calcul de votre total.")
       return
     }
 
+    submissionInFlight.current = true
     setIsProcessing(true)
     setCheckoutStatus("submitting")
     setError(null)
@@ -382,14 +385,14 @@ export default function CheckoutPage() {
     })
 
     try {
-      const order = await api.createOrder(finalOrderPayload, idempotencyKey)
+      const order = await api.createOrder({ ...finalOrderPayload, quote_token: orderQuote.quote_token }, idempotencyKey)
 
       if (pixelContents.length === expectedPixelContentCount) {
         trackPurchasePixelOnce({
           orderId: order.id,
           metaEventId,
           value: order.total_amount ?? orderQuote.total_amount,
-          currency: orderQuote.currency ?? "TND",
+          currency: orderQuote.currency ?? config.default_currency,
           content_ids: pixelContentIds,
           contents: pixelContents,
           num_items: cartState.itemCount,
@@ -398,7 +401,7 @@ export default function CheckoutPage() {
       trackStoreEvent("purchase", {
         include_checkout_id: true,
         order_id: order.id,
-        currency: orderQuote.currency ?? "TND",
+        currency: orderQuote.currency ?? config.default_currency,
         value: order.total_amount ?? orderQuote.total_amount,
         revenue: order.total_amount ?? orderQuote.total_amount,
         items: [
@@ -412,7 +415,7 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             unit_price: item.product.price,
             line_total: item.product.price * item.quantity,
-            currency: "TND",
+            currency: config.default_currency,
           })),
           ...cartState.packItems.flatMap((item) =>
             item.selections.map((selection) => ({
@@ -422,7 +425,7 @@ export default function CheckoutPage() {
               quantity: (selection.qty ?? 1) * item.quantity,
               unit_price: selection.unit_price,
               line_total: selection.unit_price * (selection.qty ?? 1) * item.quantity,
-              currency: "TND",
+              currency: config.default_currency,
             })),
           ),
         ],
@@ -431,6 +434,7 @@ export default function CheckoutPage() {
           item_count: cartState.itemCount,
         },
       })
+      rememberOrderConfirmation(order)
       setCreatedOrder(order)
       setSuccess(true)
       setCheckoutStatus("success")
@@ -453,9 +457,11 @@ export default function CheckoutPage() {
       if (err instanceof ApiError && (err.status === 404 || err.status === 409)) {
         await refreshCheckoutProducts()
         if (isQuoteConflict(err)) {
+          refreshQuote()
           clearCheckoutIdempotencyKey()
         }
         if (isStockConflict(err)) {
+          refreshQuote()
           clearCheckoutIdempotencyKey()
         }
       }
@@ -465,13 +471,14 @@ export default function CheckoutPage() {
       setCheckoutStatus(err instanceof ApiError && err.status === 409 ? "conflict" : "error")
       setError(getFriendlyCheckoutError(err))
     } finally {
+      submissionInFlight.current = false
       setIsProcessing(false)
     }
   }
 
   const checkoutFingerprint = useMemo(
-    () => buildCheckoutFingerprint(orderPayload, quoteSignature),
-    [orderPayload, quoteSignature],
+    () => buildCheckoutFingerprint(orderPayload),
+    [orderPayload],
   )
 
   useEffect(() => {
@@ -514,7 +521,7 @@ export default function CheckoutPage() {
     const checkoutId = getOrCreateCheckoutId()
     const analyticsEvent = trackStoreEvent("checkout_started", {
       include_checkout_id: true,
-      currency: "TND",
+      currency: config.default_currency,
       value: subtotal,
       items: [
         ...cartState.items.map((item) => ({
@@ -527,7 +534,7 @@ export default function CheckoutPage() {
           quantity: item.quantity,
           unit_price: item.product.price,
           line_total: item.product.price * item.quantity,
-          currency: "TND",
+          currency: config.default_currency,
         })),
         ...cartState.packItems.flatMap((item) =>
           item.selections.map((selection) => ({
@@ -537,7 +544,7 @@ export default function CheckoutPage() {
             quantity: (selection.qty ?? 1) * item.quantity,
             unit_price: selection.unit_price,
             line_total: selection.unit_price * (selection.qty ?? 1) * item.quantity,
-            currency: "TND",
+            currency: config.default_currency,
           })),
         ),
       ],
@@ -556,7 +563,7 @@ export default function CheckoutPage() {
       content_ids: pixelContentIds,
       content_type: "product",
       contents: pixelContents,
-      currency: "TND",
+      currency: config.default_currency,
       num_items: cartState.itemCount,
       value: subtotal,
     }, {
@@ -598,41 +605,6 @@ export default function CheckoutPage() {
     loyaltyPointsToUse,
     cartState.itemCount,
   ])
-
-  useEffect(() => {
-    if (!validateShippingInfo() || cartState.itemCount === 0) {
-      setOrderQuote(null)
-      setQuoteError(null)
-      setCheckoutStatus("idle")
-      return
-    }
-
-    const requestId = ++quoteRequestIdRef.current
-    const timeout = setTimeout(async () => {
-      setCheckoutStatus("quoting")
-      setQuoteLoading(true)
-      setQuoteError(null)
-      try {
-        const quote = await api.quoteOrder(orderPayload)
-        if (requestId === quoteRequestIdRef.current) {
-          setOrderQuote(quote)
-          setCheckoutStatus("ready")
-        }
-      } catch (err) {
-        if (requestId === quoteRequestIdRef.current) {
-          setOrderQuote(null)
-          setQuoteError(err instanceof Error ? err.message : "Unable to validate your order total right now.")
-          setCheckoutStatus("error")
-        }
-      } finally {
-        if (requestId === quoteRequestIdRef.current) {
-          setQuoteLoading(false)
-        }
-      }
-    }, 400)
-
-    return () => clearTimeout(timeout)
-  }, [cartState.itemCount, orderPayload, validateShippingInfo])
 
   const shipping = orderQuote?.shipping_amount ?? 0
   const total = orderQuote?.total ?? afterDiscount
@@ -729,7 +701,7 @@ export default function CheckoutPage() {
                       <p className="text-sm text-muted-foreground">
                         {item.selectedVariant.color} • {item.selectedSize} • Qté : {item.quantity}
                       </p>
-                      <p className="text-accent font-semibold">{(item.product.price * item.quantity).toFixed(2)} TND</p>
+                      <p className="text-accent font-semibold">{formatPrice(item.product.price * item.quantity)}</p>
                     </div>
                   </div>
                 ))}
@@ -758,7 +730,7 @@ export default function CheckoutPage() {
                             </p>
                           ))}
                         </div>
-                        <p className="mt-2 text-accent font-semibold">{packPrice.toFixed(2)} TND</p>
+                        <p className="mt-2 text-accent font-semibold">{formatPrice(packPrice)}</p>
                       </div>
                     </div>
                   )
@@ -876,13 +848,13 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="text-foreground">{displaySubtotal.toFixed(2)} TND</span>
+                  <span className="text-foreground">{formatPrice(displaySubtotal)}</span>
                 </div>
 
                 {displayPackDiscount > 0 && (
                   <div className="flex justify-between text-green-500">
                     <span>Pack discount</span>
-                    <span>- {displayPackDiscount.toFixed(2)} TND</span>
+                    <span>- {formatPrice(displayPackDiscount)}</span>
                   </div>
                 )}
 
@@ -894,7 +866,7 @@ export default function CheckoutPage() {
                       <span>Code {promoResult.code}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-green-500">- {displayPromotionDiscount.toFixed(2)} TND</span>
+                      <span className="text-green-500">- {formatPrice(displayPromotionDiscount)}</span>
                       <button
                         className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                         onClick={handleRemovePromo}
@@ -987,7 +959,7 @@ export default function CheckoutPage() {
                             </div>
                             {loyaltyQuote && (
                               <p className="text-xs text-muted-foreground">
-                                {loyaltyQuote.usable_points} points apply {loyaltyQuote.discount_value.toFixed(2)} TND discount.
+                                {loyaltyQuote.usable_points} points apply {formatPrice(loyaltyQuote.discount_value)} discount.
                               </p>
                             )}
                           </div>
@@ -1011,7 +983,7 @@ export default function CheckoutPage() {
                       <Coins className="h-4 w-4" />
                       <span>{loyaltyPointsUsed} loyalty points</span>
                     </div>
-                    <span>- {displayLoyaltyDiscount.toFixed(2)} TND</span>
+                    <span>- {formatPrice(displayLoyaltyDiscount)}</span>
                   </div>
                 )}
 
@@ -1023,8 +995,8 @@ export default function CheckoutPage() {
                       : orderQuote
                         ? shipping === 0
                           ? "Free"
-                          : `${shipping.toFixed(2)} TND`
-                        : "Pending validation"}
+                          : formatPrice(shipping)
+                        : "À calculer"}
                   </span>
                 </div>
 
@@ -1052,7 +1024,7 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-lg font-semibold">
                   <span className="text-foreground">Total</span>
-                  <span className="text-accent">{total.toFixed(2)} TND</span>
+                  <span className="text-accent">{formatPrice(total)}</span>
                 </div>
 
                 {error && (
@@ -1064,7 +1036,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Truck className="h-4 w-4" />
-                    <span>{orderQuote ? "Total validated by the backend quote." : "Your final total is being validated by the backend."}</span>
+                    <span>{orderQuote ? "Total validé. Paiement à la livraison, sans encaissement immédiat." : "Total provisoire : renseignez votre adresse pour calculer la livraison."}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Shield className="h-4 w-4" />
@@ -1078,7 +1050,7 @@ export default function CheckoutPage() {
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || promoLoading || quoteLoading || (useLoyaltyPoints && loyaltyLoading) || !orderQuote}
+                  disabled={isProcessing || promoLoading || quoteLoading || (useLoyaltyPoints && loyaltyLoading) || !orderQuote || unavailable}
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold py-3"
                 >
                   {isProcessing ? (
@@ -1087,7 +1059,7 @@ export default function CheckoutPage() {
                       Processing...
                     </>
                   ) : (
-                    `Confirmer ma commande • ${total.toFixed(2)} TND`
+                    `Confirmer ma commande • ${formatPrice(total)}`
                   )}
                 </Button>
 
