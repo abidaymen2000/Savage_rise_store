@@ -87,7 +87,7 @@ export default function FeaturedProducts({
               Voir tout
             </Link>
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="studio-grid-categories grid gap-3 md:grid-cols-3">
             {categories.map((category) => (
               <Link key={category.key} href={category.href} className="group relative block aspect-[4/5] overflow-hidden bg-stone-950 md:aspect-[5/6]">
                 <StorefrontMedia
@@ -118,7 +118,7 @@ export default function FeaturedProducts({
           </Button>
         </div>
         {featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          <div className="studio-grid-catalog grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {featuredProducts.slice(0, 4).map((product, index) => (
               <ProductCard key={product.id} product={product} priority={index < 2} />
             ))}

@@ -1,4 +1,5 @@
 "use client"
+import { useStudio } from "@/components/studio-runtime"
 import { saveQuickPurchase } from "@/lib/quick-purchase"
 import { useRouter } from "next/navigation"
 
@@ -239,6 +240,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const {preview: studioPreview} = useStudio()
   const router = useRouter()
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
@@ -329,6 +331,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   const addToCart = (product: Product, variant: Variant, size: string, quantity = 1) => {
+    if (studioPreview) return
     // Validate inputs
     if (!product || product.in_stock === false || !variant || !size) {
       return
@@ -373,6 +376,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   const addPackToCart = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
+    if (studioPreview) return
     if (!pack || pack.in_stock === false || selections.length < 2) {
       return
     }

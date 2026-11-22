@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { useStudio } from "@/components/studio-runtime"
+
 import { useCallback, useMemo, useState } from "react"
 import { ArrowLeft, Mail, MessageCircle, Phone, XCircle } from "lucide-react"
 
@@ -24,6 +26,7 @@ type Notification = {
 }
 
 export function ContactPageClient({ page }: { page: StorePagePublicOut | null }) {
+  const {preview} = useStudio()
   const [notification, setNotification] = useState<Notification | null>(null)
   const { config } = useStoreConfig()
   const whatsapp = getValidSocialLinks(config.social_links).find((social) => social.platform === "whatsapp")
@@ -34,6 +37,7 @@ export function ContactPageClient({ page }: { page: StorePagePublicOut | null })
 
   const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (preview) return
     const form = event.currentTarget
     const data = Object.fromEntries(new FormData(form).entries()) as {
       full_name: string
@@ -73,7 +77,7 @@ export function ContactPageClient({ page }: { page: StorePagePublicOut | null })
         message: "Message delivery failed. Please try again later.",
       })
     }
-  }, [])
+  }, [preview])
 
   return (
     <main className="min-h-screen bg-background text-foreground py-12 pt-24">
@@ -122,7 +126,7 @@ export function ContactPageClient({ page }: { page: StorePagePublicOut | null })
                   <Label htmlFor="message" className="text-foreground dark:text-white">Message</Label>
                   <Textarea id="message" name="message" placeholder="Your message..." rows={5} className="bg-background border-input text-foreground placeholder:text-muted-foreground" />
                 </div>
-                <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
+                <Button type="submit" disabled={preview} className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
                   Send message
                 </Button>
               </form>

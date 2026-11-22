@@ -1,0 +1,14 @@
+
+/* Studio V3: enum values only; no merchant CSS. */
+[data-studio-template][style*="--studio-font-body:"]{font-family:var(--studio-font-body),Tahoma,sans-serif}
+[data-studio-template][style*="--studio-font-heading:"] h1{font-family:var(--studio-font-heading),Tahoma,serif}
+[data-studio-template][style*="--studio-font-subheading:"] :is(h2,h3){font-family:var(--studio-font-subheading),Tahoma,serif}
+[data-studio-template][style*="--studio-font-description:"] p{font-family:var(--studio-font-description),Tahoma,sans-serif}
+[data-studio-template][style*="--studio-font-button:"] :is(button,.store-button){font-family:var(--studio-font-button),Tahoma,sans-serif}
+.studio-hero-video{min-height:320px}
+.standard-hero.hero-media_background>.studio-hero-video,.standard-hero.hero-fullscreen>.studio-hero-video{position:absolute;inset:0;z-index:0}
+[data-grid-catalog="small"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="small"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(6,minmax(0,1fr))}
+[data-grid-catalog="medium"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="medium"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(4,minmax(0,1fr))}
+[data-grid-catalog="large"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="large"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1023px){[data-grid-catalog="small"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="small"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(4,minmax(0,1fr))}[data-grid-catalog="medium"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="medium"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(3,minmax(0,1fr))}[data-grid-catalog="large"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="large"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){[data-grid-catalog="small"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="small"] :is(.category-grid,.studio-grid-categories),[data-grid-catalog="medium"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="medium"] :is(.category-grid,.studio-grid-categories){grid-template-columns:repeat(2,minmax(0,1fr))}[data-grid-catalog="large"] :is(.product-grid,.studio-grid-catalog),[data-grid-categories="large"] :is(.category-grid,.studio-grid-categories){grid-template-columns:minmax(0,1fr)}}

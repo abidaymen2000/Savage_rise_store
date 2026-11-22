@@ -9,7 +9,9 @@ test("positive stock cannot override an explicit Sold out decision", () => {
   assert.equal(getSelectableQuantityLimit(size), 0)
   assert.equal(size.stock_available, 12)
   assert.equal(isSizePurchasable({ ...size, in_stock: true }), true)
-  assert.equal(isSizePurchasable({ ...size, in_stock: true, stock_available: 0 }), false)
+  // Public availability is authoritative; quantities may be hidden or legacy placeholders.
+  assert.equal(isSizePurchasable({ ...size, in_stock: true, stock_available: 0 }), true)
+  assert.equal(isSizePurchasable({ ...size, in_stock: true, forced_sold_out: true }), false)
   assert.equal(isSizePurchasable({ ...size, track_inventory: false }), false)
   assert.equal(productHasPurchasableVariant({ in_stock: false, variants: [{ sizes: [{ ...size, in_stock: true }] }] }), false)
 })

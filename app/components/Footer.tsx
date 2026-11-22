@@ -4,12 +4,15 @@ import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink, Instagram, Mail, Phone } from "lucide-react"
 import { SiTiktok } from "react-icons/si"
+import { useStudio } from "@/components/studio-runtime"
+import { hiddenPath } from "@/lib/studio-contract"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
 import { getStoreDisplayName, getValidSocialLinks } from "@/lib/store-config-shared"
 import { getStorefrontContent } from "@/lib/storefront/content"
 
 export default function Footer() {
   const { config } = useStoreConfig()
+  const {hidden} = useStudio()
   const content = getStorefrontContent()
   const storeName = getStoreDisplayName(config)
   const socialLinks = getValidSocialLinks(config.social_links)
@@ -57,7 +60,7 @@ export default function Footer() {
               <nav key={column.title} aria-label={column.title}>
                 <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground">{column.title}</h3>
                 <ul className="mt-4 space-y-3">
-                  {column.links.map((link) => (
+                  {column.links.filter(link=>!hiddenPath(link.href,hidden)).map((link) => (
                     <li key={`${column.title}-${link.href}`}>
                       <Link href={link.href} className="text-sm text-muted-foreground transition-colors hover:text-accent">
                         {link.label}

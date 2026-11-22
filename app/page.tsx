@@ -1,5 +1,6 @@
 import nextDynamic from "next/dynamic"
 import { cache } from "react"
+import { getStudioDocument } from "@/lib/studio-server"
 import Hero from "./components/Hero"
 import FeaturedProducts from "./components/FeaturedProducts"
 import { api } from "@/lib/api"
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic"
 const getHomeContent = cache(async () => {
   const [categories, headerVideo, drop] = await Promise.all([
     api.getCategories().catch(() => [] as Category[]),
-    api.getHeaderVideo().catch(() => null as HeaderVideo | null),
+    getStudioDocument().then(doc => doc ? null : api.getHeaderVideo().catch(() => null as HeaderVideo | null)),
     api.getDropCountdown().catch(() => null as DropCountdown | null),
   ])
   return { categories, headerVideo, drop }

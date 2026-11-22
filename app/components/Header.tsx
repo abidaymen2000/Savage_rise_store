@@ -19,6 +19,8 @@ import MobileNavigation from "@/components/store-navigation/mobile-navigation"
 import Cart from "./Cart"
 import AuthModal from "./AuthModal"
 import ThemeToggle from "./ThemeToggle"
+import { useStudio } from "@/components/studio-runtime"
+import { hiddenPath } from "@/lib/studio-contract"
 import { useAuth } from "@/contexts/AuthContext"
 import { api } from "@/lib/api"
 import { useStoreConfig } from "@/contexts/StoreConfigContext"
@@ -72,8 +74,10 @@ export default function Header({
   const [showAuthModal, setShowAuthModal] = useState(false)
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
   const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
-  const headerItems = initialHeaderItems && initialHeaderItems.length > 0 ? initialHeaderItems : fallbackHeaderItems
-  const mobileItems = initialMobileItems && initialMobileItems.length > 0 ? initialMobileItems : fallbackMobileItems
+  const {hidden} = useStudio()
+  const visible = (items: StoreNavigationPublicItem[]): StoreNavigationPublicItem[] => items.filter(item => !hiddenPath("path" in item.destination ? item.destination.path : "",hidden)).map(item=>({...item,children:visible(item.children || [])}))
+  const headerItems = visible(initialHeaderItems?.length ? initialHeaderItems : fallbackHeaderItems)
+  const mobileItems = visible(initialMobileItems?.length ? initialMobileItems : fallbackMobileItems)
   const [wishlistCount, setWishlistCount] = useState(0)
   const { user, isAuthenticated, logout } = useAuth()
   const { config } = useStoreConfig()

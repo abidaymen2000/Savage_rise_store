@@ -1,4 +1,6 @@
+"use client"
 import Link from "next/link"
+import { useStudio } from "@/components/studio-runtime"
 import { Button } from "@/components/ui/button"
 import StorefrontMedia from "@/components/storefront/media/storefront-media"
 import { getStorefrontContent } from "@/lib/storefront/content"
@@ -66,8 +68,16 @@ function getSlides(headerVideo: HeaderVideo | null | undefined): HeroSlide[] {
 }
 
 export default function Hero({ headerVideo, drop }: HeroProps) {
-  const content = getStorefrontContent()
-  const slides = getSlides(headerVideo)
+  const studio = useStudio().content
+  const original = getStorefrontContent()
+  const edited = studio?.hero
+  const content = { ...original, hero: { ...original.hero,
+    eyebrow: edited?.eyebrow ?? original.hero.eyebrow, title: edited?.title ?? original.hero.title, subtitle: edited?.subtitle ?? original.hero.subtitle,
+    primaryCta: { ...original.hero.primaryCta, label: edited?.primary_label ?? original.hero.primaryCta.label },
+    secondaryCta: { ...original.hero.secondaryCta, label: edited?.secondary_label ?? original.hero.secondaryCta.label },
+    media: edited?.media ? {type: edited.media.mime?.startsWith("video/") ? "video" as const : "image" as const, src: edited.media.url, poster: edited.poster?.url || edited.media.thumbnail_url || original.hero.media.src, alt: edited.media.alt || edited.title || original.hero.title } : edited?.poster ? {type: "image" as const, src: edited.poster.url, alt: edited.poster.alt || original.hero.title} : original.hero.media
+  }}
+  const slides = getSlides(studio ? null : headerVideo)
   const activeSlide = slides[0]
   const slide = activeSlide
   const activeDrop = DROP_COUNTDOWN_ENABLED && drop?.is_active ? drop : null
@@ -95,7 +105,7 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
         }`
 
   return (
-    <section className="relative isolate min-h-[calc(100svh-2.5rem)] w-full overflow-hidden bg-black pt-28 text-white md:min-h-[calc(100dvh-2.5rem)]">
+    <section data-studio-section="hero" className="relative isolate min-h-[calc(100svh-2.5rem)] w-full overflow-hidden bg-black pt-28 text-white md:min-h-[calc(100dvh-2.5rem)]">
       <StorefrontMedia
         media={media}
         priority
@@ -103,9 +113,9 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
         className="absolute inset-0 h-full w-full overflow-hidden"
         imageClassName={heroMediaClassName}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/25" />
-      <div className="relative z-10 flex min-h-[calc(100svh-7rem)] items-end px-4 pb-10 sm:px-6 md:min-h-[calc(100dvh-7rem)] md:items-center md:pb-0">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-start gap-6">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/25" />
+      <div className="pointer-events-none relative z-10 flex min-h-[calc(100svh-7rem)] items-end px-4 pb-10 sm:px-6 md:min-h-[calc(100dvh-7rem)] md:items-center md:pb-0">
+        <div className="pointer-events-auto mx-auto flex w-full max-w-7xl flex-col items-start gap-6">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D4AF37]">{heroEyebrow}</p>
           <div className="max-w-3xl">
             <h1 className="font-playfair text-5xl font-semibold leading-[0.95] text-[rgba(255,255,255,0.98)] sm:text-6xl lg:text-8xl">{heroTitle}</h1>

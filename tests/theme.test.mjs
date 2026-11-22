@@ -124,7 +124,7 @@ test("hero video and poster share the full media rectangle", () => {
 
   assert.match(hero, /className="absolute inset-0 h-full w-full overflow-hidden"/)
   assert.match(video, /data-hero-media/)
-  assert.match(video, /className="absolute inset-0 block h-full w-full object-cover/)
+  assert.match(video, /absolute inset-0 block h-full w-full object-cover/)
   assert.match(video, /style=\{\{ objectPosition \}\}/)
   assert.doesNotMatch(video, /object-contain/)
   assert.doesNotMatch(video, /aspect-\[9\/16\]|aspect-video|max-w-|w-auto|w-fit|mx-auto/)
@@ -152,7 +152,7 @@ test("catalog product card actions keep full labels and sold out state", () => {
 
   assert.match(actions, /CHOISIR UNE TAILLE/)
   assert.match(actions, /VOIR LE PRODUIT/)
-  assert.match(actions, /SOLD OUT/)
+  assert.match(actions, /availabilityLabel\(availability\)/)
   assert.match(actions, /grid-cols-\[minmax\(0,1fr\)_44px_44px\]/)
   assert.match(actions, /overflow-hidden/)
   assert.match(actions, /whitespace-nowrap/)

@@ -1,4 +1,5 @@
 "use client"
+import { useStudio } from "@/components/studio-runtime"
 
 import { useState, useEffect, useMemo, useRef, useCallback, Suspense } from "react"
 import { useRouter } from "next/navigation"
@@ -340,7 +341,9 @@ function CheckoutContent() {
     return "Unable to create your order right now."
   }
 
+  const {preview: studioPreview} = useStudio()
   const handlePlaceOrder = async () => {
+    if (studioPreview) { setError("Les achats sont désactivés dans l’aperçu privé."); return }
     if (submissionInFlight.current || isProcessing || authLoading) return
 
     if (isAuthenticated && !user?.is_active) {
@@ -1063,7 +1066,7 @@ function CheckoutContent() {
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={authLoading || isProcessing || promoLoading || (useLoyaltyPoints && loyaltyLoading) || unavailable}
+                  disabled={studioPreview || authLoading || isProcessing || promoLoading || (useLoyaltyPoints && loyaltyLoading) || unavailable}
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold py-3"
                 >
                   {isProcessing ? (

@@ -1,10 +1,13 @@
 import type React from "react"
+import { getStudioDocument } from "@/lib/studio-server"
+import { StudioRuntime } from "@/components/studio-runtime"
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { cache } from "react"
 import { Playfair_Display, Inter } from 'next/font/google'
 import Image from "next/image"
 import "./globals.css"
+import "./studio.css"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import { CartProvider } from "@/contexts/CartContext"
@@ -148,26 +151,27 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [storeConfig, navigation] = await Promise.all([
+  const [storeConfig, studio] = await Promise.all([
     getStoreConfig(),
-    getServerNavigation(),
+    getStudioDocument(),
   ])
   const { config } = storeConfig
-  const isPublicUnavailable = storeConfig.unavailable || config.status === "maintenance" || config.status === "inactive"
+  const navigation = studio ? {headerItems: filterNavigationItemsBySurface(studio.menus.find(m => m.code === "header")?.items, "desktop"), mobileItems: filterNavigationItemsBySurface((studio.menus.find(m => m.code === "mobile") || studio.menus.find(m => m.code === "header"))?.items, "mobile")} : await getServerNavigation()
+  const isPublicUnavailable = !studio?.preview && (storeConfig.unavailable || config.status === "maintenance" || config.status === "inactive")
 
   return (
     <html lang={config.locale} className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="bg-background font-inter text-foreground" style={getBrandingCssVariables(config)}>
-        <MetaPixel />
+        {!studio?.preview && <MetaPixel />}
         <Suspense fallback={null}>
-          <StoreAnalytics storeSlug={config.slug} />
+          {!studio?.preview && <StoreAnalytics storeSlug={config.slug} />}
         </Suspense>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <StoreConfigProvider value={storeConfig}>
             {isPublicUnavailable ? (
               <StoreStatusPage statusConfig={storeConfig} />
             ) : (
-              <AuthProvider>
+              <StudioRuntime document={studio}><AuthProvider>
                 <CartProvider>
                   <EntranceWrapper>
                     <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} />
@@ -175,7 +179,7 @@ export default async function RootLayout({
                     <Footer />
                   </EntranceWrapper>
                 </CartProvider>
-              </AuthProvider>
+              </AuthProvider></StudioRuntime>
             )}
           </StoreConfigProvider>
         </ThemeProvider>

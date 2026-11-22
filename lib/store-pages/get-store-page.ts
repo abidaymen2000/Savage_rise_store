@@ -1,3 +1,4 @@
+import { getStudioDocument } from "@/lib/studio-server"
 import { cache } from "react"
 
 import { getStorePage } from "@/lib/api/store-pages-api"
@@ -12,6 +13,11 @@ export const getPublishedStorePage = cache(async function getPublishedStorePage(
     return fallback ? { page: fallback, source: "static" } : null
   }
 
+  const document = await getStudioDocument()
+  if (document) {
+    const page = document.pages.find(item => item.slug === slug)
+    return page ? { page, source: "cms" } : fallback ? { page: fallback, source: "static" } : null
+  }
   try {
     const page = await getStorePage(slug)
     return { page, source: "cms" }

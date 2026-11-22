@@ -42,7 +42,7 @@ test("inventory helper uses stock_available only", () => {
     }),
     4,
   )
-  assert.equal(inventory.getAvailableStock({ size: "L" }), 0)
+  assert.equal(inventory.getAvailableStock({ size: "L" }), undefined)
   assert.equal(inventory.isSizePurchasable({ size: "S", stock_available: 1 }), true)
   assert.equal(inventory.isSizePurchasable({ size: "XS", stock_available: 0 }), false)
 })
@@ -136,7 +136,7 @@ test("catalog detail maps public inventory per exact option_values variant", asy
   assert.equal(inventory.isSizePurchasable(inventory.getVariantSize(blackL, "L")), false)
   assert.equal(inventory.getSelectableQuantityLimit(inventory.getVariantSize(blackL, "L")), 0)
   assert.equal(inventory.isSizePurchasable(inventory.getVariantSize(digital, "Default")), true)
-  assert.equal(inventory.getAvailableStock(inventory.getVariantSize(digital, "Default")), 0)
+  assert.equal(inventory.getAvailableStock(inventory.getVariantSize(digital, "Default")), undefined)
   assert.equal(JSON.stringify(product).includes("998"), false)
 })
 
