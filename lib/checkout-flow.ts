@@ -9,26 +9,14 @@ export function stableKey(value: unknown): string {
   return JSON.stringify(value) ?? "null"
 }
 
-export function pricingInput<T extends { shipping: object }>(payload: T, policy: ShippingPolicy | null): T {
-  const shipping = payload.shipping as Record<string, unknown>
-  const relevant = Object.fromEntries((policy?.required_fields ?? ["country", "city"]).map(key => [key, shipping[key] ?? ""]))
-  return { ...payload, shipping: { full_name: "", phone: "", email: null, address_line1: "", address_line2: null, postal_code: "", city: "", country: "", ...relevant } }
+/** Quotes need the cart, not delivery coordinates. Final orders keep the full payload. */
+export function pricingInput<T extends { shipping: object }>(payload: T): T {
+  return { ...payload, shipping: { full_name: "", phone: "", email: null, address_line1: "", address_line2: null, postal_code: "", city: "", country: "" } }
 }
 
-export function pricingKey(payload: object, policy: ShippingPolicy | null): string {
-  const value = pricingInput(payload as { shipping: object }, policy) as unknown as Record<string, unknown>
-  return stableKey(Object.fromEntries(["items", "pack_items", "shipping", "payment_method", "promo_code", "loyalty_points_to_use", "user_id"].map(key => [key, value[key] ?? null])))
-}
-
-export function requiredDestinationFromError(error: unknown): string[] | null {
-  const value = error as {body?: {detail?: {code?: string; required_fields?: unknown}}}
-  const detail = value?.body?.detail
-  const fields = detail?.required_fields
-  return detail?.code === "SHIPPING_DESTINATION_REQUIRED" && Array.isArray(fields) && fields.includes("country") && fields.every(field => ["country", "city"].includes(field)) ? fields : null
-}
-
-export function destinationReady(shipping: object, policy: ShippingPolicy | null): boolean {
-  return !!policy?.configured && policy.required_fields.every(field => String((shipping as Record<string, unknown>)[field] ?? "").trim())
+export function pricingKey(payload: object): string {
+  const value = payload as Record<string, unknown>
+  return stableKey(Object.fromEntries(["items", "pack_items", "payment_method", "promo_code", "loyalty_points_to_use", "user_id"].map(key => [key, value[key] ?? null])))
 }
 
 export function commercialSignature(quote: CommercialQuote): string {

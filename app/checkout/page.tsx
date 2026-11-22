@@ -269,7 +269,7 @@ function CheckoutContent() {
     return required.every((field) => shippingInfo[field as keyof ShippingInfo]?.toString().trim())
   }, [isAuthenticated, shippingInfo])
 
-  const { quote: orderQuote, loading: quoteLoading, error: quoteError, refresh: refreshQuote, acceptQuote, ensureQuote, destinationMessage } = useCheckoutQuote(orderPayload, !unavailable && purchase.loaded && !purchase.invalid && cartState.itemCount > 0, api.quoteOrder, config.default_currency, api.getShippingPolicy)
+  const { quote: orderQuote, loading: quoteLoading, error: quoteError, refresh: refreshQuote, acceptQuote, ensureQuote } = useCheckoutQuote(orderPayload, !unavailable && purchase.loaded && !purchase.invalid && cartState.itemCount > 0, api.quoteOrder, config.default_currency)
 
   const refreshCheckoutProducts = async () => {
     const uniqueProductIds = Array.from(new Set(cartState.items.map((item) => item.product.id)))
@@ -1021,7 +1021,6 @@ function CheckoutContent() {
                   <p className="text-xs text-muted-foreground text-right">{orderQuote.shipping_rate_name}</p>
                 )}
 
-                {destinationMessage && <p role="status" className="text-sm text-muted-foreground">{destinationMessage}</p>}
                 {quoteError && (
                   <Alert className="border-red-600 bg-red-900/20">
                     <AlertDescription className="text-red-400">{quoteError}</AlertDescription>
@@ -1050,7 +1049,7 @@ function CheckoutContent() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Truck className="h-4 w-4" />
-                    <span>{orderQuote ? "Total validé. Paiement à la livraison, sans encaissement immédiat." : "Total provisoire : renseignez votre adresse pour calculer la livraison."}</span>
+                    <span>{orderQuote ? "Total validé. Paiement à la livraison, sans encaissement immédiat." : "Vérification automatique du total et de la livraison en cours."}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Shield className="h-4 w-4" />

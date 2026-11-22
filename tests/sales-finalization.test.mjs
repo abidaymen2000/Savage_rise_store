@@ -1,24 +1,26 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { pricingKey, pricingInput, destinationReady, confirmCheckout, requiredDestinationFromError } from "../lib/checkout-flow.ts"
+import { pricingKey, pricingInput, confirmCheckout } from "../lib/checkout-flow.ts"
 import { saveQuickPurchase, readQuickPurchase, removeQuickPurchase } from "../lib/quick-purchase.ts"
 
-const policy = {configured: true, required_fields: ["country"]}
 const payload = {items: [{product_id:"p",variant_id:"black-m",qty:1}], shipping: {country:"TN",city:"",full_name:"",phone:"",postal_code:"",address_line1:""}, payment_method:"cod"}
 const q = (total=87.9, extra={}) => ({currency:"TND",total,subtotal:79.9,shipping_amount:8,quote_token:"signed",quote_expires_at:Date.now()/1000+900,...extra})
-test("fixed destination prepares without street/contact; regional policy waits only for city",()=>{
- assert.equal(destinationReady(payload.shipping,policy),true)
- assert.equal(destinationReady(payload.shipping,{configured:true,required_fields:["country","city"]}),false)
- assert.equal(destinationReady({...payload.shipping,city:"Tunis"},{configured:true,required_fields:["country","city"]}),true)
- assert.equal(destinationReady(payload.shipping,null),false)
+test("quote input is immediately available with every address field empty",()=>{
+ const empty = pricingInput(payload)
+ assert.equal(empty.shipping.country,"")
+ assert.equal(empty.shipping.city,"")
+ assert.equal(empty.shipping.postal_code,"")
+ assert.equal(empty.shipping.address_line1,"")
+ assert.deepEqual(empty.items,payload.items)
+ assert.equal(payload.shipping.country,"TN")
 })
-test("nonpricing edits reuse quote; destination, cart and discounts invalidate it",()=>{
- const full = {...payload, shipping:{...payload.shipping,full_name:"Test",phone:"000",address_line1:"Rue test",postal_code:"1000",city:"Tunis"}}
- assert.equal(pricingKey(payload,policy),pricingKey(full,policy))
- assert.equal(pricingInput(full,policy).shipping.address_line1,"")
- for(const next of [{...full,shipping:{...full.shipping,country:"FR"}},{...full,items:[{...full.items[0],qty:2}]},{...full,promo_code:"TEST"}])
-   assert.notEqual(pricingKey(full,policy),pricingKey(next,policy))
- assert.notEqual(pricingKey(payload,{configured:true,required_fields:["country","city"]}),pricingKey(full,{configured:true,required_fields:["country","city"]}))
+test("all delivery edits reuse the quote; quantities, selections and discounts invalidate it",()=>{
+ for(const shipping of [{...payload.shipping,country:"FR"},{...payload.shipping,city:"Paris"},{...payload.shipping,postal_code:"75001"},{...payload.shipping,address_line1:"New street"},{...payload.shipping,full_name:"Test",phone:"000"}]) {
+   assert.equal(pricingKey(payload),pricingKey({...payload,shipping}))
+   assert.deepEqual(pricingInput(payload),pricingInput({...payload,shipping}))
+ }
+ for(const next of [{...payload,items:[{...payload.items[0],qty:2}]},{...payload,items:[{...payload.items[0],variant_id:"black-l"}]},{...payload,promo_code:"TEST"},{...payload,loyalty_points_to_use:10}])
+   assert.notEqual(pricingKey(payload),pricingKey(next))
 })
 test("unchanged valid quote confirms once with same selected variant",async()=>{
  let sends=0
@@ -71,14 +73,23 @@ test("quick intent preserves existing cart, exact variant/quantity and pack sele
  assert.equal(map.get("regular-cart"),original);assert.equal(readQuickPurchase(storage,"store-a",intent.id,101),null)
 })
 
-test("stale destination metadata adopts authoritative new required fields",()=>{
- assert.deepEqual(requiredDestinationFromError({body:{detail:{code:"SHIPPING_DESTINATION_REQUIRED",required_fields:["country","city"]}}}),["country","city"])
- assert.equal(requiredDestinationFromError({status:503}),null)
-})
 
 test("bundle checkout preserves every canonical component variant and parent", async()=>{
  const {buildOrderPayload} = await import("../lib/order-payload.ts")
  const result=buildOrderPayload({items:[],packItems:[{pack:{id:"bundle",variant_id:"parent-canonical"},quantity:1,selections:[{component_id:"c",product_id:"p",variant_id:"legacy-color-group",variant_item_id:"canonical-black-m",color:"Black",size:"M"}]}],shipping:payload.shipping})
  assert.equal(result.items[0].variant_id,"parent-canonical")
  assert.deepEqual(result.items[0].bundle_selection.components,[{component_id:"c",variant_id:"canonical-black-m"}])
+})
+
+test("old signed quote recovers automatically at the same total with one order intention",async()=>{
+ const sends=[]
+ const full={...payload,shipping:{...payload.shipping,country:"FR",city:"Paris",address_line1:"Fixture",postal_code:"75001"}}
+ const result=await confirmCheckout({payload:full,quote:q(),currency:"TND",idempotencyKey:"rolling-release",
+   load:async()=>q(87.9,{quote_token:"new-signature"}),
+   submit:async(body,key)=>{sends.push({body,key});if(sends.length===1)throw {status:409,body:{detail:{code:"QUOTE_CHANGED"}}};return{id:"one"}}})
+ assert.equal(result.kind,"confirmed")
+ assert.equal(sends.length,2)
+ assert.equal(sends[0].key,sends[1].key)
+ assert.deepEqual(sends[1].body.shipping,full.shipping)
+ assert.equal(sends[1].body.quote_token,"new-signature")
 })
