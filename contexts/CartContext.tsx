@@ -1,7 +1,10 @@
 "use client"
 
+import { api } from "@/lib/api"
+import { ApiError } from "@/lib/api/api-error"
+import { refreshCartSelection } from "@/lib/cart-availability"
 import type React from "react"
-import { createContext, useContext, useReducer, useEffect, useState } from "react"
+import { createContext, useContext, useReducer, useEffect, useState, useRef } from "react"
 import type { CartItem, CartPackItem, Pack, PackOrderComponent, Product, Variant } from "@/types/api"
 import { getSelectableQuantityLimit, getVariantSize } from "@/lib/inventory"
 import { getProductCartKey, matchesCartItem, resolveVariantItemId } from "@/lib/cart-identity"
@@ -18,6 +21,7 @@ interface CartState {
 }
 
 type CartAction =
+  | { type: "REFRESH_PRODUCTS"; payload: Product[] }
   | {
       type: "ADD_ITEM"
       payload: { product: Product; variant: Variant; size: string; quantity?: number }
@@ -216,6 +220,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "CLEAR_CART":
       return { items: [], packItems: [], total: 0, itemCount: 0 }
 
+    case "REFRESH_PRODUCTS": {
+      const products = new Map(action.payload.map(product => [product.id, product]))
+      return calculateCart(state.items.map(item => refreshCartSelection(item, products.get(item.product.id))), state.packItems)
+    }
+
     case "LOAD_CART":
       return action.payload
 
@@ -275,6 +284,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
     }
   }, [state])
+
+  const cartItemsRef = useRef(state.items)
+  cartItemsRef.current = state.items
+  const productKey = [...new Set(state.items.map(item => item.product.id))].sort().join(",")
+  useEffect(() => {
+    if (!productKey) return
+    let active = true
+    let inFlight = false
+    const refresh = async () => {
+      if (inFlight) return
+      inFlight = true
+      try {
+        const unique = [...new Map(cartItemsRef.current.map(item => [item.product.id, item.product])).values()]
+        const products = await Promise.all(unique.map(async product => {
+          try { return await api.getProduct(product.slug || product.id) }
+          catch (error) { return { ...product, in_stock: undefined, availability_status: error instanceof ApiError && error.status === 404 ? "unavailable" as const : "unknown" as const } }
+        }))
+        if (active) dispatch({ type: "REFRESH_PRODUCTS", payload: products })
+      } finally { inFlight = false }
+    }
+    void refresh()
+    const timer = setInterval(refresh, 30000)
+    window.addEventListener("online", refresh)
+    window.addEventListener("focus", refresh)
+    return () => { active = false; clearInterval(timer); window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh) }
+  }, [productKey, isCartOpen])
 
   const openCart = () => {
     setIsCartOpen(true)
@@ -459,30 +494,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "CLEAR_CART" })
   }
 
-  const refreshCartProducts = (products: Product[]) => {
-    if (products.length === 0) return
-
-    const productMap = new Map(products.map((product) => [product.id, product]))
-    const nextItems = state.items.map((item) => {
-      const freshProduct = productMap.get(item.product.id)
-      if (!freshProduct) return item
-
-      const freshVariant =
-        freshProduct.variants.find((variant) => variant.items?.some((variantItem) => variantItem.id === item.selectedVariantItemId)) ??
-        freshProduct.variants.find((variant) => variant.color === item.selectedVariant.color)
-      return {
-        ...item,
-        product: freshProduct,
-        selectedVariant: freshVariant ?? item.selectedVariant,
-        selectedVariantItemId: item.selectedVariantItemId ?? resolveVariantItemId(freshVariant ?? item.selectedVariant, item.selectedSize),
-      }
-    })
-
-    dispatch({
-      type: "LOAD_CART",
-      payload: calculateCart(nextItems, state.packItems),
-    })
-  }
+  const refreshCartProducts = (products: Product[]) => dispatch({ type: "REFRESH_PRODUCTS", payload: products })
 
   const getCartKey = (productId: string, color: string, size: string, variantItemId?: string | null) => {
     if (variantItemId) return `${productId}-${variantItemId}`

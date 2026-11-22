@@ -1,3 +1,4 @@
+import type { Availability } from "@/lib/availability"
 // Base types
 export interface ProductImage {
   id: string
@@ -7,7 +8,7 @@ export interface ProductImage {
   is_primary?: boolean | null
 }
 
-export interface SizeStock {
+export interface SizeStock extends Availability {
   size: string
   track_inventory?: boolean
   stock_on_hand?: number
@@ -21,7 +22,7 @@ export interface SizeStock {
   meta_content_id?: string | null
 }
 
-export interface VariantItem {
+export interface VariantItem extends Availability {
   id: string
   variant_id?: string | null
   sku?: string | null
@@ -49,16 +50,16 @@ export interface Variant {
   images: ProductImage[]
   meta_content_id?: string | null
   option_values?: Record<string, string>
-  inventory?: {
+  inventory?: Availability & {
     track_inventory: boolean
-    stock_on_hand: number
-    stock_reserved: number
-    stock_available: number
-    in_stock: boolean
+    stock_on_hand?: number
+    stock_reserved?: number
+    stock_available?: number
+    in_stock?: boolean
   } | null
 }
 
-export interface Product {
+export interface Product extends Availability {
   id: string
   meta_item_group_id?: string | null
   style_id: string
@@ -94,7 +95,7 @@ export interface Product {
   category_ids?: string[]
   price: number
   compare_at_price?: number | null
-  in_stock: boolean
+  in_stock?: boolean
   variants: Variant[]
   images?: ProductImage[]
   slug?: string
@@ -513,7 +514,7 @@ export interface ProductSummary {
   in_stock?: boolean
 }
 
-export interface PackProductSummary {
+export interface PackProductSummary extends Availability {
   id: string
   name: string
   full_name?: string | null
@@ -535,7 +536,7 @@ export interface PackComponent {
   locked_variant?: boolean
 }
 
-export interface Pack {
+export interface Pack extends Availability {
   in_stock?: boolean
   id: string
   title: string

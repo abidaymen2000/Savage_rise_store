@@ -11,7 +11,8 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product, Variant } from "@/types/api"
-import { getAvailableStock, getProductVariantForSelection, getSelectableQuantityLimit, getVariantSize, isSizePurchasable, isSizeTracked } from "@/lib/inventory"
+import { availabilityStatus, availabilityLabel, hasLowStock, isSoldOut } from "@/lib/availability"
+import { getProductAvailability, getProductVariantForSelection, getSelectableQuantityLimit, getVariantSize, isSizePurchasable } from "@/lib/inventory"
 import { buildMetaProductContent, metaProductId } from "@/lib/meta-content"
 import {
   buildPackSelections,
@@ -38,16 +39,6 @@ type ProductDetailClientProps = {
   product: Product
   initialRelatedPack: Pack | null
   initialRelatedProducts: Record<string, Product>
-}
-
-type StockDisplayStatus = "in-stock" | "low-stock" | "sold-out"
-
-const LOW_STOCK_THRESHOLD = 5
-
-function getStockDisplayStatus(availableStock: number): StockDisplayStatus {
-  if (availableStock <= 0) return "sold-out"
-  if (availableStock <= LOW_STOCK_THRESHOLD) return "low-stock"
-  return "in-stock"
 }
 
 function getInitialSelection(product: Product) {
@@ -231,10 +222,11 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   const availableColors = product ? getAvailableColors(product) : []
   const availableSizes = product ? getAvailableSizes(product, selectedColor) : []
   const selectedVariantSize = getVariantSize(currentVariant, selectedSize)
-  const currentAvailableStock = getAvailableStock(selectedVariantSize)
-  const stockDisplayStatus = !productInStock || selectedVariantSize?.in_stock === false ? "sold-out" : getStockDisplayStatus(currentAvailableStock)
+  const productAvailability = getProductAvailability(product)
+  const selectionAvailability = productAvailability === "available" ? availabilityStatus(selectedVariantSize) : productAvailability
+  const stockDisplayStatus = isSoldOut(selectionAvailability) ? "sold-out" : selectionAvailability === "available" ? hasLowStock(selectedVariantSize) ? "low-stock" : "in-stock" : "unavailable"
   const quantityLimit = getSelectableQuantityLimit(selectedVariantSize)
-  const currentSelectionInStock = Boolean(selectedVariantSize && isSizePurchasable(selectedVariantSize) && stockDisplayStatus !== "sold-out")
+  const currentSelectionInStock = selectionAvailability === "available"
   const canAddCurrentSelection =
     Boolean(productInStock && currentVariant && selectedSize && currentSelectionInStock) &&
     quantity <= quantityLimit
@@ -339,6 +331,8 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               )}
             </div>
 
+            {stockDisplayStatus === "unavailable" && <p role="status" className="text-sm text-muted-foreground">{availabilityLabel(selectionAvailability)}</p>}
+
             {/* Description */}
             {product.description && (
               <div>
@@ -390,7 +384,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                     const optionVariant = getProductVariantForSelection(product, selectedColor, size)
                     const optionSize = getVariantSize(optionVariant, size)
                     const purchasable = isSizePurchasable(optionSize)
-                    const stock = getAvailableStock(optionSize)
+                    const lowStock = hasLowStock(optionSize)
                     const selected = selectedSize === size
                     return (
                       <button
@@ -418,7 +412,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                         aria-pressed={selected}
                       >
                         {size}
-                        {!purchasable ? <span className="sr-only"> epuise</span> : isSizeTracked(optionSize) && stock < 5 ? <span className="sr-only"> stock limite</span> : null}
+                        {!purchasable ? <span className="sr-only"> {availabilityLabel(availabilityStatus(optionSize))}</span> : lowStock ? <span className="sr-only"> stock limite</span> : null}
                       </button>
                     )
                   })}
@@ -453,7 +447,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 className="w-full flex-1 bg-accent px-4 py-3 font-semibold leading-snug text-accent-foreground hover:bg-accent/90 whitespace-normal text-center"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
-                {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? "Epuise" : "Choisir une taille"}
+                {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? availabilityLabel(selectionAvailability) : "Choisir une taille"}
               </Button>
               {wishlistEnabled && <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />}
             </div>

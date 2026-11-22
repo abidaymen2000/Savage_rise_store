@@ -5,6 +5,8 @@
 import type { CatalogLegacyMediaItem } from './CatalogLegacyMediaItem';
 import type { PromotionPricing } from './PromotionPricing';
 export type ProductVariantListSummary = {
+    availability_status?: "available" | "out_of_stock" | "forced_sold_out" | "inactive" | "invalid_variant" | "unavailable" | null;
+    low_stock?: boolean;
     id: string;
     title: string;
     option_values?: Record<string, string>;

@@ -9,6 +9,8 @@ import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantListSummary } from './ProductVariantListSummary';
 import type { PromotionPricing } from './PromotionPricing';
 export type ProductListItem = {
+    availability_status?: "available" | "out_of_stock" | "forced_sold_out" | "inactive" | "invalid_variant" | "unavailable" | null;
+    low_stock?: boolean;
     /**
      * Read-only projection of the persisted manual in_stock=false flag; in_stock is effective availability.
      */

@@ -1,0 +1,52 @@
+  ▲ Next.js 14.2.16
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/24) ...
+   Generating static pages (6/24) 
+   Generating static pages (12/24) 
+   Generating static pages (18/24) 
+ ✓ Generating static pages (24/24)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    4.64 kB         162 kB
+├ ƒ /_not-found                          876 B          88.1 kB
+├ ƒ /about                               357 B          99.4 kB
+├ ƒ /analytics-diagnostics               1.01 kB         109 kB
+├ ƒ /api/auth/verify-email               0 B                0 B
+├ ƒ /categories/[name]                   5.85 kB         176 kB
+├ ƒ /checkout                            13.6 kB         166 kB
+├ ƒ /checkout/success                    5.28 kB         124 kB
+├ ƒ /contact                             4.09 kB         135 kB
+├ ƒ /email-confirmed                     181 B          94.2 kB
+├ ƒ /email-verification-failed           181 B          94.2 kB
+├ ƒ /help                                357 B          99.4 kB
+├ ƒ /packs                               5.77 kB         133 kB
+├ ƒ /packs/[id]                          7.58 kB         167 kB
+├ ƒ /products                            4.51 kB         171 kB
+├ ƒ /products/[id]                       9.55 kB         169 kB
+├ ƒ /profile                             10.6 kB         149 kB
+├ ƒ /profile/change-password             6.67 kB         122 kB
+├ ƒ /profile/edit                        6.21 kB         122 kB
+├ ƒ /profile/orders/[id]                 5.72 kB         137 kB
+├ ƒ /reset-password                      5.92 kB         128 kB
+├ ƒ /returns                             357 B          99.4 kB
+├ ƒ /shipping                            357 B          99.4 kB
+├ ƒ /size-guide                          357 B          99.4 kB
+├ ƒ /verify-email                        3.01 kB         105 kB
+├ ƒ /verify-success                      1.66 kB         109 kB
+└ ƒ /vlog                                6.38 kB         156 kB
++ First Load JS shared by all            87.2 kB
+  ├ chunks/2117-b1d0e53df296bfc6.js      31.6 kB
+  ├ chunks/fd9d1056-9dae96307a9f4883.js  53.6 kB
+  └ other shared chunks (total)          2 kB
+
+
+ƒ  (Dynamic)  server-rendered on demand
+

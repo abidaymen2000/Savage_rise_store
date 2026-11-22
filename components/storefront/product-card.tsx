@@ -5,6 +5,8 @@ import Link from "next/link"
 import ProductCardActions from "@/components/storefront/product-card-actions"
 import { getColorSwatch } from "@/lib/color-swatches"
 import { formatPrice, getFirstProductImage, getProductImageAlt, isProductInStock } from "@/lib/utils"
+import { getProductAvailability } from "@/lib/inventory"
+import { isSoldOut, availabilityLabel } from "@/lib/availability"
 import type { Product } from "@/types/api"
 
 function getProductHref(product: Product) {
@@ -25,6 +27,7 @@ function getColors(product: Product) {
 export default function ProductCard({ product, compact = false, priority = false }: { product: Product; compact?: boolean; priority?: boolean }) {
   const formatPrice = useStorePrice()
   const inStock = isProductInStock(product)
+  const availability = getProductAvailability(product)
   const colors = getColors(product)
   const first = getFirstProductImage(product)
   const second = product.variants?.flatMap((variant) => variant.images ?? []).find((image) => image.url && image.url !== first)?.url
@@ -54,7 +57,7 @@ export default function ProductCard({ product, compact = false, priority = false
         )}
         {!inStock && <div className="absolute inset-0 z-10 bg-card/10" aria-hidden="true" />}
         <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2">
-          {!inStock && <span className="bg-black/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-sm ring-1 ring-white/10">SOLD OUT</span>}
+          {isSoldOut(availability) && <span className="bg-black/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-sm ring-1 ring-white/10">SOLD OUT</span>}
           {compareAt && <span className="bg-accent px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-foreground">Promo</span>}
         </div>
       </Link>

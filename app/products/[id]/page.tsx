@@ -1,3 +1,4 @@
+import { ApiError } from "@/lib/api/api-error"
 import type { Metadata } from "next"
 import { cache } from "react"
 import { notFound } from "next/navigation"
@@ -16,8 +17,9 @@ type ProductPageProps = {
 const getProductOrNull = cache(async (id: string) => {
   try {
     return await api.getProduct(id)
-  } catch {
-    return null
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
   }
 })
 

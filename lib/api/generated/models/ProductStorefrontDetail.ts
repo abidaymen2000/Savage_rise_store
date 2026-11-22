@@ -11,6 +11,8 @@ import type { ProductStatus } from './ProductStatus';
 import type { ProductVariantRead } from './ProductVariantRead';
 import type { TrackingMethod } from './TrackingMethod';
 export type ProductStorefrontDetail = {
+    availability_status?: "available" | "out_of_stock" | "forced_sold_out" | "inactive" | "invalid_variant" | "unavailable" | null;
+    low_stock?: boolean;
     id: string;
     version: number;
     created_at?: (string | null);

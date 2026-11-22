@@ -52,16 +52,14 @@ export function getAvailableSizes(product: Product, selectedColor?: string): str
   return Array.from(new Set((variants ?? []).flatMap((variant) => (variant.sizes ?? []).map((size) => size.size).filter((size) => size && size.toLowerCase() !== "default"))))
 }
 
-export function getStockForSize(product: Product, color: string, size: string): number {
+export function getStockForSize(product: Product, color: string, size: string): number | undefined {
   const variant = getProductVariantForSelection(product, color, size)
   const sizeStock = variant?.sizes?.find((item) => item.size === size)
   return getAvailableStock(sizeStock)
 }
 
 export function isProductInStock(product: Product): boolean {
-  if (product.in_stock !== true) return false
-  if (product.product_kind === "bundle") return product.in_stock
-  return product.variants?.length ? productHasPurchasableVariant(product) : product.in_stock
+  return productHasPurchasableVariant(product)
 }
 
 export function sortProductsByStockStatus(products: Product[]): Product[] {

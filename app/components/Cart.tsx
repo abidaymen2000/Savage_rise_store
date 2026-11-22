@@ -1,4 +1,6 @@
 "use client"
+import { cartItemAvailability } from "@/lib/cart-availability"
+import { availabilityLabel } from "@/lib/availability"
 import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useEffect, useMemo, useState } from "react"
@@ -118,7 +120,7 @@ export default function Cart() {
   }
 
   const getItemMaxQuantity = (item: (typeof state.items)[0]) =>
-    getSelectableQuantityLimit(getVariantSize(item.selectedVariant, item.selectedSize))
+    cartItemAvailability(item) === "available" ? getSelectableQuantityLimit(getVariantSize(item.selectedVariant, item.selectedSize)) : 0
 
   const alreadyUsed = !!promo && !promo.valid && promo.reason === "per_user_limit_reached"
   const loginRequired = !!promo && !promo.valid && promo.reason === "login_required"
@@ -537,6 +539,7 @@ export default function Cart() {
                               <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.product.name}</h3>
                               <p className="text-xs text-muted-foreground">Couleur : {item.selectedVariant.color}</p>
                               <p className="text-xs text-muted-foreground">Taille : {item.selectedSize}</p>
+                              {cartItemAvailability(item) !== "available" && <p role="status" className="text-xs text-muted-foreground">{availabilityLabel(cartItemAvailability(item))}</p>}
                             </div>
                             <div className="flex shrink-0 items-start gap-3">
                               <p className="text-right text-base font-semibold text-gold sm:text-lg">

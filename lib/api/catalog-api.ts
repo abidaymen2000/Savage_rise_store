@@ -1,3 +1,5 @@
+import { retryReadOnly } from "@/lib/read-retry"
+import { availabilityStatus } from "@/lib/availability"
 import {
   CatalogService,
   type BundleComponent,
@@ -8,8 +10,10 @@ import {
   type ProductStorefrontDetail,
   type ProductVariantRead,
 } from "./api-client"
-import { withApiErrors } from "./api-error"
+import { withApiErrors, ApiError } from "./api-error"
 import type { Category, Pack, PackComponent, PackProductSummary, Product, ProductImage, SearchFilters, SizeStock, Variant } from "@/types/api"
+
+const readCatalog = <T>(operation: () => Promise<T>) => retryReadOnly(() => withApiErrors(operation()), new AbortController().signal)
 
 export type CatalogProductPage = {
   items: Product[]
@@ -67,9 +71,7 @@ function hasDisplayableOptionValues(variant: ProductVariantRead) {
 }
 
 function legacySizeInStock(size: SizeStock) {
-  if (typeof size.in_stock === "boolean") return size.in_stock
-  if (size.track_inventory === false) return true
-  return (size.stock_available ?? size.stock ?? 0) > 0
+  return availabilityStatus(size) === "available"
 }
 
 function variantToLegacy(variant: ProductVariantRead, productPrice: number, productKind?: string): Variant {
@@ -82,7 +84,7 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
   const stockOnHand = inventory?.stock_on_hand
   const stockReserved = inventory?.stock_reserved
   const stockAvailable = inventory?.stock_available ?? (typeof stockOnHand === "number" && typeof stockReserved === "number" ? Math.max(stockOnHand - stockReserved, 0) : undefined)
-  const inStock = inventory?.in_stock ?? (trackInventory ? (stockAvailable ?? 0) > 0 : variant.status !== "inactive" && variant.status !== "archived")
+  const inStock = inventory?.in_stock
   const size: SizeStock | null = bundleWithoutOptions ? null : {
     size: second,
     track_inventory: trackInventory,
@@ -91,6 +93,8 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
     stock_available: stockAvailable,
     stock: trackInventory ? stockAvailable : undefined,
     in_stock: inStock,
+    availability_status: inventory?.availability_status,
+    low_stock: inventory?.low_stock,
     sku: variant.sku ?? null,
     status: variant.status ?? null,
     variant_item_id: variant.id,
@@ -117,6 +121,8 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
       stock_on_hand: stockOnHand,
       stock_reserved: stockReserved,
       in_stock: inStock,
+    availability_status: inventory?.availability_status,
+    low_stock: inventory?.low_stock,
       status: variant.status ?? null,
     }],
     images: mediaToImages(variant.media),
@@ -128,6 +134,8 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
       stock_reserved: stockReserved,
       stock_available: stockAvailable,
       in_stock: inStock,
+    availability_status: inventory?.availability_status,
+    low_stock: inventory?.low_stock,
     } : null,
     sku: variant.sku ?? null,
     price: variantPrice,
@@ -142,7 +150,7 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   const compareAtPrice = toNumber(firstVariant?.compare_at_price, 0) || null
   const variants = (detail.variants ?? []).map((variant) => variantToLegacy(variant, price, detail.product_kind))
   const images = productMedia.length > 0 ? productMedia : variants.flatMap((variant) => variant.images)
-  const inStock = detail.in_stock ?? variants.some((variant) => variant.sizes.some(legacySizeInStock))
+  const inStock = detail.in_stock
 
   return {
     id: detail.id,
@@ -157,6 +165,10 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
     price,
     compare_at_price: compareAtPrice,
     in_stock: inStock,
+    availability_status: detail.availability_status,
+    low_stock: detail.low_stock,
+    forced_sold_out: detail.forced_sold_out,
+    status: detail.status,
     variants,
     images,
     slug: detail.slug,
@@ -179,7 +191,11 @@ function listItemToProduct(item: ProductListItem): Product {
     primary_category_id: item.primary_category_id ?? null,
     category_ids: item.primary_category_id ? [item.primary_category_id] : [],
     price: 0,
-    in_stock: item.in_stock === true,
+    in_stock: item.in_stock,
+    availability_status: item.availability_status,
+    low_stock: item.low_stock,
+    forced_sold_out: item.forced_sold_out,
+    status: item.status,
     variants: [],
     images: mediaToImages(item.primary_image ? [item.primary_image] : []),
     slug: item.slug,
@@ -211,7 +227,8 @@ function bundleComponentToPackComponent(component: BundleComponent, products: Pr
     full_name: product?.full_name ?? product?.name ?? component.product_id,
     price: product?.price ?? 0,
     image_url: product?.images?.[0]?.url ?? fixedVariant?.images?.[0]?.url ?? null,
-    in_stock: product?.in_stock ?? true,
+    in_stock: product?.in_stock,
+    availability_status: product?.availability_status,
   }
 
   return {
@@ -253,6 +270,9 @@ function productToPack(product: Product, componentProducts: Product[] = []): Pac
     id: product.id,
     title: product.name,
     in_stock: product.in_stock,
+    availability_status: product.availability_status,
+    forced_sold_out: product.forced_sold_out,
+    low_stock: product.low_stock,
     description: product.description ?? null,
     product_ids: components.map((component) => component.product_id),
     components,
@@ -303,12 +323,13 @@ export const catalogApi = {
 
   async getProduct(slugOrId: string): Promise<Product> {
     try {
-      return detailToProduct(await withApiErrors(CatalogService.getProductCatalogProductsSlugGet({ slug: slugOrId })))
+      return detailToProduct(await readCatalog(() => CatalogService.getProductCatalogProductsSlugGet({ slug: slugOrId })))
     } catch (error) {
-      const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({ page: 1, pageSize: 100 }))
+      if (!(error instanceof ApiError) || error.status !== 404 || !/^[a-f0-9]{24}$/i.test(slugOrId)) throw error
+      const response = await readCatalog(() => CatalogService.listProductsCatalogProductsGet({ page: 1, pageSize: 100 }))
       const item = (response.items ?? []).find((product) => product.id === slugOrId || product.slug === slugOrId)
       if (!item) throw error
-      return detailToProduct(await withApiErrors(CatalogService.getProductCatalogProductsSlugGet({ slug: item.slug })))
+      return detailToProduct(await readCatalog(() => CatalogService.getProductCatalogProductsSlugGet({ slug: item.slug })))
     }
   },
 
@@ -320,7 +341,7 @@ export const catalogApi = {
   },
 
   async getCategories(): Promise<Category[]> {
-    return (await withApiErrors(CatalogService.listCategoriesCatalogCategoriesGet())).map(categoryToLegacy)
+    return (await readCatalog(() => CatalogService.listCategoriesCatalogCategoriesGet())).map(categoryToLegacy)
   },
 
   async getCategory(categoryId: string): Promise<Category> {
@@ -332,13 +353,13 @@ export const catalogApi = {
 
   async getProductsByCategory(categorySlug: string, skip = 0, limit = 10): Promise<Product[]> {
     const page = Math.floor(skip / limit) + 1
-    const response = await withApiErrors(CatalogService.productsByCategoryCatalogCategoriesSlugProductsGet({ slug: categorySlug, page, pageSize: limit }))
+    const response = await readCatalog(() => CatalogService.productsByCategoryCatalogCategoriesSlugProductsGet({ slug: categorySlug, page, pageSize: limit }))
     return Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
   },
 
   async getPacks(skip = 0, limit = 20): Promise<Pack[]> {
     const page = Math.floor(skip / limit) + 1
-    const response = await withApiErrors(CatalogService.listProductsCatalogProductsGet({ page, pageSize: limit, productKind: "bundle" }))
+    const response = await readCatalog(() => CatalogService.listProductsCatalogProductsGet({ page, pageSize: limit, productKind: "bundle" }))
     const products = await Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug)))
     return products.map((product) => productToPack(product, products))
   },

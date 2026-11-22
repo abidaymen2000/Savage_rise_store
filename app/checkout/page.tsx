@@ -1016,10 +1016,6 @@ export default function CheckoutPage() {
                   </Alert>
                 )}
 
-                <p className="text-xs text-muted-foreground">
-                  Status: {checkoutStatus}
-                </p>
-
                 <Separator className="bg-gray-700" />
 
                 <div className="flex justify-between text-lg font-semibold">
@@ -1056,10 +1052,10 @@ export default function CheckoutPage() {
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
+                      Confirmation…
                     </>
                   ) : (
-                    `Confirmer ma commande • ${formatPrice(total)}`
+                    `Commander • ${formatPrice(total)}`
                   )}
                 </Button>
 

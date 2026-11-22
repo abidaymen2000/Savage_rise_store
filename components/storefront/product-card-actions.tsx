@@ -9,6 +9,8 @@ import WishlistButton from "@/components/WishlistButton"
 import { useCart } from "@/contexts/CartContext"
 import { getFirstAvailableVariantSelection } from "@/lib/meta-content"
 import { isProductInStock } from "@/lib/utils"
+import { getProductAvailability } from "@/lib/inventory"
+import { isSoldOut, availabilityLabel } from "@/lib/availability"
 import type { Product } from "@/types/api"
 
 function ProductActionLabel({ label }: { label: string }) {
@@ -53,8 +55,9 @@ function ProductActionLabel({ label }: { label: string }) {
 export default function ProductCardActions({ product, href }: { product: Product; href: string }) {
   const { addToCart } = useCart()
   const inStock = isProductInStock(product)
+  const availability = getProductAvailability(product)
   const hasVariants = (product.variants ?? []).length > 0
-  const primaryLabel = !inStock ? "SOLD OUT" : hasVariants ? "CHOISIR UNE TAILLE" : "VOIR LE PRODUIT"
+  const primaryLabel = !inStock ? availabilityLabel(availability) : hasVariants ? "CHOISIR UNE TAILLE" : "VOIR LE PRODUIT"
 
   const handleQuickAdd = () => {
     const selection = getFirstAvailableVariantSelection(product)

@@ -1,3 +1,5 @@
+import * as p1Inventory from "../lib/inventory.ts"
+import * as p1Availability from "../lib/availability.ts"
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import test from "node:test"
@@ -21,6 +23,8 @@ runInNewContext(ts.transpileModule(cardSource, {
   exports: cardModule.exports,
   require: (name) => {
     if (name === "react/jsx-runtime") return jsxRuntime
+    if (name === "@/lib/inventory") return p1Inventory
+    if (name === "@/lib/availability") return p1Availability
     if (name === "@/lib/utils") return utils
     if (name === "@/hooks/use-store-price") return { useStorePrice: () => (value) => utils.formatPrice(value) }
     if (name === "@/lib/color-swatches") return swatches
@@ -94,7 +98,7 @@ test("all card routes read fresh products while the badge and purchase guard sha
   }
   const card = read("components/storefront/product-card.tsx")
   assert.match(card, /const inStock = isProductInStock\(product\)/)
-  assert.match(card, /!inStock && <span className="bg-black\/90[^]*?>SOLD OUT<\/span>/)
+  assert.match(card, /isSoldOut\(availability\) && <span className="bg-black\/90[^]*?>SOLD OUT<\/span>/)
   assert.match(read("components/storefront/product-card-actions.tsx"), /if \(!selection \|\| !inStock\) return/)
   assert.match(read("app/products/[id]/ProductDetailClient.tsx"), /const productInStock = product \? isProductInStock\(product\)/)
 })

@@ -1,4 +1,5 @@
 "use client"
+import { availabilityStatus, availabilityLabel } from "@/lib/availability"
 import { useStorePrice } from "@/hooks/use-store-price"
 
 import { useEffect, useMemo, useState } from "react"
@@ -250,7 +251,7 @@ export default function PackDetailPage() {
   }
 
   const packAvailable =
-    pack?.in_stock !== false &&
+    availabilityStatus(pack) === "available" &&
     components.length >= 2 &&
     components.every((component) => {
       const product = products[component.product_id]
@@ -517,7 +518,7 @@ export default function PackDetailPage() {
                       <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-foreground dark:text-white">{component.product.name}</p>
-                          {isUnavailable && <p className="mt-1 text-sm text-red-300">Out of stock</p>}
+                          {isUnavailable && <p className="mt-1 text-sm text-red-300">{availabilityLabel(availabilityStatus(product))}</p>}
                         </div>
                         {effectiveSize && selection.color && !isUnavailable && <Check className="h-5 w-5 text-green-400" />}
                       </div>
@@ -591,7 +592,7 @@ export default function PackDetailPage() {
               className="w-full bg-accent py-6 text-base font-semibold text-accent-foreground hover:bg-accent/90"
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
-              {pack?.in_stock === false ? "Sold out" : added ? "Pack added" : packAvailable ? "Add pack to cart" : "Complete available selections"}
+              {availabilityStatus(pack) !== "available" ? availabilityLabel(availabilityStatus(pack)) : added ? "Pack added" : packAvailable ? "Add pack to cart" : "Complete available selections"}
             </Button>
           </div>
         </div>

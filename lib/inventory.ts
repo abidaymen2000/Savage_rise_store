@@ -1,3 +1,4 @@
+import { availabilityStatus, knownStock, isSoldOut, type AvailabilityStatus } from "@/lib/availability"
 import type { Product, SizeStock, Variant } from "@/types/api"
 
 function sizeRows(variant: Variant | null | undefined): SizeStock[] {
@@ -11,6 +12,8 @@ function sizeRows(variant: Variant | null | undefined): SizeStock[] {
     stock: item.stock_available,
     track_inventory: item.track_inventory,
     in_stock: item.in_stock,
+    availability_status: item.availability_status,
+    low_stock: item.low_stock,
     sku: item.sku,
     status: item.status,
     variant_item_id: item.id,
@@ -18,23 +21,10 @@ function sizeRows(variant: Variant | null | undefined): SizeStock[] {
   }))
 }
 
-export function getAvailableStock(size: SizeStock | null | undefined): number {
-  if (!size) return 0
-  if (size.track_inventory === false) return 0
-  if (typeof size.stock_available === "number") return size.stock_available
-  if (typeof size.stock === "number") return size.stock
-  if (typeof size.stock_on_hand === "number" && typeof size.stock_reserved === "number") {
-    return Math.max(0, size.stock_on_hand - size.stock_reserved)
-  }
-  return 0
-}
+export const getAvailableStock = knownStock
 
 export function isSizePurchasable(size: SizeStock | null | undefined): boolean {
-  if (!size || size.in_stock === false) return false
-  if (size.status && !["active", "in_stock", "available"].includes(size.status)) return false
-  if (size.track_inventory === false) return true
-  if (size.in_stock === true && size.stock_available === undefined && size.stock === undefined && size.stock_on_hand === undefined) return true
-  return getAvailableStock(size) > 0
+  return availabilityStatus(size) === "available"
 }
 
 export function isSizeTracked(size: SizeStock | null | undefined): boolean {
@@ -44,7 +34,7 @@ export function isSizeTracked(size: SizeStock | null | undefined): boolean {
 export function getSelectableQuantityLimit(size: SizeStock | null | undefined): number {
   if (!size || !isSizePurchasable(size)) return 0
   // UI cap only: the server validates real quantities without revealing stock.
-  return getAvailableStock(size) > 0 ? getAvailableStock(size) : 99
+  return Math.min(99, getAvailableStock(size) ?? 99)
 }
 
 export function getVariantSize(variant: Variant | null | undefined, sizeName: string | null | undefined) {
@@ -60,14 +50,24 @@ export function variantHasPurchasableSize(variant: Variant | null | undefined): 
   return getPurchasableSizes(variant).length > 0
 }
 
-export function productHasPurchasableVariant(product: Product | null | undefined): boolean {
-  if (product?.in_stock === false) return false
-  if (!product?.variants?.length) return Boolean(product?.in_stock)
-  return product.variants.some(variantHasPurchasableSize)
+export function getProductAvailability(product: Product | null | undefined): AvailabilityStatus {
+  if (!product) return "unknown"
+  const state = availabilityStatus(product)
+  if (product.availability_status === "unknown") return "unknown"
+  if (state !== "available" && state !== "unknown") return state
+  if (product.product_kind === "bundle" || !product.variants?.length) return state
+  const states = product.variants.flatMap(v => sizeRows(v).map(availabilityStatus))
+  if (states.includes("available")) return "available"
+  if (!states.length || states.includes("unknown")) return "unknown"
+  return states.every(isSoldOut) ? "out_of_stock" : "unavailable"
 }
 
-export function getStockForProductSelection(product: Product | null | undefined, color: string | null | undefined, sizeName: string | null | undefined): number {
-  if (!product || !color || !sizeName) return 0
+export function productHasPurchasableVariant(product: Product | null | undefined): boolean {
+  return getProductAvailability(product) === "available"
+}
+
+export function getStockForProductSelection(product: Product | null | undefined, color: string | null | undefined, sizeName: string | null | undefined): number | undefined {
+  if (!product || !color || !sizeName) return undefined
   const variant = getProductVariantForSelection(product, color, sizeName)
   return getAvailableStock(getVariantSize(variant, sizeName))
 }
@@ -76,5 +76,5 @@ export function getProductVariantForSelection(product: Product | null | undefine
   if (!product || !color) return null
   const colorVariants = product.variants.filter((variant) => variant.color === color)
   if (!sizeName) return colorVariants[0] ?? null
-  return colorVariants.find((variant) => sizeRows(variant).some((size) => size.size === sizeName)) ?? colorVariants[0] ?? null
+  return colorVariants.find((variant) => sizeRows(variant).some((size) => size.size === sizeName)) ?? null
 }
