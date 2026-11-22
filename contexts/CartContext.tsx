@@ -47,7 +47,7 @@ const CartContext = createContext<{
   dispatch: React.Dispatch<CartAction>
   openCart: () => void
   closeCart: () => void
-  buyNow: (product: Product, variant: Variant, size: string, quantity?: number) => void
+  buyNow: (product: Product, variant: Variant, size: string, quantity?: number, returnTo?: string) => void
   buyPackNow: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
   addToCart: (product: Product, variant: Variant, size: string, quantity?: number) => void
   addPackToCart: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
@@ -513,12 +513,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const intent = saveQuickPurchase(sessionStorage, "savage-rise-quick-purchase", purchase, returnTo)
     router.push("/checkout" + "?buy=" + intent.id)
   }
-  const buyNow = (product: Product, variant: Variant, size: string, quantity = 1) => {
+  const buyNow = (product: Product, variant: Variant, size: string, quantity = 1, returnTo?: string) => {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > getMaxCartQuantity(variant, size)) throw new Error("Cette quantité n’est pas disponible.")
     const purchase = cartReducer({items: [], packItems: [], total: 0, itemCount: 0}, {type: "ADD_ITEM", payload: {product, variant, size, quantity}})
     if (!purchase.itemCount) throw new Error("Ce modèle n’est pas disponible.")
     const query = new URLSearchParams({variant: resolveVariantItemId(variant, size) || variant.id || "", qty: String(quantity)})
-    launchPurchase(purchase, window.location.pathname + "?" + query)
+    launchPurchase(purchase, (returnTo || window.location.pathname) + "?" + query)
   }
   const buyPackNow = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
     if (!Number.isInteger(quantity) || quantity < 1 || !pack.in_stock || !selections.length) throw new Error("Ce pack n’est pas disponible.")

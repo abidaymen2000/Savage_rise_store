@@ -72,7 +72,7 @@ export default function FeaturedProducts({
 
   return (
     <div className="bg-background text-foreground">
-      <section className="border-y border-border bg-primary px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground sm:text-xs">
+      <section id="studio-catalog" className="border-y border-border bg-primary px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground sm:text-xs">
         {content.announcement.join(" - ")}
       </section>
 

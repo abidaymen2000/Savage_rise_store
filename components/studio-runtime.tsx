@@ -1,9 +1,9 @@
 "use client"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { studioStyles, validStudioContent, type StudioContent, type StudioDocument } from "@/lib/studio-contract"
+import { studioStyles, validStudioContent, type StudioContent, type StudioDocument, type StudioManifest } from "@/lib/studio-contract"
 import { studioOrigin } from "@/lib/preview-access"
 
-const StudioContext = createContext<{ content: StudioContent | null; hidden: string[]; preview: boolean }>({content: null, hidden: [], preview: false})
+const StudioContext = createContext<{ content: StudioContent | null; hidden: string[]; preview: boolean; manifest: StudioManifest | null }>({content: null, hidden: [], preview: false, manifest: null})
 export const useStudio = () => useContext(StudioContext)
 
 export function StudioRuntime({ document, children }: { document: StudioDocument | null; children: ReactNode }) {
@@ -21,7 +21,7 @@ export function StudioRuntime({ document, children }: { document: StudioDocument
     return () => window.removeEventListener("message", receive)
   }, [document])
   const hidden = document?.manifest.pages.filter(p => content?.visibility[p.key] === false).map(p => p.path) || []
-  return <StudioContext.Provider value={{content, hidden, preview: !!document?.preview}}>
+  return <StudioContext.Provider value={{content, hidden, preview: !!document?.preview, manifest: document?.manifest || null}}>
     <div data-studio-template="savage-rise" data-studio-revision={document?.revision || 0} data-grid-catalog={content?.grids.catalog || "default"} data-grid-categories={content?.grids.categories || "default"} style={studioStyles(content)}>
       {document?.preview && <div className="fixed bottom-3 left-3 z-[100] rounded-lg bg-slate-950 px-4 py-3 text-sm text-white" role="status">Aperçu privé · Achats désactivés <a className="ml-3 underline" href="/api/preview/exit">Quitter</a></div>}
       {children}

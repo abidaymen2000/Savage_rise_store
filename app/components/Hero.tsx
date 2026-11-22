@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import { StudioHeroAction } from "@/components/studio-hero-action"
 import { useStudio } from "@/components/studio-runtime"
 import { Button } from "@/components/ui/button"
 import StorefrontMedia from "@/components/storefront/media/storefront-media"
@@ -123,12 +124,12 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
             {showHeroPrice && <p className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-stone-300">{heroPrice}</p>}
           </div>
           <div className="flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
-            <HeroPrimaryAction
+            {edited?.primary_action ? <StudioHeroAction action={edited.primary_action} label={content.hero.primaryCta.label} className="h-12 min-h-11 rounded-none bg-white px-6 text-xs font-semibold uppercase tracking-[0.16em] text-black hover:bg-stone-200 disabled:opacity-60" /> : <HeroPrimaryAction
               href={discoverUrl}
               label={activeDrop ? activeDrop.cta_label ?? "Voir le Drop" : content.hero.primaryCta.label}
               hasActiveDrop={Boolean(activeDrop)}
-            />
-            {activeDrop?.email_enabled && !isDropReleased ? (
+            />}
+            {edited?.secondary_action ? <StudioHeroAction action={edited.secondary_action} label={content.hero.secondaryCta.label} className="h-12 min-h-11 rounded-none border border-white/70 bg-transparent px-6 text-xs font-semibold uppercase tracking-[0.16em] text-white hover:bg-white hover:text-black disabled:opacity-60" /> : activeDrop?.email_enabled && !isDropReleased ? (
               <HeroDropNotification drop={activeDrop} />
             ) : (
               <Button asChild variant="outline" className="h-12 rounded-none border-white/70 bg-transparent px-6 text-xs font-semibold uppercase tracking-[0.16em] text-white hover:bg-white hover:text-black">
