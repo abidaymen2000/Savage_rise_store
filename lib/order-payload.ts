@@ -15,7 +15,7 @@ function buildSingleItemPayload(item: CartItem) {
   const selectedSize = getVariantSize(item.selectedVariant, item.selectedSize)
   return {
     product_id: item.product.id,
-    variant_id: item.selectedVariant.id ?? selectedSize?.variant_item_id ?? null,
+    variant_id: item.selectedVariantItemId ?? selectedSize?.variant_item_id ?? item.selectedVariant.id ?? null,
     sku: selectedSize?.sku ?? item.selectedVariant.sku ?? item.product.sku ?? null,
     qty: item.quantity,
   }
@@ -28,7 +28,7 @@ export function buildPackOrderSelections(packItems: CartPackItem[]): PackOrderSe
     items: packItem.selections.map((selection) => ({
       component_id: selection.component_id ?? null,
       product_id: selection.product_id,
-      variant_id: selection.variant_id ?? selection.variant_item_id ?? null,
+      variant_id: selection.variant_item_id ?? selection.variant_id ?? null,
       variant_item_id: selection.variant_item_id ?? selection.variant_id ?? null,
       sku: selection.sku ?? null,
       color: selection.color,
@@ -41,14 +41,14 @@ export function buildPackOrderSelections(packItems: CartPackItem[]): PackOrderSe
 function buildBundleItemPayload(packItem: CartPackItem) {
   return {
     product_id: packItem.pack.id,
-    variant_id: null,
+    variant_id: packItem.pack.variant_id ?? null,
     sku: null,
     qty: packItem.quantity,
     bundle_selection: {
       components: packItem.selections
         .map((selection) => ({
           component_id: selection.component_id ?? selection.product_id,
-          variant_id: selection.variant_id ?? selection.variant_item_id ?? "",
+          variant_id: selection.variant_item_id ?? selection.variant_id ?? "",
         }))
         .filter((selection) => selection.component_id && selection.variant_id),
     },

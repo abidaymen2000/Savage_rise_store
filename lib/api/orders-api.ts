@@ -32,6 +32,7 @@ function normalizeOrderPayload(payload: OrderCreatePayload): OrderCreate {
         variant_id: item.variant_id ?? item.variant_item_id ?? null,
         sku: item.sku ?? null,
         qty: item.qty,
+        ...(item.bundle_selection ? {bundle_selection: item.bundle_selection} : {}),
       })),
       ...(source.pack_items ?? []).map((pack) => ({
         product_id: pack.pack_id,
@@ -42,7 +43,7 @@ function normalizeOrderPayload(payload: OrderCreatePayload): OrderCreate {
           components: (pack.items ?? [])
             .map((item) => ({
               component_id: item.component_id ?? "",
-              variant_id: item.variant_id ?? item.variant_item_id ?? "",
+              variant_id: item.variant_item_id ?? item.variant_id ?? "",
             }))
             .filter((item) => item.component_id && item.variant_id),
         },

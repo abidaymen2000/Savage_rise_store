@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import Link from "next/link"
@@ -69,7 +69,9 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   const relatedPack = packsEnabled ? initialRelatedPack : null
   const relatedProducts = initialRelatedProducts
   const [relatedPackSizes, setRelatedPackSizes] = useState<Record<string, string>>({})
-  const { addToCart, addPackToCart } = useCart()
+  const { addToCart, addPackToCart, buyNow } = useCart()
+  const [purchaseError, setPurchaseError] = useState<string | null>(null)
+  const restoredPurchase = useRef(false)
 
   useEffect(() => {
     const nextSelection = getInitialSelection(product)
@@ -164,6 +166,19 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
       return nextSizes
     })
   }, [product, relatedPack, relatedProducts, selectedColor])
+
+  useEffect(() => {
+    if (restoredPurchase.current) return
+    const query = new URLSearchParams(window.location.search)
+    const id = query.get("variant")
+    if (!id) { restoredPurchase.current = true; return }
+    const variant = product.variants.find(v => v.id === id || v.sizes.some(size => size.variant_item_id === id))
+    const size = variant?.sizes.find(size => size.variant_item_id === id) ?? variant?.sizes[0]
+    if (!variant || !size) { restoredPurchase.current = true; return }
+    if (selectedColor !== variant.color || selectedSize !== size.size) {setSelectedColor(variant.color); setSelectedSize(size.size); return}
+    setQuantity(Math.max(1, Math.min(99, Number(query.get("qty")) || 1)))
+    restoredPurchase.current = true
+  }, [product, selectedColor, selectedSize])
 
   const handleAddToCart = () => {
     if (product && currentVariant && selectedSize && canAddCurrentSelection) {
@@ -444,14 +459,17 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               <Button
                 onClick={handleAddToCart}
                 disabled={!canAddCurrentSelection}
-                className="w-full flex-1 bg-accent px-4 py-3 font-semibold leading-snug text-accent-foreground hover:bg-accent/90 whitespace-normal text-center"
+                variant="outline"
+                className="min-h-12 w-full flex-1 px-4 py-3 font-semibold leading-snug whitespace-normal text-center"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
                 {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? availabilityLabel(selectionAvailability) : "Choisir une taille"}
               </Button>
+              <Button type="button" disabled={!canAddCurrentSelection} className="min-h-12 w-full flex-1 bg-accent px-4 py-3 font-semibold text-accent-foreground hover:bg-accent/90 whitespace-normal" onClick={() => {try {if (currentVariant && selectedSize) buyNow(product, currentVariant, selectedSize, quantity)} catch (error) {setPurchaseError(error instanceof Error ? error.message : "Achat rapide indisponible.")}}}>Acheter maintenant</Button>
               {wishlistEnabled && <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />}
             </div>
 
+            {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             {packsEnabled && relatedPack && companionComponents.length > 0 && (
               <div className="rounded-2xl border border-accent/25 bg-card p-5 text-card-foreground dark:bg-gradient-to-br dark:from-gold/10 dark:via-black dark:to-black">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Completer le look</p>

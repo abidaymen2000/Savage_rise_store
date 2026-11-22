@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,14 +33,23 @@ import { isFeatureEnabled, formatStorePrice } from "@/lib/store-config-shared"
 
 import { rememberOrderConfirmation } from "@/lib/order-confirmation"
 import { useCheckoutQuote } from "@/hooks/use-checkout-quote"
+import { confirmCheckout } from "@/lib/checkout-flow"
+import { usePurchaseIntent } from "@/hooks/use-purchase-intent"
 
 const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 
 type CheckoutStatus = "idle" | "quoting" | "ready" | "submitting" | "success" | "conflict" | "error"
 
 export default function CheckoutPage() {
+  return <Suspense fallback={<p role="status" className="p-8">Chargement de votre commande…</p>}><CheckoutContent /></Suspense>
+}
+
+function CheckoutContent() {
   const router = useRouter()
-  const { state: cartState, clearCart, refreshCartProducts } = useCart()
+  const { state: regularCart, clearCart: clearRegularCart, refreshCartProducts, loaded: cartLoaded } = useCart()
+  const purchase = usePurchaseIntent(regularCart, "savage-rise-quick-purchase", clearRegularCart)
+  const cartState = purchase.state
+  const clearCart = purchase.clear
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const { config, unavailable } = useStoreConfig()
   const formatPrice = (amount: number) => formatStorePrice(amount, config)
@@ -83,12 +92,12 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (cartState.itemCount === 0 && !authLoading) {
+    if (purchase.loaded && cartLoaded && !success && cartState.itemCount === 0 && !authLoading) {
       purchaseEventIdRef.current = null
       clearCheckoutId()
       router.push("/products")
     }
-  }, [cartState.itemCount, authLoading, router])
+  }, [cartState.itemCount, authLoading, router, purchase.loaded, cartLoaded, success])
 
   useEffect(() => {
     if (cartState.itemCount > 0) {
@@ -260,7 +269,7 @@ export default function CheckoutPage() {
     return required.every((field) => shippingInfo[field as keyof ShippingInfo]?.toString().trim())
   }, [isAuthenticated, shippingInfo])
 
-  const { quote: orderQuote, loading: quoteLoading, error: quoteError, refresh: refreshQuote } = useCheckoutQuote(orderPayload, !unavailable && validateShippingInfo() && cartState.itemCount > 0, api.quoteOrder, config.default_currency)
+  const { quote: orderQuote, loading: quoteLoading, error: quoteError, refresh: refreshQuote, acceptQuote, ensureQuote, destinationMessage } = useCheckoutQuote(orderPayload, !unavailable && purchase.loaded && !purchase.invalid && cartState.itemCount > 0, api.quoteOrder, config.default_currency, api.getShippingPolicy)
 
   const refreshCheckoutProducts = async () => {
     const uniqueProductIds = Array.from(new Set(cartState.items.map((item) => item.product.id)))
@@ -332,7 +341,7 @@ export default function CheckoutPage() {
   }
 
   const handlePlaceOrder = async () => {
-    if (submissionInFlight.current || isProcessing) return
+    if (submissionInFlight.current || isProcessing || authLoading) return
 
     if (isAuthenticated && !user?.is_active) {
       setShowEmailVerification(true)
@@ -344,10 +353,7 @@ export default function CheckoutPage() {
       return
     }
 
-    if (!orderQuote?.quote_token || quoteLoading || unavailable) {
-      setError("Patientez pendant le calcul de votre total.")
-      return
-    }
+    if (unavailable || purchase.invalid) return
 
     submissionInFlight.current = true
     setIsProcessing(true)
@@ -385,14 +391,21 @@ export default function CheckoutPage() {
     })
 
     try {
-      const order = await api.createOrder({ ...finalOrderPayload, quote_token: orderQuote.quote_token }, idempotencyKey)
+      const readyQuote = await ensureQuote()
+      const result = await confirmCheckout({payload: finalOrderPayload, quote: orderQuote, preparedQuote: readyQuote, currency: config.default_currency, idempotencyKey, load: api.quoteOrder, submit: api.createOrder})
+      acceptQuote(result.quote)
+      if (result.kind === "review") {
+        setError("Votre total a été actualisé. Vérifiez le montant puis cliquez sur Commander pour confirmer.")
+        return
+      }
+      const {order, quote: confirmedQuote} = result
 
       if (pixelContents.length === expectedPixelContentCount) {
         trackPurchasePixelOnce({
           orderId: order.id,
           metaEventId,
-          value: order.total_amount ?? orderQuote.total_amount,
-          currency: orderQuote.currency ?? config.default_currency,
+          value: order.total_amount ?? confirmedQuote.total_amount,
+          currency: confirmedQuote.currency ?? config.default_currency,
           content_ids: pixelContentIds,
           contents: pixelContents,
           num_items: cartState.itemCount,
@@ -401,9 +414,9 @@ export default function CheckoutPage() {
       trackStoreEvent("purchase", {
         include_checkout_id: true,
         order_id: order.id,
-        currency: orderQuote.currency ?? config.default_currency,
-        value: order.total_amount ?? orderQuote.total_amount,
-        revenue: order.total_amount ?? orderQuote.total_amount,
+        currency: confirmedQuote.currency ?? config.default_currency,
+        value: order.total_amount ?? confirmedQuote.total_amount,
+        revenue: order.total_amount ?? confirmedQuote.total_amount,
         items: [
           ...cartState.items.map((item) => ({
             product_id: item.product.id,
@@ -450,7 +463,7 @@ export default function CheckoutPage() {
       trackStoreEvent("checkout_validation_failed", {
         include_checkout_id: true,
         metadata: {
-          value: orderQuote.total,
+          value: orderQuote?.total,
           error: err instanceof Error ? err.message : "unknown",
         },
       })
@@ -614,7 +627,7 @@ export default function CheckoutPage() {
   const displayLoyaltyDiscount = orderQuote?.loyalty_discount ?? loyaltyDiscount
   const quoteWarnings = orderQuote?.warnings ?? []
 
-  if (authLoading) {
+  if (!purchase.loaded || !cartLoaded) {
     return (
       <div className="min-h-screen bg-background text-foreground pt-20 flex items-center justify-center">
         <div className="text-center">
@@ -624,6 +637,8 @@ export default function CheckoutPage() {
       </div>
     )
   }
+
+  if (purchase.invalid) return <div role="alert" className="mx-auto max-w-xl px-5 py-24"><p>Cet achat rapide a expiré. Votre panier habituel est conservé.</p><Link className="mt-4 inline-block underline" href="/checkout">Retrouver mon panier</Link></div>
 
   if (cartState.itemCount === 0) return null // redirect déjà programmé
 
@@ -657,6 +672,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-20">
       <div className="container mx-auto px-4 py-8">
+        {purchase.quick && <div role="status" className="mb-6 rounded-lg border border-border p-4 text-sm"><p>{purchase.invalid ? "Cet achat rapide a expiré. Revenez à la fiche pour retrouver votre modèle." : "Achat rapide · votre panier habituel est conservé."}</p><div className="mt-3 flex flex-wrap gap-4">{purchase.returnTo && <a className="underline" href={purchase.returnTo}>Retour au produit</a>}<Link className="underline" href="/checkout">Retrouver mon panier</Link></div></div>}
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Link href="/products" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
@@ -666,7 +682,7 @@ export default function CheckoutPage() {
           <h1 className="text-3xl font-playfair font-bold">Commande</h1>
         </div>
 
-        {!isAuthenticated && (
+        {!authLoading && !isAuthenticated && (
           <Alert className="mb-8 border-accent/40 bg-accent/10">
             <AlertDescription className="text-accent">
               You are checking out as a guest. Sign in if you want to use a promo code and track orders from your profile.
@@ -747,7 +763,7 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="full_name">Full name *</Label>
-                    <Input
+                    <Input disabled={isProcessing}
                       id="full_name"
                       value={shippingInfo.full_name}
                       onChange={(e) => handleInputChange("full_name", e.target.value)}
@@ -757,7 +773,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <Label htmlFor="email">Email {isAuthenticated ? "*" : "(optional)"}</Label>
-                    <Input
+                    <Input disabled={isProcessing}
                       id="email"
                       type="email"
                       value={shippingInfo.email ?? ""}
@@ -771,7 +787,7 @@ export default function CheckoutPage() {
 
                 <div>
                   <Label htmlFor="phone">Téléphone *</Label>
-                  <Input
+                  <Input disabled={isProcessing}
                     id="phone"
                     value={shippingInfo.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
@@ -783,7 +799,7 @@ export default function CheckoutPage() {
 
                 <div>
                   <Label htmlFor="address_line1">Adresse *</Label>
-                  <Input
+                  <Input disabled={isProcessing}
                     id="address_line1"
                     value={shippingInfo.address_line1}
                     onChange={(e) => handleInputChange("address_line1", e.target.value)}
@@ -794,7 +810,7 @@ export default function CheckoutPage() {
 
                 <div>
                   <Label htmlFor="address_line2">Note facultative</Label>
-                  <Input
+                  <Input disabled={isProcessing}
                     id="address_line2"
                     value={shippingInfo.address_line2 || ""}
                     onChange={(e) => handleInputChange("address_line2", e.target.value)}
@@ -806,7 +822,7 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="postal_code">Postal code *</Label>
-                    <Input
+                    <Input disabled={isProcessing}
                       id="postal_code"
                       value={shippingInfo.postal_code}
                       onChange={(e) => handleInputChange("postal_code", e.target.value)}
@@ -816,7 +832,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <Label htmlFor="city">City *</Label>
-                    <Input
+                    <Input disabled={isProcessing}
                       id="city"
                       value={shippingInfo.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
@@ -826,7 +842,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <Label htmlFor="country">Country *</Label>
-                    <Input
+                    <Input disabled={isProcessing}
                       id="country"
                       value={shippingInfo.country}
                       onChange={(e) => handleInputChange("country", e.target.value)}
@@ -870,7 +886,7 @@ export default function CheckoutPage() {
                       <button
                         className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                         onClick={handleRemovePromo}
-                        disabled={promoLoading}
+                        disabled={isProcessing || promoLoading}
                         title="Remove code"
                       >
                         <X className="h-3 w-3" /> Remove
@@ -916,7 +932,7 @@ export default function CheckoutPage() {
                         <label className="flex cursor-pointer items-center gap-3 rounded-md border border-white/10 bg-black/20 p-3">
                           <Checkbox
                             checked={useLoyaltyPoints}
-                            disabled={!loyaltyBalance.points_balance || loyaltyLoading}
+                            disabled={isProcessing || !loyaltyBalance.points_balance || loyaltyLoading}
                             onCheckedChange={(checked) => {
                               const nextChecked = checked === true
                               setUseLoyaltyPoints(nextChecked)
@@ -933,7 +949,7 @@ export default function CheckoutPage() {
                         {useLoyaltyPoints && (
                           <div className="space-y-2">
                             <div className="flex gap-2">
-                              <Input
+                              <Input disabled={isProcessing}
                                 type="number"
                                 min={0}
                                 max={loyaltyBalance.points_balance}
@@ -952,6 +968,7 @@ export default function CheckoutPage() {
                                 type="button"
                                 variant="outline"
                                 className="border-accent/50 bg-transparent text-accent hover:bg-accent hover:text-accent-foreground"
+                                disabled={isProcessing}
                                 onClick={() => setLoyaltyPointsToUse(loyaltyBalance.points_balance)}
                               >
                                 Max
@@ -991,10 +1008,10 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Livraison</span>
                   <span className="text-foreground">
                     {quoteLoading
-                      ? "Validating..."
+                      ? "Calcul de la livraison…"
                       : orderQuote
                         ? shipping === 0
-                          ? "Free"
+                          ? "Offerte"
                           : formatPrice(shipping)
                         : "À calculer"}
                   </span>
@@ -1004,6 +1021,7 @@ export default function CheckoutPage() {
                   <p className="text-xs text-muted-foreground text-right">{orderQuote.shipping_rate_name}</p>
                 )}
 
+                {destinationMessage && <p role="status" className="text-sm text-muted-foreground">{destinationMessage}</p>}
                 {quoteError && (
                   <Alert className="border-red-600 bg-red-900/20">
                     <AlertDescription className="text-red-400">{quoteError}</AlertDescription>
@@ -1046,7 +1064,7 @@ export default function CheckoutPage() {
 
                 <Button
                   onClick={handlePlaceOrder}
-                  disabled={isProcessing || promoLoading || quoteLoading || (useLoyaltyPoints && loyaltyLoading) || !orderQuote || unavailable}
+                  disabled={authLoading || isProcessing || promoLoading || (useLoyaltyPoints && loyaltyLoading) || unavailable}
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold py-3"
                 >
                   {isProcessing ? (

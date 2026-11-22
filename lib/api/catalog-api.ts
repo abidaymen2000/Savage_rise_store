@@ -269,6 +269,7 @@ function productToPack(product: Product, componentProducts: Product[] = []): Pac
   return {
     id: product.id,
     title: product.name,
+    variant_id: product.variants?.[0]?.id ?? null,
     in_stock: product.in_stock,
     availability_status: product.availability_status,
     forced_sold_out: product.forced_sold_out,

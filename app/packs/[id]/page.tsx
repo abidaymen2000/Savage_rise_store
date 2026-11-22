@@ -76,7 +76,7 @@ export default function PackDetailPage() {
   const formatPrice = useStorePrice()
   const params = useParams()
   const packId = params.id as string
-  const { addPackToCart } = useCart()
+  const { addPackToCart, buyPackNow } = useCart()
 
   const [pack, setPack] = useState<Pack | null>(null)
   const [products, setProducts] = useState<Record<string, Product>>({})
@@ -87,6 +87,7 @@ export default function PackDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [added, setAdded] = useState(false)
+  const [purchaseError, setPurchaseError] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
   useEffect(() => {
@@ -123,10 +124,20 @@ export default function PackDetailPage() {
           }
         })
 
+        try {
+          const saved = JSON.parse(new URLSearchParams(window.location.search).get("selection") || "null")
+          if (Array.isArray(saved)) {
+            for (const entry of saved) {
+              const component = components.find(c => c.id === entry.component_id)
+              if (component && typeof entry.color === "string" && typeof entry.size === "string") initialSelections[component.id] = { color: component.color || entry.color, size: component.size || entry.size }
+            }
+            setSameSizeMode(false)
+          }
+        } catch {}
         setPack(data)
         setProducts(productMap)
         setSelections(initialSelections)
-        setSelectedColor(defaultColor ?? "")
+        setSelectedColor(Object.values(initialSelections)[0]?.color ?? defaultColor ?? "")
       } catch (err) {
         if (isMounted) setError("Unable to load this pack.")
       } finally {
@@ -586,13 +597,18 @@ export default function PackDetailPage() {
               </div>
             </div>
 
+            <Button className="min-h-12 w-full bg-accent text-accent-foreground" disabled={!packAvailable} onClick={() => {
+              try { if (pack && packAvailable) buyPackNow(pack, packOrderItems, 1) }
+              catch (error) { setPurchaseError(error instanceof Error ? error.message : "Impossible de préparer cet achat.") }
+            }}>Acheter maintenant</Button>
+            {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             <Button
               onClick={handleAddPack}
               disabled={!packAvailable}
               className="w-full bg-accent py-6 text-base font-semibold text-accent-foreground hover:bg-accent/90"
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
-              {availabilityStatus(pack) !== "available" ? availabilityLabel(availabilityStatus(pack)) : added ? "Pack added" : packAvailable ? "Add pack to cart" : "Complete available selections"}
+              {availabilityStatus(pack) !== "available" ? availabilityLabel(availabilityStatus(pack)) : added ? "Pack added" : packAvailable ? "Ajouter au panier" : "Complete available selections"}
             </Button>
           </div>
         </div>

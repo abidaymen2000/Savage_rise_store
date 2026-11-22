@@ -537,6 +537,7 @@ export interface PackComponent {
 }
 
 export interface Pack extends Availability {
+  variant_id?: string | null
   in_stock?: boolean
   id: string
   title: string

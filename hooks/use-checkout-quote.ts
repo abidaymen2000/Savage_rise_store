@@ -1,56 +1,78 @@
 "use client"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { retryReadOnly, isTemporaryReadError } from "@/lib/read-retry"
-import { buildCheckoutFingerprint } from "@/lib/checkout-fingerprint"
-import { quoteForInput, quoteRequestGate } from "@/lib/checkout-quote-state"
-import type { OrderCreatePayload, OrderQuoteOut } from "@/types/api"
+import { pricingInput, pricingKey, destinationReady, requiredDestinationFromError, type ShippingPolicy, type CommercialQuote } from "@/lib/checkout-flow"
 
-export function useCheckoutQuote(payload: OrderCreatePayload, enabled: boolean, load: (value: OrderCreatePayload) => Promise<OrderQuoteOut>, currency: string) {
-  const inputKey = currency + ":" + buildCheckoutFingerprint(payload)
-  const gate = useRef(quoteRequestGate())
-  const latestPayload = useRef(payload)
-  latestPayload.current = payload
+export function useCheckoutQuote<P extends { shipping: object }, Q extends CommercialQuote>(
+  payload: P, enabled: boolean, load: (value: P) => Promise<Q>, currency: string,
+  loadPolicy: (country: string) => Promise<ShippingPolicy>,
+) {
+  const country = String((payload.shipping as { country?: string }).country ?? "")
+  const [policyResult, setPolicy] = useState<{country: string; value: ShippingPolicy} | null>(null)
+  const [policyError, setPolicyError] = useState<string | null>(null)
+  const policy = policyResult?.country === country ? policyResult.value : null
+  const inputKey = currency + ":" + pricingKey(payload, policy)
+  const policyRef = useRef(policy)
+  const latest = useRef(payload)
+  useEffect(() => { latest.current = payload; policyRef.current = policy }, [payload, policy])
   const [retry, setRetry] = useState(0)
   const key = inputKey + ":" + retry
-  const [result, setResult] = useState<{ key: string; quote: OrderQuoteOut } | null>(null)
-  const [failure, setFailure] = useState<{ key: string; message: string } | null>(null)
+  const [result, setResult] = useState<{key: string; quote: Q} | null>(null)
+  const [failure, setFailure] = useState<{key: string; message: string} | null>(null)
+  const pending = useRef<{key: string; promise: Promise<Q>} | null>(null)
   const refresh = useCallback(() => setRetry(value => value + 1), [])
 
   useEffect(() => {
-    const request = gate.current.start()
+    if (!enabled || !country) return
     const controller = new AbortController()
     let recovery: ReturnType<typeof setTimeout> | undefined
-    setResult(null)
-    setFailure(null)
-    if (!enabled) return () => gate.current.cancel()
-    const requestPayload = latestPayload.current
-    const timeout = setTimeout(async () => {
-      try {
-        const quote = await retryReadOnly(() => load(requestPayload), controller.signal)
-        if (!quote.quote_token || quote.currency !== currency || !Number.isFinite(quote.total)) {
-          throw new Error("Le devis n’a pas pu être validé. Réessayez dans un instant.")
-        }
-        if (gate.current.accepts(request)) setResult({ key, quote })
-      } catch (error) {
-        if (gate.current.accepts(request)) {
-          const temporary = isTemporaryReadError(error)
-          setFailure({ key, message: temporary ? "Connexion momentanément indisponible. La vérification reprend automatiquement." : error instanceof Error ? error.message : "Le total n’a pas pu être validé." })
-          if (temporary) recovery = setTimeout(refresh, 15000)
-        }
+    setPolicyError(null)
+    retryReadOnly(() => loadPolicy(country), controller.signal).then(value => {
+      if (!controller.signal.aborted) setPolicy({country, value})
+    }).catch(() => {
+      if (!controller.signal.aborted) {
+        setPolicyError("Connexion momentanément indisponible. La vérification reprend automatiquement.")
+        recovery = setTimeout(refresh, 15000)
       }
-    }, 400)
-    return () => { clearTimeout(timeout); clearTimeout(recovery); controller.abort(); gate.current.cancel() }
-  }, [key, enabled, load, currency, refresh])
+    })
+    return () => { controller.abort(); clearTimeout(recovery) }
+  }, [enabled, country, loadPolicy, retry, refresh])
 
-  // Invalidate during render, before the debounce/effect: a stale total can
-  // never enable submission after an address/cart change.
-  const quote = quoteForInput(result, key, enabled)
-  const error = failure?.key === key ? failure.message : null
+  const ready = enabled && !!currency && destinationReady(payload.shipping, policy)
+  useEffect(() => {
+    if (!ready) return
+    const controller = new AbortController()
+    let recovery: ReturnType<typeof setTimeout> | undefined
+    const started = performance.now()
+    const promise = retryReadOnly(() => load(pricingInput(latest.current, policyRef.current)), controller.signal).then(quote => {
+      if (!quote.quote_token || quote.currency !== currency || !Number.isFinite(quote.total ?? quote.total_amount)) throw new Error("Le montant ne peut pas être confirmé.")
+      return quote
+    })
+    pending.current = {key, promise}
+    promise.then(quote => {
+      if (!controller.signal.aborted) {
+        setResult({key, quote}); setFailure(null)
+        performance.measure("yovo.checkout.quote", {start: started, end: performance.now()})
+      }
+    }).catch(error => {
+      if (controller.signal.aborted) return
+      const fields = requiredDestinationFromError(error)
+      if (fields) { setPolicy({country, value: {configured: true, required_fields: fields}}); return }
+      setFailure({key, message: isTemporaryReadError(error) ? "Connexion momentanément indisponible. La vérification reprend automatiquement." : error instanceof Error ? error.message : "Le total ne peut pas être validé."})
+      if (isTemporaryReadError(error)) recovery = setTimeout(refresh, 15000)
+    })
+    return () => { controller.abort(); clearTimeout(recovery) }
+  }, [key, ready, load, currency, refresh, country])
+
+  const quote = ready && result?.key === key ? result.quote : null
+  const error = policyError || (failure?.key === key ? failure.message : null)
   useEffect(() => {
     if (!enabled || !error) return
-    window.addEventListener("online", refresh)
-    window.addEventListener("focus", refresh)
+    window.addEventListener("online", refresh); window.addEventListener("focus", refresh)
     return () => { window.removeEventListener("online", refresh); window.removeEventListener("focus", refresh) }
   }, [enabled, error, refresh])
-  return { quote, error, loading: enabled && !quote && !error, refresh }
+  const acceptQuote = (value: Q) => { setResult({key, quote: value}); setFailure(null) }
+  const ensureQuote = async () => quote ?? (pending.current?.key === key ? pending.current.promise.catch(() => null) : null)
+  return {quote, error, loading: enabled && !quote && !error && (!policy || ready), refresh, acceptQuote, ensureQuote,
+    destinationMessage: policy && !ready ? (policy.configured ? "Renseignez votre ville pour connaître la livraison." : "La livraison n’est pas disponible pour ce pays.") : null}
 }

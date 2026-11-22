@@ -1,4 +1,6 @@
 "use client"
+import { saveQuickPurchase } from "@/lib/quick-purchase"
+import { useRouter } from "next/navigation"
 
 import { api } from "@/lib/api"
 import { ApiError } from "@/lib/api/api-error"
@@ -38,11 +40,14 @@ type CartAction =
   | { type: "LOAD_CART"; payload: CartState }
 
 const CartContext = createContext<{
+  loaded: boolean
   state: CartState
   isCartOpen: boolean
   dispatch: React.Dispatch<CartAction>
   openCart: () => void
   closeCart: () => void
+  buyNow: (product: Product, variant: Variant, size: string, quantity?: number) => void
+  buyPackNow: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
   addToCart: (product: Product, variant: Variant, size: string, quantity?: number) => void
   addPackToCart: (pack: Pack, selections: PackOrderComponent[], quantity?: number) => void
   removeFromCart: (productId: string, color: string, size: string, variantItemId?: string | null) => void
@@ -234,6 +239,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     packItems: [],
@@ -241,9 +247,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     itemCount: 0,
   })
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   // Load cart from localStorage on mount
   useEffect(() => {
+    setLoaded(true)
     const savedCart = localStorage.getItem("savage-rise-cart")
     if (savedCart) {
       try {
@@ -280,10 +288,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem("savage-rise-cart", JSON.stringify(state))
+      if (!loaded) return
+    localStorage.setItem("savage-rise-cart", JSON.stringify(state))
     } catch (error) {
     }
-  }, [state])
+  }, [state, loaded])
 
   const cartItemsRef = useRef(state.items)
   cartItemsRef.current = state.items
@@ -496,6 +505,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const refreshCartProducts = (products: Product[]) => dispatch({ type: "REFRESH_PRODUCTS", payload: products })
 
+  const launchPurchase = (purchase: CartState, returnTo: string) => {
+    const intent = saveQuickPurchase(sessionStorage, "savage-rise-quick-purchase", purchase, returnTo)
+    router.push("/checkout" + "?buy=" + intent.id)
+  }
+  const buyNow = (product: Product, variant: Variant, size: string, quantity = 1) => {
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > getMaxCartQuantity(variant, size)) throw new Error("Cette quantité n’est pas disponible.")
+    const purchase = cartReducer({items: [], packItems: [], total: 0, itemCount: 0}, {type: "ADD_ITEM", payload: {product, variant, size, quantity}})
+    if (!purchase.itemCount) throw new Error("Ce modèle n’est pas disponible.")
+    const query = new URLSearchParams({variant: resolveVariantItemId(variant, size) || variant.id || "", qty: String(quantity)})
+    launchPurchase(purchase, window.location.pathname + "?" + query)
+  }
+  const buyPackNow = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
+    if (!Number.isInteger(quantity) || quantity < 1 || !pack.in_stock || !selections.length) throw new Error("Ce pack n’est pas disponible.")
+    const query = new URLSearchParams({selection: JSON.stringify(selections.map(item => ({component_id: item.component_id, color: item.color, size: item.size}))), qty: String(quantity)})
+    launchPurchase(calculateCart([], [{pack, selections, quantity}]), window.location.pathname + "?" + query)
+  }
+
   const getCartKey = (productId: string, color: string, size: string, variantItemId?: string | null) => {
     if (variantItemId) return `${productId}-${variantItemId}`
     return `${productId}-${color}-${size}`
@@ -508,11 +534,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return (
     <CartContext.Provider
       value={{
+        loaded,
         state,
         isCartOpen,
         dispatch,
         openCart,
         closeCart,
+        buyNow,
+        buyPackNow,
         addToCart,
         addPackToCart,
         removeFromCart,
