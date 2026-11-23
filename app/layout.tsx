@@ -22,6 +22,8 @@ import MetaPixel from "./components/MetaPixel"
 import StoreAnalytics from "./components/StoreAnalytics"
 import { Toaster } from "@/components/ui/toaster" // Import Toaster
 import { api } from "@/lib/api"
+import { loadCatalogCategories } from "@/lib/storefront/catalog-categories"
+import { createCatalogDiagnostics } from "@/lib/storefront/catalog-diagnostics"
 import { getStoreConfig } from "@/lib/store-config"
 import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
 import {
@@ -156,11 +158,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const diagnostics = createCatalogDiagnostics("layout")
   const [storeConfig, studio, categories] = await Promise.all([
     getStoreConfig(),
     getStudioDocument(),
-    api.getCategories().catch(() => []),
+    loadCatalogCategories(() => api.getCategories(diagnostics.observe)),
   ])
+  diagnostics.finish({ outcome: "complete", loaded: 0, categoriesAvailable: categories.available })
   const { config } = storeConfig
   const navigation = studio ? {headerItems: filterNavigationItemsBySurface(studio.menus.find(m => m.code === "header")?.items, "desktop"), mobileItems: filterNavigationItemsBySurface((studio.menus.find(m => m.code === "mobile") || studio.menus.find(m => m.code === "header"))?.items, "mobile")} : await getServerNavigation()
   const isPublicUnavailable = !studio?.preview && (storeConfig.unavailable || config.status === "maintenance" || config.status === "inactive")
@@ -182,7 +186,7 @@ export default async function RootLayout({
                   {!studio?.preview && <script id="store-entrance-bootstrap" dangerouslySetInnerHTML={{ __html: ENTRANCE_BOOTSTRAP }} />}
                   <EntranceWrapper name={getStoreDisplayName(config)} disabled={!!studio?.preview}>
                   <div className="store-shell">
-                    <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} categories={categories} />
+                    <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} categories={categories.items} categoriesAvailable={categories.available} />
                     {children}
                     <Footer />
                   </div>

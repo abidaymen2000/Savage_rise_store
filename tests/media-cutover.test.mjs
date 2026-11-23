@@ -8,7 +8,7 @@ import imageLoader from '../image-loader.ts'
 const oldUrl = 'https://ik.imagekit.io/account/savage-rise/photo.jpg'
 const newUrl = 'https://ik.imagekit.io/account/tenants/test/catalog_product_image/intent/photo.jpg'
 
-test('detail, primary, variant and listing failure fallback preserve CDN URLs', async () => {
+test('detail and variant preserve CDN URLs; an unavailable listing detail cannot fabricate a commercial card', async () => {
   const originalDetail = CatalogService.getProductCatalogProductsSlugGet
   const originalList = CatalogService.listProductsCatalogProductsGet
   CatalogService.getProductCatalogProductsSlugGet = async () => ({ id: 'p', slug: 'p', name: 'P',
@@ -21,8 +21,7 @@ test('detail, primary, variant and listing failure fallback preserve CDN URLs', 
     assert.deepEqual(product.images.map(i => i.url), [newUrl, oldUrl])
     assert.equal(product.variants[0].images[0].url, oldUrl)
     CatalogService.getProductCatalogProductsSlugGet = async () => { throw new Error('offline') }
-    const listing = await catalogApi.getProductsPage()
-    assert.equal(listing.items[0].images[0].url, oldUrl)
+    await assert.rejects(() => catalogApi.getProductsPage(), /offline/)
   } finally {
     CatalogService.getProductCatalogProductsSlugGet = originalDetail
     CatalogService.listProductsCatalogProductsGet = originalList

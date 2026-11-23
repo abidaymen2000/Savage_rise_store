@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <main className="min-h-screen bg-background px-4 pb-16 pt-28 text-foreground sm:px-6 sm:pt-32">
+    <main aria-busy="true" aria-label="Loading the collection" className="min-h-screen bg-background px-4 pb-16 pt-28 text-foreground sm:px-6 sm:pt-32">
       <div className="mx-auto max-w-7xl">
         <div className="border-b border-stone-800 pb-8">
           <div className="h-3 w-28 animate-pulse bg-stone-800" />

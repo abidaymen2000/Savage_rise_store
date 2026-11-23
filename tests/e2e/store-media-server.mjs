@@ -10,6 +10,8 @@ const media = (color, primary, position = 0) => ({ asset_id: `${color}-${primary
 const makeProduct = (id, selectedColors, soldOut = false) => ({
   id, slug: id, name: id === 'hoodie' ? 'SR OMBRA OVERSIZED HOODIE' : `Recette ${id}`, description: 'Produit de recette locale. Les images sont partagées entre les tailles.',
   product_kind: 'physical', status: 'active', category_ids: [], primary_category_id: null,
+  // Even the deliberately imageless fixture has an authoritative commercial price.
+  attribute_values: { price: '89.900' },
   in_stock: !soldOut, availability_status: soldOut ? 'out_of_stock' : 'available', media: [],
   variants: selectedColors.flatMap((color, c) => ['M', 'L', 'S', 'XL', 'XS'].map((size, s) => ({
     id: `${id}-${color}-${size}`, title: `${color} / ${size}`, sku: `FIXTURE-${color}-${size}`, position: c * 5 + s,

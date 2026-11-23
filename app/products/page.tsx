@@ -5,26 +5,31 @@ import { api } from "@/lib/api"
 import { SHOP_PRODUCT_KIND, isShopProduct } from "@/lib/product-kind"
 import { getCategoryAndDescendantIds, getCatalogCategoryOptions, productMatchesCategoryIds, resolveCategoryFilter } from "@/lib/storefront/catalog"
 import { loadCatalogProducts } from "@/lib/storefront/catalog-data"
+import { loadCatalogCategories } from "@/lib/storefront/catalog-categories"
+import { createCatalogDiagnostics } from "@/lib/storefront/catalog-diagnostics"
+import type { CatalogObserver } from "@/lib/catalog-read"
+import CatalogRetry from "@/components/storefront/catalog-retry"
+import CatalogUnavailable from "@/components/storefront/catalog-unavailable"
 import { getAvailableColors, getAvailableSizes, isProductInStock, sortProductsByStockStatus } from "@/lib/utils"
 import ProductsControls, { type ProductsFilterState } from "./products-controls"
 import type { Product } from "@/types/api"
 
 // Availability can change without a stock movement (manual in_stock override).
 export const dynamic = "force-dynamic"
+// Next 14 partial RSC navigations can skip the layout's uncached Studio read.
+// Catalogue SDK GETs have no explicit cache option: never reuse their Data Cache.
+export const fetchCache = "default-no-store"
 
 type SearchParams = Record<string, string | string[] | undefined>
 
 const PAGE_SIZE = 24
 
-async function getProductsPageData(q: string, categoryFilter: string) {
-  const categories = await api.getCategories().catch(() => [])
-  const resolvedCategory = categoryFilter === "all" ? null : resolveCategoryFilter(categories, categoryFilter)
-  const resolvedCategoryIds = resolvedCategory ? getCategoryAndDescendantIds(categories, resolvedCategory.id) : []
-  const products = categoryFilter !== "all" && !resolvedCategory ? [] : await loadCatalogProducts(
-    (skip, limit, query) => api.getProductsPage(skip, limit, query),
-    { productKind: SHOP_PRODUCT_KIND, q: q || null },
-  )
-  return { products, categories, resolvedCategoryIds }
+async function getProductsPageData(q: string, observe: CatalogObserver) {
+  const [categories, products] = await Promise.all([
+    loadCatalogCategories(() => api.getCategories(observe)),
+    loadCatalogProducts((skip, limit, query) => api.getProductsPage(skip, limit, query, observe), { productKind: SHOP_PRODUCT_KIND, q: q || null }, observe).catch(() => null),
+  ])
+  return { products, categories: categories.items, categoriesAvailable: categories.available }
 }
 
 function getParam(searchParams: SearchParams, key: string, fallback = "") {
@@ -46,13 +51,14 @@ function parseFilters(searchParams: SearchParams): ProductsFilterState {
   }
 }
 
-function filterProducts(products: Product[], filters: ProductsFilterState, categoryIds: string[] = []) {
+function filterProducts(products: Product[], filters: ProductsFilterState, categoryIds: string[] = [], unresolvedCategory = false, excluded: Record<string, number>) {
   const filtered = products.filter((product) => {
-    if (!productMatchesCategoryIds(product, categoryIds)) return false
-    if (filters.color !== "all" && !getAvailableColors(product).some((item) => item.toLowerCase() === filters.color.toLowerCase())) return false
-    if (filters.size !== "all" && !getAvailableSizes(product).some((item) => item.toLowerCase() === filters.size.toLowerCase())) return false
-    if (filters.availability === "available" && !isProductInStock(product)) return false
-    if (filters.availability === "sold-out" && isProductInStock(product)) return false
+    const exclude = (reason: string) => { excluded[reason]++; return false }
+    if (unresolvedCategory || !productMatchesCategoryIds(product, categoryIds)) return exclude("category")
+    if (filters.color !== "all" && !getAvailableColors(product).some((item) => item.toLowerCase() === filters.color.toLowerCase())) return exclude("color")
+    if (filters.size !== "all" && !getAvailableSizes(product).some((item) => item.toLowerCase() === filters.size.toLowerCase())) return exclude("size")
+    if (filters.availability === "available" && !isProductInStock(product)) return exclude("availability")
+    if (filters.availability === "sold-out" && isProductInStock(product)) return exclude("availability")
     return true
   })
 
@@ -78,12 +84,23 @@ function getPageHref(filters: ProductsFilterState, page: number) {
 }
 
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
-  const filters = parseFilters(searchParams)
+  const requestedFilters = parseFilters(searchParams)
+  const diagnostics = createCatalogDiagnostics("/products")
+  const productsData = await getProductsPageData(requestedFilters.q, diagnostics.observe)
+  if (!productsData.products) {
+    diagnostics.finish({ outcome: "unavailable", loaded: 0, categoriesAvailable: productsData.categoriesAvailable })
+    return <main className="store-catalog min-h-screen bg-background pb-16 text-foreground"><div className="store-container"><h1 className="mb-8 font-playfair text-5xl">Shop</h1><CatalogUnavailable /></div></main>
+  }
+  const filters = { ...requestedFilters, category: productsData.categoriesAvailable ? requestedFilters.category : "all" }
+  const resolvedCategory = filters.category === "all" ? null : resolveCategoryFilter(productsData.categories, filters.category)
+  const categoryIds = resolvedCategory ? getCategoryAndDescendantIds(productsData.categories, resolvedCategory.id) : []
+  const unresolvedCategory = filters.category !== "all" && !resolvedCategory
 
-  const productsData = await getProductsPageData(filters.q, filters.category)
-
+  const excluded = { kind: 0, category: 0, color: 0, size: 0, availability: 0 }
   const products = productsData.products.filter(isShopProduct)
-  const filteredProducts = filterProducts(products, filters, productsData.resolvedCategoryIds)
+  excluded.kind = productsData.products.length - products.length
+  const filteredProducts = filterProducts(products, filters, categoryIds, unresolvedCategory, excluded)
+  diagnostics.finish({ outcome: "complete", loaded: productsData.products.length, categoriesAvailable: productsData.categoriesAvailable, excluded, shown: filteredProducts.length })
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
   const currentPage = Math.min(filters.page, totalPages)
   const visibleProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -103,6 +120,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             <ProductsControls
               filters={{ ...filters, page: currentPage }}
               categoryOptions={categoryOptions}
+              categoriesAvailable={productsData.categoriesAvailable}
               colorOptions={colorOptions}
               sizeOptions={sizeOptions}
               resultCount={filteredProducts.length}
@@ -110,10 +128,18 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
           </div>
         </header>
 
+        {!productsData.categoriesAvailable && (
+          <div role="status" className="mt-6 flex flex-col gap-4 border border-border bg-card p-5 text-card-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="font-semibold">Categories are temporarily unavailable.</p><p className="mt-1 text-sm text-muted-foreground">Showing products without a category filter. You can still browse and shop.</p></div>
+            <CatalogRetry />
+          </div>
+        )}
+
         <div className="grid min-w-0 gap-7 py-8 lg:grid-cols-[12rem_minmax(0,1fr)]">
           <ProductsControls
             filters={{ ...filters, page: currentPage }}
             categoryOptions={categoryOptions}
+            categoriesAvailable={productsData.categoriesAvailable}
             colorOptions={colorOptions}
             sizeOptions={sizeOptions}
             resultCount={filteredProducts.length}

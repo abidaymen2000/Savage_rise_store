@@ -68,10 +68,12 @@ export default function Header({
   initialHeaderItems,
   initialMobileItems,
   categories = [],
+  categoriesAvailable = true,
 }: {
   initialHeaderItems?: StoreNavigationPublicItem[]
   initialMobileItems?: StoreNavigationPublicItem[]
   categories?: Category[]
+  categoriesAvailable?: boolean
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -323,6 +325,9 @@ export default function Header({
               </div>
             )}
           </div>
+          {!categoriesAvailable && !initialHeaderItems?.length && (
+            <p role="status" className="store-container pb-3 text-sm">Category shortcuts are temporarily unavailable. <Link href="/products" className="underline underline-offset-4">Shop All</Link></p>
+          )}
         </header>
       </div>
 

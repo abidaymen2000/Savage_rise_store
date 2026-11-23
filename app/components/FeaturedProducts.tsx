@@ -2,6 +2,8 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ProductCard from "@/components/storefront/product-card"
+import CatalogUnavailable from "@/components/storefront/catalog-unavailable"
+import CatalogRetry from "@/components/storefront/catalog-retry"
 import StorefrontMedia from "@/components/storefront/media/storefront-media"
 import { getActiveBundles, getFeaturedPhysicalProducts } from "@/lib/home-products"
 import { getStorefrontContent } from "@/lib/storefront/content"
@@ -29,10 +31,14 @@ export default function FeaturedProducts({
   products,
   packs,
   storeCategories,
+  productsAvailable = true,
+  categoriesAvailable = true,
 }: {
   products: Product[]
   packs: Pack[]
   storeCategories: Category[]
+  productsAvailable?: boolean
+  categoriesAvailable?: boolean
 }) {
   const content = getStorefrontContent()
   const activeBundles = getActiveBundles(packs)
@@ -41,6 +47,11 @@ export default function FeaturedProducts({
 
   return (
     <div className="store-home bg-background text-foreground" id="studio-catalog">
+      {!categoriesAvailable && productsAvailable && (
+        <div className="store-container pt-8"><div role="status" className="flex flex-col gap-4 border border-border bg-card p-5 text-card-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>Category shortcuts are temporarily unavailable. <Link className="underline underline-offset-4" href="/products">Browse all products</Link>.</p><CatalogRetry />
+        </div></div>
+      )}
       {categories.length > 0 && (
         <section className="store-container store-category-section" aria-labelledby="categories-heading">
           <div className="store-section-heading">
@@ -81,7 +92,7 @@ export default function FeaturedProducts({
           <span className="store-heading-rule" aria-hidden="true" />
           <Link href="/products" className="store-text-link">View the Collection <ArrowRight aria-hidden="true" /></Link>
         </div>
-        {featuredProducts.length > 0 ? (
+        {!productsAvailable ? <CatalogUnavailable /> : featuredProducts.length > 0 ? (
           <div className="studio-grid-catalog store-product-grid">
             {featuredProducts.slice(0, 4).map((product, index) => (
               <ProductCard key={product.id} product={product} priority={index < 2} />

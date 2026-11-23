@@ -29,6 +29,7 @@ type Option = {
 type ProductsControlsProps = {
   filters: ProductsFilterState
   categoryOptions: Option[]
+  categoriesAvailable?: boolean
   colorOptions: string[]
   sizeOptions: string[]
   resultCount: number
@@ -48,7 +49,7 @@ function buildParams(filters: ProductsFilterState, overrides: Partial<ProductsFi
   return params
 }
 
-export default function ProductsControls({ filters, categoryOptions, colorOptions, sizeOptions, resultCount, variant = "toolbar" }: ProductsControlsProps) {
+export default function ProductsControls({ filters, categoryOptions, categoriesAvailable = true, colorOptions, sizeOptions, resultCount, variant = "toolbar" }: ProductsControlsProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [query, setQuery] = useState(filters.q)
@@ -110,8 +111,8 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
     <div className="space-y-4">
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Category</label>
-        <Select value={filters.category} onValueChange={(value) => replaceFilters({ category: value })}>
-          <SelectTrigger aria-label="Category" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+        <Select disabled={!categoriesAvailable} value={categoriesAvailable ? filters.category : ""} onValueChange={(value) => replaceFilters({ category: value })}>
+          <SelectTrigger aria-label="Category" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue placeholder="Unavailable" /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">All</SelectItem>
             {categoryOptions.map((feature) => <SelectItem key={feature.value} value={feature.value}><span style={{ paddingLeft: `${(feature.depth ?? 0) * 12}px` }}>{feature.label}</span></SelectItem>)}

@@ -1,14 +1,11 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import CatalogUnavailable from "@/components/storefront/catalog-unavailable"
 
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+export default function Error() {
   return (
     <main className="min-h-screen bg-background px-4 pb-16 pt-32 text-foreground sm:px-6">
-      <div className="mx-auto max-w-3xl border border-red-900/50 bg-red-950/20 p-8 text-center">
-        <p className="text-red-200">{error.message || "The catalog could not be loaded."}</p>
-        <Button onClick={reset} className="mt-5 rounded-none bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground">Try Again</Button>
-      </div>
+      <div className="mx-auto max-w-3xl"><CatalogUnavailable /></div>
     </main>
   )
 }

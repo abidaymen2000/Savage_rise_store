@@ -96,8 +96,7 @@ test("list, detail, search and category keep availability through force/release 
       }
     }
     failDetail = true
-    const [fallback] = await catalogApi.getProducts()
-    assert.equal(isProductInStock(fallback), state.expected, `${state.label}: list fallback`)
+    await assert.rejects(() => catalogApi.getProducts(), undefined, `${state.label}: unavailable details cannot invent prices or variant availability`)
     failDetail = false
   }
   const available = { in_stock: true, variants: [] }

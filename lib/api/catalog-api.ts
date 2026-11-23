@@ -1,5 +1,5 @@
 import { catalogOptionDisplay } from "@/lib/catalog-option-display"
-import { retryReadOnly } from "@/lib/read-retry"
+import { CatalogIntegrityError, readCatalog, validateCatalogPage, type CatalogObserver } from "@/lib/catalog-read"
 import { availabilityStatus } from "@/lib/availability"
 import {
   CatalogService,
@@ -11,10 +11,8 @@ import {
   type ProductStorefrontDetail,
   type ProductVariantRead,
 } from "./api-client"
-import { withApiErrors, ApiError } from "./api-error"
+import { ApiError } from "./api-error"
 import type { Category, Pack, PackComponent, PackProductSummary, Product, ProductImage, SearchFilters, SizeStock, Variant } from "@/types/api"
-
-const readCatalog = <T>(operation: () => Promise<T>) => retryReadOnly(() => withApiErrors(operation()), new AbortController().signal)
 
 export type CatalogProductPage = {
   items: Product[]
@@ -183,27 +181,21 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   } as Product
 }
 
-function listItemToProduct(item: ProductListItem): Product {
-  return {
-    id: item.id,
-    style_id: item.slug,
-    name: item.name,
-    full_name: item.name,
-    sku: null,
-    categories: item.primary_category_id ? [item.primary_category_id] : [],
-    primary_category_id: item.primary_category_id ?? null,
-    category_ids: item.primary_category_id ? [item.primary_category_id] : [],
-    price: 0,
-    in_stock: item.in_stock,
-    availability_status: item.availability_status,
-    low_stock: item.low_stock,
-    forced_sold_out: item.forced_sold_out,
-    status: item.status,
-    variants: [],
-    images: mediaToImages(item.primary_image ? [item.primary_image] : []),
-    slug: item.slug,
-    product_kind: item.product_kind,
-  } as Product
+async function enrichProducts(items: ProductListItem[], read: (slug: string) => Promise<Product>, observer?: CatalogObserver): Promise<Product[]> {
+  const results = await Promise.allSettled(items.map(async (item) => {
+    try {
+      const product = await read(item.slug)
+      // A malformed/stale detail must not be silently removed by the Shop filters.
+      if (product.id !== item.id || !product.product_kind || product.product_kind !== item.product_kind) throw new CatalogIntegrityError("detail_identity_mismatch")
+      return product
+    } catch (error) {
+      observer?.({ operation: "integrity", reason: error instanceof CatalogIntegrityError ? error.reason : "detail_unavailable", missingIds: [item.id] })
+      throw error
+    }
+  }))
+  const failed = results.find((result) => result.status === "rejected")
+  if (failed?.status === "rejected") throw failed.reason
+  return results.map((result) => (result as PromiseFulfilledResult<Product>).value)
 }
 
 function categoryToLegacy(category: CategoryRead): Category {
@@ -298,18 +290,22 @@ function productToPack(product: Product, componentProducts: Product[] = []): Pac
 }
 
 export const catalogApi = {
-  async getProductsPage(skip = 0, limit = 10, query: CatalogProductQuery = {}): Promise<CatalogProductPage> {
+  async getProductsPage(skip = 0, limit = 10, query: CatalogProductQuery = {}, observer?: CatalogObserver): Promise<CatalogProductPage> {
     const page = Math.floor(skip / limit) + 1
-    const response: PaginatedResponse_ProductListItem_ = await withApiErrors(
-      CatalogService.listProductsCatalogProductsGet({
+    const response: PaginatedResponse_ProductListItem_ = await readCatalog(
+      () => CatalogService.listProductsCatalogProductsGet({
         page,
         pageSize: limit,
         q: query.q,
         productKind: query.productKind,
         categoryId: query.categoryId,
       }),
+      { operation: "products", observer, validate: (value) => {
+        observer?.({ operation: "listing", page: value?.page, total: value?.total, loaded: value?.items?.length ?? 0 })
+        validateCatalogPage(value, page)
+      } },
     )
-    const details = await Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
+    const details = await enrichProducts(response.items!, (slug) => this.getProduct(slug, observer), observer)
     return {
       items: details,
       total: response.total,
@@ -325,15 +321,23 @@ export const catalogApi = {
     return (await this.getProductsPage(skip, limit, query)).items
   },
 
-  async getProduct(slugOrId: string): Promise<Product> {
+  async getProduct(slugOrId: string, observer?: CatalogObserver): Promise<Product> {
+    const readDetail = (slug: string) => readCatalog(() => CatalogService.getProductCatalogProductsSlugGet({ slug }), {
+      operation: "detail", observer,
+      validate: (detail) => {
+        if (!detail?.id || !detail.slug || !detail.name) throw new CatalogIntegrityError("invalid_product_detail")
+        const price = detail.variants?.[0]?.base_price ?? detail.attribute_values?.price
+        if (detail.product_kind === "physical" && (price === undefined || price === null || price === "" || !Number.isFinite(Number(price)))) throw new CatalogIntegrityError("missing_product_price")
+      },
+    })
     try {
-      return detailToProduct(await readCatalog(() => CatalogService.getProductCatalogProductsSlugGet({ slug: slugOrId })))
+      return detailToProduct(await readDetail(slugOrId))
     } catch (error) {
       if (!(error instanceof ApiError) || error.status !== 404 || !/^[a-f0-9]{24}$/i.test(slugOrId)) throw error
       const response = await readCatalog(() => CatalogService.listProductsCatalogProductsGet({ page: 1, pageSize: 100 }))
       const item = (response.items ?? []).find((product) => product.id === slugOrId || product.slug === slugOrId)
       if (!item) throw error
-      return detailToProduct(await readCatalog(() => CatalogService.getProductCatalogProductsSlugGet({ slug: item.slug })))
+      return detailToProduct(await readDetail(item.slug))
     }
   },
 
@@ -344,8 +348,13 @@ export const catalogApi = {
     })).items
   },
 
-  async getCategories(): Promise<Category[]> {
-    return (await readCatalog(() => CatalogService.listCategoriesCatalogCategoriesGet())).map(categoryToLegacy)
+  async getCategories(observer?: CatalogObserver): Promise<Category[]> {
+    return (await readCatalog(() => CatalogService.listCategoriesCatalogCategoriesGet(), {
+      operation: "categories", observer,
+      validate: (categories) => {
+        if (!Array.isArray(categories) || categories.some((category) => !category?.id || !category.name) || new Set(categories.map((category) => category.id)).size !== categories.length) throw new CatalogIntegrityError("invalid_categories")
+      },
+    })).map(categoryToLegacy)
   },
 
   async getCategory(categoryId: string): Promise<Category> {
@@ -358,7 +367,8 @@ export const catalogApi = {
   async getProductsByCategory(categorySlug: string, skip = 0, limit = 10): Promise<Product[]> {
     const page = Math.floor(skip / limit) + 1
     const response = await readCatalog(() => CatalogService.productsByCategoryCatalogCategoriesSlugProductsGet({ slug: categorySlug, page, pageSize: limit }))
-    return Promise.all((response.items ?? []).map((item) => this.getProduct(item.slug).catch(() => listItemToProduct(item))))
+    validateCatalogPage(response, page)
+    return enrichProducts(response.items!, (slug) => this.getProduct(slug))
   },
 
   async getPacks(skip = 0, limit = 20): Promise<Pack[]> {
