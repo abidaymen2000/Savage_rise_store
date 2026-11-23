@@ -1,0 +1,82 @@
+SAVAGE RISE — commandes manuelles Windows CMD
+23 novembre 2026
+
+Aucun commit, push ni déploiement n'a été exécuté par Codex.
+Seul le projet Store Savage Rise est à déployer. Core, Media et ERP : aucun déploiement pour cette mission.
+
+1. VÉRIFICATIONS LOCALES
+
+cd /d C:\Users\ASUS\Desktop\Savage_Rise\Savage_rise_store
+git branch --show-current
+git status --short
+git diff --check
+git diff
+set "NEXT_PUBLIC_STOREFRONT_DOMAIN=savagerise.com"
+npm test
+npx tsc --noEmit
+npm run lint
+npm run build
+
+Résultats attendus : main ; 156 tests réussis ; TypeScript sans erreur ; lint avec les avertissements existants ; build réussi.
+
+2. RECETTE NAVIGATEUR LOCALE REPRODUCTIBLE (FACULTATIVE AVANT DÉPLOIEMENT)
+
+Chrome doit être installé. Les ports 49171 et 49172 doivent être libres.
+Les dépendances de test sont installées hors du dépôt. Aucun changement package.json/lockfile n'est nécessaire.
+
+set "YOVO_STORE_QA=%TEMP%\yovo-savage-store-media-qa"
+npm install --prefix "%YOVO_STORE_QA%\tools" --no-audit --no-fund @playwright/test@1.58.2
+set "NODE_PATH=%YOVO_STORE_QA%\tools\node_modules"
+set "STORE_TEST_VIDEO=%CD%\artifacts\savage-store-media-2026-11-23\test-film.webm"
+set "STORE_TEST_OUTPUT=%YOVO_STORE_QA%\captures"
+set "STORE_TEST_RESULTS=%YOVO_STORE_QA%\resultats.json"
+set "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:49171"
+set "NEXT_PUBLIC_STOREFRONT_DOMAIN=fixture.local"
+set "NEXT_PUBLIC_META_PIXEL_ID="
+npm run build
+set "STORE_TEST_PRODUCTION=1"
+node "%NODE_PATH%\@playwright\test\cli.js" test -c tests/e2e/store-media.config.mjs
+
+Les 8 scénarios utilisent le vrai Store compilé, une API locale et le clip synthétique fourni. Le runner démarre et arrête ses deux serveurs ; aucune requête navigateur métier n'est envoyée en production.
+Le générateur tests/e2e/create-test-video.mjs est également fourni si vous souhaitez recréer le clip avec un exécutable ffmpeg local via FFMPEG_PATH.
+
+3. SORTIR DE LA CONFIGURATION DE RECETTE
+
+set "STORE_TEST_PRODUCTION="
+set "STORE_TEST_VIDEO="
+set "STORE_TEST_OUTPUT="
+set "STORE_TEST_RESULTS="
+set "NODE_PATH="
+set "NEXT_PUBLIC_API_BASE_URL="
+set "NEXT_PUBLIC_STOREFRONT_DOMAIN="
+set "NEXT_PUBLIC_META_PIXEL_ID="
+
+Le build de recette utilise l'API locale : ne pas le servir en production. Vercel doit reconstruire le projet avec ses variables de production existantes.
+
+4. DÉPLOIEMENT MANUEL VERCEL
+
+cd /d C:\Users\ASUS\Desktop\Savage_Rise\Savage_rise_store
+git branch --show-current
+git diff --check
+
+REM Si nécessaire, reconnectez votre CLI :
+npx vercel login
+REM Sélectionner le projet EXISTANT servant savagerise.com, pas le CMS ERP.
+REM Le dossier n'avait pas de .vercel/project.json au moment des contrôles.
+npx vercel link
+npx vercel --prod
+
+Aucun commit ni push n'est requis par ces commandes.
+Aucune migration, nouvelle variable métier ou modification des produits n'est nécessaire.
+
+5. APRÈS VOTRE DÉPLOIEMENT
+
+- Accueil : image Hero, 2 secondes, vidéo entière, retour image ; aucun bouton Pause.
+- Vérifier l'absence de 52 DT et les vrais prix issus du catalogue.
+- Faire défiler jusqu'à Concept FAZA : vidéo en boucle, CTA conservés.
+- Vérifier Latest pieces, boutique et collections : une principale par couleur, aucun doublon de taille.
+- Fiche : choisir une photo, M puis L de même couleur ; photo conservée. Changer de couleur ; galerie correspondante.
+- Vérifier 375, 768 et 1440 px, puis un téléphone iOS/Safari réel.
+- Vérifier le poster lorsque l'autoplay est refusé ou le réseau interrompu.
+
+La validation du contenu réellement publié se fera après votre déploiement. Ne modifier aucune donnée commerciale pour cette vérification.

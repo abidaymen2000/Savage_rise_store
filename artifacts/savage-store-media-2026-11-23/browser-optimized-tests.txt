@@ -1,0 +1,49 @@
+[WebServer] (node:22116) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:3520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:11520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:11520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\e2e\store-media.spec.mjs:122:1 › two-color interval, single color and broken image fallback (13.9s)
+  x  2 tests\e2e\store-media.spec.mjs:151:1 › navigation cleanup removes all decorative two-second timers (2.6s)
+
+
+  1) tests\e2e\store-media.spec.mjs:151:1 › navigation cleanup removes all decorative two-second timers 
+
+    Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM
+    Call log:
+    [2m  - attempting scroll into view action[22m
+    [2m    - waiting for element to be stable[22m
+
+
+      152 |   await page.goto('/products')
+      153 |   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()
+    > 154 |   await card.scrollIntoViewIfNeeded()
+          |              ^
+      155 |   await expect.poll(() => page.evaluate(() => window.motionTimers.size)).toBeGreaterThan(0)
+      156 |   await card.locator('a').first().click()
+      157 |   await expect(page).toHaveURL(/\/products\/hoodie$/)
+        at C:\Users\ASUS\Desktop\Savage_Rise\Savage_rise_store\tests\e2e\store-media.spec.mjs:154:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\..\.codex\tmp\savage-store-media-2026-11-23\browser-optimized-output\store-media-navigation-cle-d5670-ecorative-two-second-timers\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\..\.codex\tmp\savage-store-media-2026-11-23\browser-optimized-output\store-media-navigation-cle-d5670-ecorative-two-second-timers\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\..\..\.codex\tmp\savage-store-media-2026-11-23\browser-optimized-output\store-media-navigation-cle-d5670-ecorative-two-second-timers\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\..\..\.codex\tmp\savage-store-media-2026-11-23\browser-optimized-output\store-media-navigation-cle-d5670-ecorative-two-second-timers\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests\e2e\store-media.spec.mjs:151:1 › navigation cleanup removes all decorative two-second timers 
+  1 passed (28.1s)

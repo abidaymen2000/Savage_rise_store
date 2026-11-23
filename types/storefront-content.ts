@@ -16,7 +16,6 @@ export type StorefrontHero = {
   eyebrow: string
   title: string
   subtitle: string
-  price?: string
   primaryCta: StorefrontLink
   secondaryCta: StorefrontLink
   media: StorefrontMedia

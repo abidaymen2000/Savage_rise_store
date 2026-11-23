@@ -6,7 +6,9 @@ import test from "node:test"
 import { runInNewContext } from "node:vm"
 import ts from "typescript"
 import * as jsxRuntime from "react/jsx-runtime"
+import * as React from "react"
 import { createElement } from "react"
+import * as colorMedia from "../lib/product-color-media.ts"
 import { renderToStaticMarkup } from "react-dom/server"
 import { catalogApi } from "../lib/api/catalog-api.ts"
 import * as utils from "../lib/utils.ts"
@@ -15,7 +17,18 @@ import { isProductInStock, sortProductsByStockStatus } from "../lib/utils.ts"
 import { productHasPurchasableVariant } from "../lib/inventory.ts"
 
 // Render the real card; replace only Next's host components and client actions.
+const mediaModule = { exports: {} }
 const cardModule = { exports: {} }
+runInNewContext(ts.transpileModule(readFileSync(new URL("../components/storefront/product-card-media.tsx", import.meta.url), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+}).outputText, { exports: mediaModule.exports, require(name) {
+  if (name === "react") return React
+  if (name === "react/jsx-runtime") return jsxRuntime
+  if (name === "@/lib/product-color-media") return colorMedia
+  if (name === "@/hooks/use-media-active") return { useMediaActive: () => false }
+  if (name === "next/image") return ({ fill, priority, onLoad, onError, ...props }) => createElement("img", props)
+  throw Error("Unexpected card media dependency: " + name)
+} })
 const cardSource = readFileSync(new URL("../components/storefront/product-card.tsx", import.meta.url), "utf8")
 runInNewContext(ts.transpileModule(cardSource, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
@@ -23,6 +36,8 @@ runInNewContext(ts.transpileModule(cardSource, {
   exports: cardModule.exports,
   require: (name) => {
     if (name === "react/jsx-runtime") return jsxRuntime
+    if (name === "@/lib/product-color-media") return colorMedia
+    if (name === "./product-card-media") return mediaModule.exports
     if (name === "@/lib/inventory") return p1Inventory
     if (name === "@/lib/availability") return p1Availability
     if (name === "@/lib/utils") return utils

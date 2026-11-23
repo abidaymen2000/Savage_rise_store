@@ -26,10 +26,6 @@ type HeroProps = {
   drop?: DropCountdown | null
 }
 
-function normalizeText(value: string | null | undefined) {
-  return value?.trim().toLowerCase() ?? ""
-}
-
 function getRemainingSeconds(drop: DropCountdown | null) {
   if (!drop?.launch_at) return 0
   return Math.max(0, Math.floor((new Date(drop.launch_at).getTime() - Date.now()) / 1000))
@@ -94,8 +90,6 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
     ? { type: activeSlide.type, src: activeSlide.src, poster: activeSlide.poster, alt: String(heroTitle), objectPosition: activeSlide.objectPosition }
     : content.hero.media
   const isHeroVideo = Boolean(slide && slide.type === "video") || media.type === "video"
-  const heroPrice = content.hero.price?.trim()
-  const showHeroPrice = Boolean(heroPrice && !normalizeText(heroDescription).includes(normalizeText(heroPrice)))
   const heroMediaClassName =
     isHeroVideo
       ? "object-cover object-[50%_50%]"
@@ -109,6 +103,7 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
     <section data-studio-section="hero" className="relative isolate min-h-[calc(100svh-2.5rem)] w-full overflow-hidden bg-black pt-28 text-white md:min-h-[calc(100dvh-2.5rem)]">
       <StorefrontMedia
         media={media}
+        playback="hero-cycle"
         priority
         sizes="100vw"
         className="absolute inset-0 h-full w-full overflow-hidden"
@@ -121,7 +116,6 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
           <div className="max-w-3xl">
             <h1 className="font-playfair text-5xl font-semibold leading-[0.95] text-[rgba(255,255,255,0.98)] sm:text-6xl lg:text-8xl">{heroTitle}</h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-stone-100 sm:text-lg">{heroDescription}</p>
-            {showHeroPrice && <p className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-stone-300">{heroPrice}</p>}
           </div>
           <div className="flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
             {edited?.primary_action ? <StudioHeroAction action={edited.primary_action} label={content.hero.primaryCta.label} className="h-12 min-h-11 rounded-none bg-white px-6 text-xs font-semibold uppercase tracking-[0.16em] text-black hover:bg-stone-200 disabled:opacity-60" /> : <HeroPrimaryAction

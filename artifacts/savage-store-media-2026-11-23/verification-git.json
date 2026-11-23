@@ -1,0 +1,30 @@
+{
+  "branch": "main",
+  "head": "6b8f2bc8c1cd2af427915a3339fa80a376fab106",
+  "diff_check": "",
+  "files": [
+    "app/components/EntranceWrapper.tsx",
+    "app/components/Hero.tsx",
+    "app/products/[id]/ProductDetailClient.tsx",
+    "components/storefront/media/storefront-media.tsx",
+    "components/storefront/media/storefront-video.tsx",
+    "components/storefront/product-card-media.tsx",
+    "components/storefront/product-card.tsx",
+    "hooks/use-media-active.ts",
+    "lib/api/catalog-api.ts",
+    "lib/product-color-media.ts",
+    "lib/storefront/content-fallbacks.ts",
+    "lib/video-playback.ts",
+    "tests/availability-p1.test.mjs",
+    "tests/e2e/create-test-video.mjs",
+    "tests/e2e/store-media-server.mjs",
+    "tests/e2e/store-media.config.mjs",
+    "tests/e2e/store-media.spec.mjs",
+    "tests/product-color-media.test.mjs",
+    "tests/storefront-availability.test.mjs",
+    "tests/theme.test.mjs",
+    "tests/video-playback.test.mjs",
+    "types/api.ts",
+    "types/storefront-content.ts"
+  ]
+}

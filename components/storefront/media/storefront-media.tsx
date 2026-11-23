@@ -10,6 +10,7 @@ type StorefrontMediaProps = {
   imageClassName?: string
   priority?: boolean
   sizes?: string
+  playback?: import("@/lib/video-playback").VideoPlaybackMode
 }
 
 export default function StorefrontMedia({
@@ -18,6 +19,7 @@ export default function StorefrontMedia({
   imageClassName = "object-cover",
   priority = false,
   sizes = "100vw",
+  playback = "loop",
 }: StorefrontMediaProps) {
   const {reportMedia} = useStudio()
   const wrapperPosition = /\b(absolute|fixed|sticky)\b/.test(className) ? "" : "relative"
@@ -29,6 +31,8 @@ export default function StorefrontMedia({
         className={className}
         imageClassName={imageClassName}
         priority={priority}
+        playback={playback}
+        sizes={sizes}
       />
     )
   }

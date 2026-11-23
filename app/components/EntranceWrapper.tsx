@@ -35,7 +35,7 @@ export default function EntranceWrapper({ children }: EntranceWrapperProps) {
   return (
     <>
       {showAnimation && <EntranceAnimation onComplete={handleAnimationComplete} />}
-      <div className={showAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-500"}>
+      <div data-store-entrance-pending={showAnimation} className={showAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-500"}>
         {children}
       </div>
     </>

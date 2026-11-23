@@ -1,0 +1,49 @@
+[WebServer] (node:24188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:24588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:31620) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Image with src "http://127.0.0.1:49171/images/Black.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "http://127.0.0.1:49171/images/Pink.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "/placeholder.svg?height=400&width=300" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+
+Running 6 tests using 1 worker
+
+(node:31200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:31200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\e2e\store-media.spec.mjs:24:39 › layout and real playback at 375px (25.0s)
+  ok 2 tests\e2e\store-media.spec.mjs:24:39 › layout and real playback at 768px (19.2s)
+  ok 3 tests\e2e\store-media.spec.mjs:24:39 › layout and real playback at 1440px (19.1s)
+[WebServer] Image with src "http://127.0.0.1:49171/images/Black.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "http://127.0.0.1:49171/images/Pink.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "/placeholder.svg?height=400&width=300" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "http://127.0.0.1:49171/images/Brown.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] (node:24352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ok 4 tests\e2e\store-media.spec.mjs:58:1 › six-color complete cycle, one-color static, SOLD OUT and unchanged commerce (44.6s)
+[WebServer] (node:8384) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Image with src "http://127.0.0.1:49171/images/Black.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "http://127.0.0.1:49171/images/Black-detail.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+  ok 5 tests\e2e\store-media.spec.mjs:78:1 › detail preserves manual image across M to L, changes gallery with color (12.0s)
+[WebServer] Image with src "http://127.0.0.1:49171/images/Pink.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "/placeholder.svg?height=400&width=300" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+[WebServer] Image with src "http://127.0.0.1:49171/images/Brown.svg" has a "loader" property that does not implement width. Please implement it or use the "unoptimized" property instead.
+[WebServer] Read more: https://nextjs.org/docs/messages/next-image-missing-loader-width
+  ok 6 tests\e2e\store-media.spec.mjs:96:1 › video failure, refused autoplay and reduced motion preserve the poster (19.1s)
+
+  6 passed (4.0m)

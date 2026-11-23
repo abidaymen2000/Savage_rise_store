@@ -37,6 +37,7 @@ export interface VariantItem extends Availability {
 }
 
 export interface Variant {
+  position?: number
   id?: string | null
   name?: string | null
   sku?: string | null

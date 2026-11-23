@@ -1,12 +1,13 @@
 "use client"
 import { useStorePrice } from "@/hooks/use-store-price"
-import Image from "next/image"
+import ProductCardMedia from "./product-card-media"
+import { getProductColorGalleries } from "@/lib/product-color-media"
 import Link from "next/link"
 import ProductCardActions from "@/components/storefront/product-card-actions"
 import { getColorSwatch } from "@/lib/color-swatches"
-import { formatPrice, getFirstProductImage, getProductImageAlt, isProductInStock } from "@/lib/utils"
+import { isProductInStock } from "@/lib/utils"
 import { getProductAvailability } from "@/lib/inventory"
-import { isSoldOut, availabilityLabel } from "@/lib/availability"
+import { isSoldOut } from "@/lib/availability"
 import type { Product } from "@/types/api"
 
 function getProductHref(product: Product) {
@@ -14,14 +15,7 @@ function getProductHref(product: Product) {
 }
 
 function getColors(product: Product) {
-  const seen = new Set<string>()
-  return (product.variants ?? []).flatMap((variant) => {
-    const label = variant.option_values?.color ?? variant.color
-    const key = label?.toLowerCase().trim()
-    if (!label || !key || seen.has(key)) return []
-    seen.add(key)
-    return [{ label, swatch: getColorSwatch(variant.color_code ?? label) }]
-  })
+  return getProductColorGalleries(product).map(group => ({ label: group.color, swatch: getColorSwatch(group.colorCode || group.color) }))
 }
 
 export default function ProductCard({ product, compact = false, priority = false }: { product: Product; compact?: boolean; priority?: boolean }) {
@@ -29,32 +23,13 @@ export default function ProductCard({ product, compact = false, priority = false
   const inStock = isProductInStock(product)
   const availability = getProductAvailability(product)
   const colors = getColors(product)
-  const first = getFirstProductImage(product)
-  const second = product.variants?.flatMap((variant) => variant.images ?? []).find((image) => image.url && image.url !== first)?.url
-  const images = { first, second }
   const href = getProductHref(product)
   const compareAt = product.compare_at_price && product.compare_at_price > product.price ? product.compare_at_price : null
 
   return (
     <article className="group min-w-0 overflow-hidden border border-border bg-card text-card-foreground transition-colors duration-300 hover:border-accent/55">
       <Link href={href} className="relative block aspect-[3/4] overflow-hidden bg-muted">
-        <Image
-          src={images.first}
-          alt={getProductImageAlt(product)}
-          fill
-          sizes="(min-width: 1536px) 300px, (min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw"
-          className={`object-contain transition-transform duration-500 group-hover:scale-[1.025] ${!inStock ? "grayscale-[20%] opacity-90" : ""}`}
-          priority={priority}
-        />
-        {images.second && (
-          <Image
-            src={images.second}
-            alt=""
-            fill
-            sizes="(min-width: 1536px) 300px, (min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw"
-            className={`hidden object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:block ${!inStock ? "grayscale-[20%]" : ""}`}
-          />
-        )}
+        <ProductCardMedia product={product} priority={priority} inStock={inStock} />
         {!inStock && <div className="absolute inset-0 z-10 bg-card/10" aria-hidden="true" />}
         <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2">
           {isSoldOut(availability) && <span className="bg-black/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-sm ring-1 ring-white/10">SOLD OUT</span>}

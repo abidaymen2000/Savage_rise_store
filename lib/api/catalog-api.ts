@@ -77,8 +77,10 @@ function legacySizeInStock(size: SizeStock) {
 function variantToLegacy(variant: ProductVariantRead, productPrice: number, productKind?: string): Variant {
   const entries = optionEntries(variant)
   const bundleWithoutOptions = productKind === "bundle" && !hasDisplayableOptionValues(variant)
-  const first = bundleWithoutOptions ? "" : entries[0]?.[1] ?? variant.title
-  const second = bundleWithoutOptions ? "" : entries[1]?.[1] ?? "default"
+  const colorEntry = entries.find(([axis]) => ["color", "colour", "couleur"].includes(axis.normalize("NFKC").trim().toLowerCase()))
+  const sizeEntry = entries.find(([axis]) => ["size", "taille"].includes(axis.normalize("NFKC").trim().toLowerCase()))
+  const first = bundleWithoutOptions ? "" : colorEntry?.[1] ?? entries[0]?.[1] ?? variant.title
+  const second = bundleWithoutOptions ? "" : sizeEntry?.[1] ?? entries[1]?.[1] ?? "default"
   const inventory = variant.inventory ?? null
   const trackInventory = inventory?.track_inventory ?? variant.track_inventory ?? true
   const stockOnHand = inventory?.stock_on_hand
@@ -105,6 +107,7 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
 
   return {
     id: variant.id,
+    position: variant.position,
     name: variant.title,
     color: first,
     color_code: typeof variant.attribute_values?.color_code === "string" ? variant.attribute_values.color_code : null,

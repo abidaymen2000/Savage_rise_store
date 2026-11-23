@@ -1,0 +1,188 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\tests\\e2e\\store-media.config.mjs",
+    "rootDir": "C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/ASUS/.codex/tmp/savage-store-media-2026-11-23/browser-optimized-output",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "store-media.spec.mjs"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\ASUS\\.codex\\tmp\\savage-store-media-2026-11-23\\browser-optimized-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "store-media.spec.mjs",
+      "file": "store-media.spec.mjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "two-color interval, single color and broken image fallback",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13944,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-23T05:04:33.080Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9298ce46b554c11b3925-1e9a10fa2e7279f070da",
+          "file": "store-media.spec.mjs",
+          "line": 122,
+          "column": 1
+        },
+        {
+          "title": "navigation cleanup removes all decorative two-second timers",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 2582,
+                  "error": {
+                    "message": "Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM\nCall log:\n\u001b[2m  - attempting scroll into view action\u001b[22m\n\u001b[2m    - waiting for element to be stable\u001b[22m\n",
+                    "stack": "Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM\nCall log:\n\u001b[2m  - attempting scroll into view action\u001b[22m\n\u001b[2m    - waiting for element to be stable\u001b[22m\n\n    at C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\tests\\e2e\\store-media.spec.mjs:154:14",
+                    "location": {
+                      "file": "C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\tests\\e2e\\store-media.spec.mjs",
+                      "column": 14,
+                      "line": 154
+                    },
+                    "snippet": "  152 |   await page.goto('/products')\n  153 |   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()\n> 154 |   await card.scrollIntoViewIfNeeded()\n      |              ^\n  155 |   await expect.poll(() => page.evaluate(() => window.motionTimers.size)).toBeGreaterThan(0)\n  156 |   await card.locator('a').first().click()\n  157 |   await expect(page).toHaveURL(/\\/products\\/hoodie$/)"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\tests\\e2e\\store-media.spec.mjs",
+                        "column": 14,
+                        "line": 154
+                      },
+                      "message": "Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM\nCall log:\n\u001b[2m  - attempting scroll into view action\u001b[22m\n\u001b[2m    - waiting for element to be stable\u001b[22m\n\n\n  152 |   await page.goto('/products')\n  153 |   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()\n> 154 |   await card.scrollIntoViewIfNeeded()\n      |              ^\n  155 |   await expect.poll(() => page.evaluate(() => window.motionTimers.size)).toBeGreaterThan(0)\n  156 |   await card.locator('a').first().click()\n  157 |   await expect(page).toHaveURL(/\\/products\\/hoodie$/)\n    at C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\tests\\e2e\\store-media.spec.mjs:154:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-23T05:04:48.312Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\ASUS\\.codex\\tmp\\savage-store-media-2026-11-23\\browser-optimized-output\\store-media-navigation-cle-d5670-ecorative-two-second-timers\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\ASUS\\.codex\\tmp\\savage-store-media-2026-11-23\\browser-optimized-output\\store-media-navigation-cle-d5670-ecorative-two-second-timers\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\ASUS\\.codex\\tmp\\savage-store-media-2026-11-23\\browser-optimized-output\\store-media-navigation-cle-d5670-ecorative-two-second-timers\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\tests\\e2e\\store-media.spec.mjs",
+                    "column": 14,
+                    "line": 154
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9298ce46b554c11b3925-780af800dda84e330ed2",
+          "file": "store-media.spec.mjs",
+          "line": 151,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-23T05:04:24.930Z",
+    "duration": 28134.018,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

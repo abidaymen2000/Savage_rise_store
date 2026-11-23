@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-23",
+  "baseline_tests": 145,
+  "unit_contract_tests": {
+    "passed": 156,
+    "failed": 0
+  },
+  "browser_unique_scenarios_passed": 8,
+  "browser_runs": [
+    {
+      "file": "browser-results.json",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "file": "browser-optimized-results.json",
+      "passed": 1,
+      "failed": 1,
+      "note": "Le scénario de nettoyage a été repris après synchronisation avec la fin réelle de l’introduction."
+    },
+    {
+      "file": "browser-cleanup-results.json",
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "typescript_exit": 0,
+  "lint_exit": 0,
+  "build_exit": 0,
+  "git_diff_check_exit": 0,
+  "widths": [
+    375,
+    768,
+    1440
+  ],
+  "production_data_mutations": 0,
+  "commit": false,
+  "push": false,
+  "deployed": false
+}

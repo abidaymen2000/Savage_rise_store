@@ -9,7 +9,6 @@ export const storefrontFallbackContent: StorefrontContent = {
     eyebrow: "FAZA-001",
     title: "موجة حر",
     subtitle: "Une piece inspiree par les etes tunisiens.",
-    price: "52 DT",
     primaryCta: { label: "Commander maintenant", href: "/products" },
     secondaryCta: { label: "Decouvrir FAZA", href: "/vlog" },
     media: {

@@ -1,0 +1,90 @@
+TAP version 13
+# (node:25912) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:25912) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:25912) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:25912) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store/lib/product-color-media.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\ASUS\\Desktop\\Savage_Rise\\Savage_rise_store\\package.json.
+# Subtest: 30 sizes produce exactly six ERP primaries in ERP color order, without mutation
+ok 1 - 30 sizes produce exactly six ERP primaries in ERP color order, without mutation
+  ---
+  duration_ms: 6.6021
+  type: 'test'
+  ...
+# Subtest: one or two colors produce one or two slides regardless of sizes and secondary photos
+ok 2 - one or two colors produce one or two slides regardless of sizes and secondary photos
+  ---
+  duration_ms: 0.4917
+  type: 'test'
+  ...
+# Subtest: gallery depends only on color, combines size-shared IDs without duplicates
+ok 3 - gallery depends only on color, combines size-shared IDs without duplicates
+  ---
+  duration_ms: 1.0639
+  type: 'test'
+  ...
+# Subtest: explicit primary on a later size wins; fallback order is used only without any primary
+ok 4 - explicit primary on a later size wins; fallback order is used only without any primary
+  ---
+  duration_ms: 0.4588
+  type: 'test'
+  ...
+# Subtest: equivalent normalized color labels merge, not other colors or size-only axes
+ok 5 - equivalent normalized color labels merge, not other colors or size-only axes
+  ---
+  duration_ms: 0.3723
+  type: 'test'
+  ...
+# Subtest: missing images use product primary then placeholder; identical assets/URLs never repeat
+ok 6 - missing images use product primary then placeholder; identical assets/URLs never repeat
+  ---
+  duration_ms: 0.5342
+  type: 'test'
+  ...
+# Subtest: adapter retains primary and ERP position and resolves color/size by axis name
+ok 7 - adapter retains primary and ERP position and resolves color/size by axis name
+  ---
+  duration_ms: 2.0539
+  type: 'test'
+  ...
+# (node:20348) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./tests/alias-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:20348) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (node:20348) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# Subtest: Hero shows poster for exactly 2000ms and repeats only after full ended event
+ok 8 - Hero shows poster for exactly 2000ms and repeats only after full ended event
+  ---
+  duration_ms: 8.7501
+  type: 'test'
+  ...
+# Subtest: FAZA starts immediately and loops without an intermediate poster
+ok 9 - FAZA starts immediately and loops without an intermediate poster
+  ---
+  duration_ms: 1.5856
+  type: 'test'
+  ...
+# Subtest: denied autoplay and media error keep fallback, without retry storms
+ok 10 - denied autoplay and media error keep fallback, without retry storms
+  ---
+  duration_ms: 5.4324
+  type: 'test'
+  ...
+# Subtest: unmount cancels timers/listeners and ignores late rejected play promises
+ok 11 - unmount cancels timers/listeners and ignores late rejected play promises
+  ---
+  duration_ms: 2.0586
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1860.9814

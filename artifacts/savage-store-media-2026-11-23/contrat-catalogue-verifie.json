@@ -1,0 +1,126 @@
+{
+  "date": "2026-11-23",
+  "read_only": true,
+  "route": "/api/core/catalog/products/sr-palazzo-baggy-pants",
+  "status": 200,
+  "fields": [
+    "variants.option_values",
+    "variants.position",
+    "variants.media.asset_id",
+    "variants.media.is_primary",
+    "variants.media.position",
+    "variants.media.url"
+  ],
+  "variants": [
+    {
+      "id": "6a544d1a81bf79b294333cfd",
+      "color": "Black",
+      "size": "S",
+      "position": 1,
+      "primary_ids": [
+        "ddb1be5bcd8b25e71c3b4200211b581963b9069e18417974191cf1efb604f17e"
+      ]
+    },
+    {
+      "id": "6a544d1a81bf79b294333d00",
+      "color": "Black",
+      "size": "M",
+      "position": 2,
+      "primary_ids": [
+        "ddb1be5bcd8b25e71c3b4200211b581963b9069e18417974191cf1efb604f17e"
+      ]
+    },
+    {
+      "id": "6a544d1b81bf79b294333d03",
+      "color": "Black",
+      "size": "L",
+      "position": 3,
+      "primary_ids": [
+        "ddb1be5bcd8b25e71c3b4200211b581963b9069e18417974191cf1efb604f17e"
+      ]
+    },
+    {
+      "id": "6a544d1b81bf79b294333d06",
+      "color": "Black",
+      "size": "XL",
+      "position": 4,
+      "primary_ids": [
+        "ddb1be5bcd8b25e71c3b4200211b581963b9069e18417974191cf1efb604f17e"
+      ]
+    },
+    {
+      "id": "6a544d1b81bf79b294333d09",
+      "color": "White",
+      "size": "S",
+      "position": 5,
+      "primary_ids": [
+        "d60c2b7b1e31da1f9b8007f706c778a50f808f8467f50da133442598ae06070a"
+      ]
+    },
+    {
+      "id": "6a544d1c81bf79b294333d0c",
+      "color": "White",
+      "size": "M",
+      "position": 6,
+      "primary_ids": [
+        "d60c2b7b1e31da1f9b8007f706c778a50f808f8467f50da133442598ae06070a"
+      ]
+    },
+    {
+      "id": "6a544d1c81bf79b294333d0f",
+      "color": "White",
+      "size": "L",
+      "position": 7,
+      "primary_ids": [
+        "d60c2b7b1e31da1f9b8007f706c778a50f808f8467f50da133442598ae06070a"
+      ]
+    },
+    {
+      "id": "6a544d1c81bf79b294333d12",
+      "color": "White",
+      "size": "XL",
+      "position": 8,
+      "primary_ids": [
+        "d60c2b7b1e31da1f9b8007f706c778a50f808f8467f50da133442598ae06070a"
+      ]
+    },
+    {
+      "id": "6a544d1d81bf79b294333d15",
+      "color": "Greige",
+      "size": "S",
+      "position": 9,
+      "primary_ids": [
+        "147bfe16df1f76057284654451a185eea83d22e940059155f52257833429dd39"
+      ]
+    },
+    {
+      "id": "6a544d1d81bf79b294333d18",
+      "color": "Greige",
+      "size": "M",
+      "position": 10,
+      "primary_ids": [
+        "147bfe16df1f76057284654451a185eea83d22e940059155f52257833429dd39"
+      ]
+    },
+    {
+      "id": "6a544d1d81bf79b294333d1b",
+      "color": "Greige",
+      "size": "L",
+      "position": 11,
+      "primary_ids": [
+        "147bfe16df1f76057284654451a185eea83d22e940059155f52257833429dd39"
+      ]
+    },
+    {
+      "id": "6a544d1e81bf79b294333d1e",
+      "color": "Greige",
+      "size": "XL",
+      "position": 12,
+      "primary_ids": [
+        "147bfe16df1f76057284654451a185eea83d22e940059155f52257833429dd39"
+      ]
+    }
+  ],
+  "ombra_public_lookup_status": 404,
+  "note": "Le produit OMBRA et son prix actuel ne sont pas confirmés par cette lecture publique. Le scénario à 89,900 DT est une fixture locale."
+}

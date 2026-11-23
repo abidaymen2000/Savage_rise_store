@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import Link from "next/link"
@@ -24,6 +24,7 @@ import {
   getProductImageForColor,
 } from "@/lib/pack-offers"
 import { getAvailableColors, getAvailableSizes, isProductInStock, formatPrice } from "@/lib/utils"
+import { getProductImagesForColor } from "@/lib/product-color-media"
 import WishlistButton from "@/components/WishlistButton"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -143,8 +144,9 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
       return
     }
     setCurrentVariant(getProductVariantForSelection(product, selectedColor, selectedSize))
-    setSelectedImageIndex(0)
   }, [product, selectedColor, selectedSize])
+
+  useEffect(() => { setSelectedImageIndex(0) }, [product, selectedColor])
 
   useEffect(() => {
     if (!product || !relatedPack) return
@@ -261,7 +263,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   }, [quantity, quantityLimit])
 
   // Get current images to display
-  const currentImages = currentVariant?.images?.length ? currentVariant.images : product.images || []
+  const currentImages = useMemo(() => getProductImagesForColor(product, selectedColor), [product, selectedColor])
   const displayImages =
     currentImages.length > 0
       ? currentImages
@@ -363,6 +365,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 <Select
                   value={selectedColor}
                   onValueChange={(color) => {
+                    setSelectedImageIndex(0)
                     setSelectedColor(color)
                     trackStoreEvent("color_selected", {
                       product_id: product.id,

@@ -9,6 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import * as availability from "../lib/availability.ts"
 import * as inventory from "../lib/inventory.ts"
 import * as utils from "../lib/utils.ts"
+import * as colorMedia from "../lib/product-color-media.ts"
 import * as packs from "../lib/pack-offers.ts"
 import { catalogApi } from "../lib/api/catalog-api.ts"
 import { retryReadOnly } from "../lib/read-retry.ts"
@@ -26,6 +27,7 @@ runInNewContext(ts.transpileModule(readFileSync(new URL(detailPath, import.meta.
   if (name === "@/lib/availability") return availability
   if (name === "@/lib/inventory") return inventory
   if (name === "@/lib/utils") return utils
+  if (name === "@/lib/product-color-media") return colorMedia
   if (name === "@/lib/pack-offers") return packs
   if (name === "@/contexts/CartContext") return { useCart: () => ({ addToCart() {}, addPackToCart() {} }) }
   if (name === "@/contexts/StoreConfigContext") return { useStoreConfig: () => ({ config: { default_currency: "TND", locale: "fr-TN" } }) }

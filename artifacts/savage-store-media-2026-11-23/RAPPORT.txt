@@ -1,0 +1,85 @@
+SAVAGE RISE — Hero, vidéos, prix et images par couleur
+23 novembre 2026
+
+ÉTAT
+Correctifs locaux dans C:/Users/ASUS/Desktop/Savage_Rise/Savage_rise_store, branche main.
+HEAD initial : 6b8f2bc8c1cd2af427915a3339fa80a376fab106.
+Aucun commit, push, déploiement ou changement des données de production.
+Aucun changement des autres Stores, du CMS ERP, de Core ou de Media dans cette mission.
+
+CAUSES ET CORRECTIONS
+1. Hero : le lecteur commun utilisait loop et un démarrage différé de 1200/2500 ms ; aucun cycle image/vidéo et un bouton Pause. Le Hero choisit maintenant le mode hero-cycle. Le poster configuré reste monté sous la vidéo. Après son chargement visible, un seul timer de 2000 ms déclenche play() à currentTime=0. Seul l’événement ended relance le temps d’image : aucune durée de film supposée. loop est désactivé pour ce mode. Le lecteur n’affiche aucun bouton Play/Pause. La lecture utilise muted et playsInline.
+La vidéo n’est rendue opaque qu’au véritable événement playing. En cas de réseau lent, autoplay refusé ou décodage impossible, le poster reste visible. Un navigateur ne permet pas de garantir une première image vidéo décodée exactement à 2000 ms : c’est la demande de lecture qui part après 2000 ms, sans remplacer l’image par un écran vide.
+L’introduction déjà présente conserve son apparence. Le cycle attend sa disparition. Les changements CMS de source/poster recréent le lecteur ; les timers, listeners, décodeurs et promesses tardives sont nettoyés, y compris au double montage React StrictMode.
+
+2. Prix : la valeur était exactement hero.price = "52 DT" dans lib/storefront/content-fallbacks.ts. Hero.tsx l’affichait indépendamment du catalogue et du titre fourni par Studio. La valeur, sa propriété de contenu et ce paragraphe sont supprimés. Aucune constante 89,900 n’est ajoutée au code commercial. Les cartes et fiches utilisent toujours product.price venant du catalogue et le formateur TND existant. Le texte éditorial CMS est conservé. Les autres occurrences de « 52 DT » restantes servent à tester des payloads analytics invalides, pas à afficher des prix.
+
+3. Concept FAZA : même lecteur commun que Hero, avec commande Pause. FAZA conserve désormais le mode loop natif, sans phase d’image entre les lectures. Le poster sert uniquement de secours avant lecture ou en cas d’échec. Le contenu, les CTA et la mise en page sont conservés. Les vidéos hors écran sont suspendues ; la préférence de réduction des animations conserve une image fixe.
+
+4. Cartes : l’ancien composant prenait la première image produit puis une seconde trouvée dans toutes les galeries de variantes, uniquement au survol. Cela mélangeait tailles, couleurs et photos secondaires. Les images sont maintenant groupées par couleur (normalisation NFKC, espaces, casse ; axes color/colour/couleur). Les tailles seules ne deviennent pas des couleurs.
+La position ERP puis l’ID déterminent l’ordre des variantes/couleurs. Chaque couleur fournit une seule principale explicite. Les IDs et URLs identiques sont dédupliqués. Une galerie sans principale utilise son ordre existant. Une couleur sans image utilise la principale produit, puis le placeholder existant.
+La carte passe à la couleur suivante après 2000 ms. Elle attend que l’image suivante soit chargée et conserve la précédente pendant un fondu de 300 ms. Seules l’image courante, la suivante et, durant le fondu, la précédente sont montées. Le loader ImageKit, les tailles responsive et le lazy loading sont conservés. Hors écran, onglet masqué, focus clavier ou réduction des animations : pas de rotation. Une seule image ne crée pas de timer de rotation.
+Le prix, le stock, les badges SOLD OUT, la variante sélectionnée et le panier ne changent pas avec l’image. Les liens produits restent cliquables.
+
+5. Fiche : les médias dépendaient de currentVariant et selectedImageIndex était réinitialisé à chaque taille. La galerie est maintenant calculée uniquement depuis produit/couleur. Un passage M → L garde la photo manuellement choisie. Un changement de couleur affiche sa galerie et remet la sélection à sa principale. Aucun timer de carte n’est utilisé sur la fiche.
+L’adaptateur conserve maintenant variants.position et lit les axes couleur/taille par leur nom, même si l’API retourne size avant color. Les identifiants, quantités et signaux de disponibilité restent ceux du serveur.
+
+CONTRAT API VÉRIFIÉ
+Lecture seule du catalogue public Savage Rise : SR PALAZZO BAGGY PANTS retourne variants.option_values, position et media avec asset_id, url, is_primary, position. Ces champs suffisent pour les galeries partagées entre tailles. Les ID Black/S et Black/M renvoient notamment la même principale Media. Voir contrat-catalogue-verifie.json.
+La recherche publique OMBRA n’a pas retourné le produit dans la liste ni par le slug essayé. Son prix actuel 89,900 DT n’est donc pas présenté comme vérifié en production. Ce prix est utilisé uniquement dans les données locales de recette et reste issu de l’API de fixture pendant les tests.
+Limite du contrat : il n’existe pas de champ « principale de couleur » distinct des principales de variante. Si des tailles d’une même couleur déclarent des principales différentes, la première variante dans l’ordre ERP départage ces principales de façon stable. Aucune donnée n’est modifiée. Pour imposer une principale unique de couleur dans ce cas, réutiliser la galerie du sélecteur couleur déjà disponible côté ERP ; une évolution éventuelle peut exposer cette projection dans l’API publique, sans nouveau stockage ni copie de fichiers. Les labels de couleurs différents ne sont pas fusionnés par traduction inventée.
+
+VALIDATION
+- Baseline configurée avant changements : 145 tests réussis.
+- Suite finale npm test : 156 tests réussis, 0 échec. Dont 11 nouveaux tests de cycle vidéo, erreurs/cleanup, primaires, six couleurs/trente variantes, doublons, galerie manuelle, fallback et axes inversés.
+- 8 scénarios navigateur validés au total : 6 sur le Store Next local en développement, puis les 2 contrôles complémentaires sur le build optimisé. Résultats détaillés dans les journaux JSON/TXT.
+- Largeurs 375, 768 et 1440 px : Hero et FAZA lus réellement par Chrome, boucles constatées, cartes actives, absence de débordement horizontal et aucune exception JavaScript dans ces trois parcours.
+- Hero : au moins deux cycles, absence de loop/contrôles, muted/playsInline ; intervalle ended → playing supérieur ou égal à 1950 ms et inférieur à 3000 ms dans la recette avec clip synthétique. Le test à horloge contrôlée vérifie 1999 ms sans lecture puis lecture à 2000 ms, sur quatre cycles complets.
+- FAZA : au moins deux retours réels du temps de lecture au début, sans phase d’image.
+- Catalogue : cycle des six principales, deux couleurs à environ deux secondes, une couleur fixe, image 404 avec secours fonctionnel, absence d’image avec placeholder chargé, SOLD OUT conservé, prix 89,900 DT stable et localStorage/panier inchangés pendant la rotation. Navigation vers la fiche vérifiée.
+- Fiche : photo secondaire choisie conservée après M → L ; Bordeaux affiche sa principale ; bouton d’achat actif ; aucune rotation automatique.
+- Nettoyage : après navigation catalogue → fiche, aucun timer décoratif de 2000 ms restant. Les tests unitaires vérifient également le retrait des listeners et l’annulation des démarrages après démontage.
+- TypeScript : vérification séparée npx tsc --noEmit, sans erreur.
+- Lint : npm run lint réussi, avec avertissements existants dans les pages profil, avis, contact et studio-hero-action, hors fichiers fonctionnels modifiés.
+- Build optimisé Next 14.2.16 réussi. La configuration existante ignore lint/types pendant le build ; les contrôles séparés ci-dessus ont donc été exécutés.
+- git diff --check réussi.
+
+TRANSPARENCE SUR LES ESSAIS
+Le premier lancement sans NEXT_PUBLIC_STOREFRONT_DOMAIN échouait ; la baseline configurée passe à 145/145. Les anciens tests de rendu ont été adaptés pour charger les nouveaux modules réels ; aucune assertion de disponibilité n’a été supprimée.
+Deux contrôles complémentaires en développement ont échoué (rotation avec image 404 et chargement d’un chunk Next). Le cas 404 passe sur le build optimisé. Le test de nettoyage a ensuite rencontré le démontage de l’introduction pendant son action : le test attend maintenant la fin effective de l’introduction et réussit, sans délai arbitraire ajouté au produit. Ces essais intermédiaires ne sont pas comptés comme des succès.
+Les avertissements Next Image sur les SVG locaux et les avertissements de clés déjà présents dans le footer de secours ne sont pas des exceptions JavaScript de ces corrections.
+
+CAPTURES
+hero-375.png, hero-768.png, hero-1440.png
+catalog-375.png, catalog-768.png, catalog-1440.png
+product-detail.png
+Ce sont les composants et styles réels du Store, avec une API locale et des médias synthétiques, clairement identifiés. Les requêtes navigateur externes sont interceptées : aucune écriture de production, aucun upload ou téléchargement ImageKit en pleine résolution pendant ces tests.
+La recette ne remplace pas un essai Safari/iOS réel ni la validation du contenu publié. La validation du Store réellement déployé reste à faire après votre déploiement manuel.
+
+FICHIERS
+  app/components/EntranceWrapper.tsx
+  app/components/Hero.tsx
+  app/products/[id]/ProductDetailClient.tsx
+  components/storefront/media/storefront-media.tsx
+  components/storefront/media/storefront-video.tsx
+  components/storefront/product-card-media.tsx
+  components/storefront/product-card.tsx
+  hooks/use-media-active.ts
+  lib/api/catalog-api.ts
+  lib/product-color-media.ts
+  lib/storefront/content-fallbacks.ts
+  lib/video-playback.ts
+  tests/availability-p1.test.mjs
+  tests/e2e/create-test-video.mjs
+  tests/e2e/store-media-server.mjs
+  tests/e2e/store-media.config.mjs
+  tests/e2e/store-media.spec.mjs
+  tests/product-color-media.test.mjs
+  tests/storefront-availability.test.mjs
+  tests/theme.test.mjs
+  tests/video-playback.test.mjs
+  types/api.ts
+  types/storefront-content.ts
+
+DÉPLOIEMENT
+Un seul dépôt : Savage_rise_store. Aucune migration, aucun déploiement Core/Media/CMS ERP nécessaire pour ces changements. Voir DEPLOIEMENT-WINDOWS-CMD.txt.
