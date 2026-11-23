@@ -69,19 +69,19 @@ function getSlides(headerVideo: HeaderVideo | null | undefined): HeroSlide[] {
 }
 
 export default function Hero({ headerVideo, drop }: HeroProps) {
-  const studio = useStudio().content
+  const {content: studio} = useStudio()
   const original = getStorefrontContent()
   const edited = studio?.hero
   const content = { ...original, hero: { ...original.hero,
     eyebrow: edited?.eyebrow ?? original.hero.eyebrow, title: edited?.title ?? original.hero.title, subtitle: edited?.subtitle ?? original.hero.subtitle,
     primaryCta: { ...original.hero.primaryCta, label: edited?.primary_label ?? original.hero.primaryCta.label },
     secondaryCta: { ...original.hero.secondaryCta, label: edited?.secondary_label ?? original.hero.secondaryCta.label },
-    media: edited?.media ? {type: edited.media.mime?.startsWith("video/") ? "video" as const : "image" as const, src: edited.media.url, poster: edited.poster?.url || edited.media.thumbnail_url || original.hero.media.src, alt: edited.media.alt || edited.title || original.hero.title } : edited?.poster ? {type: "image" as const, src: edited.poster.url, alt: edited.poster.alt || original.hero.title} : original.hero.media
+    media: edited?.media ? {type: edited.media.mime?.startsWith("video/") ? "video" as const : "image" as const, src: edited.media.url, poster: edited.poster?.url || edited.media.thumbnail_url || undefined, alt: edited.media.alt || edited.title || original.hero.title } : edited?.poster ? {type: "image" as const, src: edited.poster.url, alt: edited.poster.alt || original.hero.title} : original.hero.media
   }}
   const slides = getSlides(studio ? null : headerVideo)
   const activeSlide = slides[0]
   const slide = activeSlide
-  const activeDrop = DROP_COUNTDOWN_ENABLED && drop?.is_active ? drop : null
+  const activeDrop = !studio && DROP_COUNTDOWN_ENABLED && drop?.is_active ? drop : null
   const remaining = getRemainingSeconds(activeDrop)
   const isDropReleased = Boolean(activeDrop?.is_released || (activeDrop && remaining <= 0))
   const heroTitle = activeDrop ? activeDrop.title ?? activeDrop.drop_name ?? content.hero.title : activeSlide?.title ?? content.hero.title

@@ -5,6 +5,7 @@ const projectRoot = path.resolve(import.meta.dirname, "..")
 const candidateSuffixes = [".ts", ".tsx", ".js", ".mjs", "/index.ts", "/index.tsx", "/index.js", "/index.mjs"]
 
 export async function resolve(specifier, context, defaultResolve) {
+  if (specifier === "next/server") return defaultResolve("next/server.js", context, defaultResolve)
   if (specifier.startsWith("@/")) {
     const relativePath = specifier.slice(2)
     for (const suffix of candidateSuffixes) {

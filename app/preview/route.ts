@@ -20,6 +20,8 @@ export function GET(request: NextRequest) {
       const result=await response.json().catch(()=>({}));
       if(!response.ok){report(result.code||'PREVIEW_UNAVAILABLE',response.status);throw new Error(result.error || 'Le service d’aperçu est indisponible.');}
       if(typeof result.location!=='string'||!result.location.startsWith('/')||result.location.startsWith('//'))throw new Error('Adresse d’aperçu invalide.');
+      const confirmation=await fetch(${endpoint},{cache:'no-store',signal:AbortSignal.timeout(10000)});
+      if(!confirmation.ok){report('PREVIEW_COOKIE_UNAVAILABLE',401);throw new Error('Le navigateur ne conserve pas l’accès privé. Ouvrez le brouillon enregistré dans un onglet.');}
       location.replace(result.location);
     }catch(error){const state=document.getElementById('state');state.setAttribute('role','alert');state.textContent=error.name==='TimeoutError'?'Le service d’aperçu met trop de temps à répondre. Réessayez depuis Studio.':error.message;if(error.name==='TimeoutError'||error.name==='TypeError')report('PREVIEW_UNAVAILABLE',503);}
   })();</script></body></html>`

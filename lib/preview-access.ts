@@ -37,3 +37,7 @@ export function verifiedPreviewLifetime(token: string, now = Date.now()): number
     return Number.isFinite(claims.exp) ? Math.max(0, Math.min(1800, Math.floor(claims.exp - now / 1000))) : 0
   } catch { return 0 }
 }
+
+export function previewCookieHeader(name: string, token: string, secure: boolean, maxAge: number) {
+  return name + '=' + encodeURIComponent(token) + '; Path=/; Max-Age=' + maxAge + '; HttpOnly; ' + (secure ? 'Secure; SameSite=None; Partitioned' : 'SameSite=Lax')
+}

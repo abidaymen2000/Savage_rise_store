@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getApiBaseUrl, getStorefrontHeaders } from "@/lib/api/gateway-config.mjs"
+import { validPreviewContext } from "@/lib/studio-preview-protocol"
+import { previewCookieHeader } from "@/lib/preview-access"
 import { previewFailure, verifiedPreviewLifetime } from "@/lib/preview-access"
 
 const privateHeaders = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex, nofollow" }
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest) {
     return failure(mapped.status, mapped.code, mapped.error, { upstream_status: response.status, retryable: mapped.retryable })
   }
   if (document?.preview !== true || document?.manifest?.template_id !== "savage-rise" || !document.studio) return failure(502, "PREVIEW_CONTRACT_INVALID", "Le service d’aperçu a renvoyé une réponse incompatible. Contactez votre administrateur.")
+  if (!validPreviewContext(document.preview_context)) return failure(502, "PREVIEW_CONTRACT_INVALID", "Renouvelez l’aperçu après la mise à jour des services.")
   const maxAge = verifiedPreviewLifetime(token)
   if (!maxAge) return failure(401, "PREVIEW_EXPIRED", "Votre accès temporaire a expiré. Renouvelez l’aperçu depuis Studio.", { retryable: true })
   const base = ""
@@ -47,6 +50,13 @@ export async function POST(request: NextRequest) {
   // Custom domains are cross-site to the ERP. Partition the short-lived cookie
   // to the embedding Studio site; it cannot expose drafts to ordinary visitors.
   const secure = request.nextUrl.protocol === "https:"
-  result.headers.append("Set-Cookie", `yovo_studio_preview=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; HttpOnly; ${secure ? "Secure; SameSite=None; Partitioned" : "SameSite=Lax"}`)
+  result.headers.append("Set-Cookie", previewCookieHeader("yovo_studio_preview", token, secure, maxAge))
   return result
+}
+
+// A same-origin probe verifies that this browser actually sends the HttpOnly
+// cookie inside the iframe. Never fall back to a public document or JS storage.
+export function GET(request: NextRequest) {
+  const present = Boolean(request.cookies.get("yovo_studio_preview")?.value)
+  return present ? NextResponse.json({ready:true}, {headers:privateHeaders}) : failure(401, "PREVIEW_COOKIE_UNAVAILABLE", "Le navigateur ne conserve pas l’accès privé dans cet aperçu. Ouvrez le brouillon enregistré dans un onglet.")
 }
