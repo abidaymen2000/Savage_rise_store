@@ -6,15 +6,15 @@ import { declaredStoreConfig } from '@/lib/store-contract'
 
 export function heroHref(action: StudioHeroAction, manifest: StudioManifest, visibility: Record<string,boolean> = {}) {
   const allowed=manifest.hero_actions
-  if(allowed?.version!==1||!allowed.types.includes(action.type))throw Error('Cette destination n’est pas disponible dans cette boutique.')
+  if(allowed?.version!==1||!allowed.types.includes(action.type))throw Error("This destination is unavailable in this store.")
   if(action.type==='page'){
     const page=manifest.pages.find(p=>p.key===action.target)
-    if(!page||!allowed.pages.includes(page.key)||visibility[page.key]===false)throw Error('Cette page n’est plus disponible.')
+    if(!page||!allowed.pages.includes(page.key)||visibility[page.key]===false)throw Error("This page is no longer available.")
     return page.path
   }
   if(action.type==='section'){
     const section=allowed.sections.find(s=>s.key===action.target)
-    if(!section)throw Error('Cette section n’est plus disponible.')
+    if(!section)throw Error("This section is no longer available.")
     return section.path
   }
   return null
@@ -22,7 +22,7 @@ export function heroHref(action: StudioHeroAction, manifest: StudioManifest, vis
 export type HeroSelection={key:string;variant:Variant;size:string;label:string;limit:number}
 export function heroSelections(product: Product):HeroSelection[]{
   return product.variants.flatMap(variant=>variant.sizes.map(size=>({key:(size.variant_item_id||variant.id||'')+':'+size.size,variant,size:size.size,
-    label:[variant.name||variant.color,size.size].filter(v=>v&&!['default','__default__'].includes(v.toLowerCase())).filter((v,i,a)=>a.indexOf(v)===i).join(' / ')||'Modèle unique',
+    label:[variant.name||variant.color,size.size].filter(v=>v&&!['default','__default__'].includes(v.toLowerCase())).filter((v,i,a)=>a.indexOf(v)===i).join(' / ')||"Single Option",
     limit:getSelectableQuantityLimit(size)})))
 }
 export function automaticHeroSelection(product: Product):HeroSelection|null{
@@ -34,9 +34,9 @@ export function automaticHeroSelection(product: Product):HeroSelection|null{
 export async function readHeroProduct(id:string, source:{getProduct:(id:string)=>Promise<Product>;getStoreConfig:()=>Promise<unknown>}){
   const [product,rawConfig]=await Promise.all([source.getProduct(id),source.getStoreConfig()])
   const config=declaredStoreConfig(rawConfig)
-  if(!config.store_open||config.status!=='active')throw Error('La boutique est actuellement fermée.')
-  if(product.id!==id)throw Error('Ce produit n’est plus disponible dans cette boutique.')
+  if(!config.store_open||config.status!=='active')throw Error("The store is currently closed.")
+  if(product.id!==id)throw Error("This product is no longer available in this store.")
   const status=getProductAvailability(product)
-  if(status!=='available')throw Error(status==='unknown'?'La disponibilité ne peut pas être vérifiée pour le moment.':availabilityLabel(status)+' — ce produit ne peut pas être commandé actuellement.')
+  if(status!=='available')throw Error(status==='unknown'?"Availability could not be confirmed. Please try again.":availabilityLabel(status)+"— this product cannot be ordered right now.")
   return {product,currency:config.default_currency}
 }

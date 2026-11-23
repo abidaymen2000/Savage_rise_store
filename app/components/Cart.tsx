@@ -395,7 +395,7 @@ export default function Cart() {
     <div className="rounded-xl border border-border bg-card p-4 text-card-foreground dark:border-white/10 dark:bg-white/[0.03]">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Truck className="h-4 w-4 shrink-0" />
-        <span>Final prices and shipping are confirmed by the backend at checkout</span>
+        <span>Final prices and shipping are confirmed at checkout.</span>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -426,8 +426,8 @@ export default function Cart() {
         )}
 
         <div className="flex justify-between gap-4 text-sm">
-          <span className="text-muted-foreground">Livraison</span>
-          <span className="text-right">To calculate</span>
+          <span className="text-muted-foreground">Shipping</span>
+          <span className="text-right">Calculated at Checkout</span>
         </div>
 
         <Separator className="bg-border dark:bg-gray-800" />
@@ -489,7 +489,7 @@ export default function Cart() {
           }
         }}
       >
-        <Button variant="ghost" size="icon" className="relative text-foreground hover:text-accent dark:text-white dark:hover:text-gold" onClick={openCart}>
+        <Button variant="ghost" size="icon" className="relative text-foreground hover:text-accent dark:text-white dark:hover:text-gold" onClick={openCart} aria-label={`Open Bag (${state.itemCount})`}>
           <ShoppingBag className="h-5 w-5" />
           {state.itemCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground">
@@ -503,7 +503,7 @@ export default function Cart() {
           className="flex h-[100dvh] max-h-[100dvh] w-full flex-col gap-0 overflow-hidden border-border bg-background p-0 text-foreground sm:max-w-xl lg:max-w-4xl dark:border-gray-800 dark:bg-black dark:text-white"
         >
           <SheetHeader className="shrink-0 border-b border-border px-4 pb-4 pt-6 pr-12 text-left sm:px-5 lg:px-6 dark:border-white/10">
-            <SheetTitle className="font-playfair text-2xl text-foreground dark:text-white">Cart ({state.itemCount})</SheetTitle>
+            <SheetTitle className="font-playfair text-2xl text-foreground dark:text-white">Bag ({state.itemCount})</SheetTitle>
           </SheetHeader>
 
           <div className="flex h-full min-h-0 flex-col">
@@ -511,8 +511,8 @@ export default function Cart() {
               <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
                   <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
-                  <p className="mb-2 text-lg text-muted-foreground">Your cart is empty</p>
-                  <p className="text-sm text-muted-foreground">Add products to start shopping</p>
+                  <p className="mb-2 text-lg text-muted-foreground">Your bag is empty</p>
+                  <p className="text-sm text-muted-foreground">Find your next piece in the shop.</p>
                 </div>
               </div>
             ) : (
@@ -537,8 +537,8 @@ export default function Cart() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <h3 className="line-clamp-2 text-sm font-semibold sm:text-base">{item.product.name}</h3>
-                              <p className="text-xs text-muted-foreground">Couleur : {item.selectedVariant.color}</p>
-                              <p className="text-xs text-muted-foreground">Taille : {item.selectedSize}</p>
+                              <p className="text-xs text-muted-foreground">Color: {item.selectedVariant.color}</p>
+                              <p className="text-xs text-muted-foreground">Size: {item.selectedSize}</p>
                               {cartItemAvailability(item) !== "available" && <p role="status" className="text-xs text-muted-foreground">{availabilityLabel(cartItemAvailability(item))}</p>}
                             </div>
                             <div className="flex shrink-0 items-start gap-3">

@@ -4,22 +4,22 @@ const editorialImage = "https://ik.imagekit.io/deuxug3j0/savage-rise/store/hero/
 const productImage = "https://ik.imagekit.io/deuxug3j0/savage-rise/catalogue/oversize/faza-001-moujet-har/IMG_3966_Rojgk07XJ.jpg"
 
 export const storefrontFallbackContent: StorefrontContent = {
-  announcement: ["Livraison dans toute la Tunisie", "Paiement a la livraison", "Echange de taille disponible"],
+  announcement: ["Shipping Across Tunisia", "Cash on Delivery", "Size Exchanges Available"],
   hero: {
     eyebrow: "FAZA-001",
     title: "موجة حر",
-    subtitle: "Une piece inspiree par les etes tunisiens.",
-    primaryCta: { label: "Commander maintenant", href: "/products" },
-    secondaryCta: { label: "Decouvrir FAZA", href: "/vlog" },
+    subtitle: "A piece inspired by Tunisian summers.",
+    primaryCta: { label: "Shop Now", href: "/products" },
+    secondaryCta: { label: "Discover FAZA", href: "/vlog" },
     media: {
       type: "image",
       src: productImage,
-      alt: "Piece Savage Rise FAZA-001",
+      alt: "Savage Rise FAZA-001 piece",
     },
     mobileMedia: {
       type: "image",
       src: productImage,
-      alt: "Piece Savage Rise FAZA-001",
+      alt: "Savage Rise FAZA-001 piece",
     },
     overlay: "strong",
   },
@@ -50,61 +50,61 @@ export const storefrontFallbackContent: StorefrontContent = {
     },
   ],
   faza: {
-    eyebrow: "Concept FAZA",
-    title: "Une situation tunisienne. Une piece.",
+    eyebrow: "The FAZA Concept",
+    title: "A Tunisian moment. A singular piece.",
     body:
-      "Entre deux Drops, Savage Rise transforme une situation tunisienne en une piece. FAZA-001 raconte la chaleur, l'attente et l'energie d'un ete en Tunisie.",
-    primaryCta: { label: "Decouvrir FAZA", href: "/vlog" },
-    secondaryCta: { label: "Voir la boutique", href: "/products" },
+      "Between drops, Savage Rise turns everyday moments in Tunisia into clothing. FAZA-001 captures the heat, anticipation, and energy of a Tunisian summer.",
+    primaryCta: { label: "Discover FAZA", href: "/vlog" },
+    secondaryCta: { label: "Explore the Shop", href: "/products" },
     media: {
       type: "video",
       src: "https://ik.imagekit.io/deuxug3j0/static/Sequence%2007.mp4",
       poster: editorialImage,
-      alt: "Vidéo du concept FAZA Savage Rise",
+      alt: "Savage Rise FAZA concept film",
     },
   },
   lookbook: {
     title: "Worn by the Rise",
     items: [
-      { type: "image", src: editorialImage, alt: "Campagne Savage Rise" },
-      { type: "image", src: productImage, alt: "Detail produit Savage Rise" },
+      { type: "image", src: editorialImage, alt: "Savage Rise campaign" },
+      { type: "image", src: productImage, alt: "Savage Rise product detail" },
       { type: "image", src: editorialImage, alt: "Backstage Savage Rise" },
       { type: "image", src: productImage, alt: "Silhouette Savage Rise" },
     ],
   },
   reassurances: [
-    { title: "Designed and produced in Tunisia", text: "Une direction creative nee dans la culture tunisienne." },
-    { title: "Paiement a la livraison", text: "Commande simple, reglement a la reception." },
-    { title: "Livraison sur toute la Tunisie", text: "Les options disponibles sont confirmees au checkout." },
-    { title: "Assistance directe", text: "Contact via Instagram, telephone ou email selon les canaux actifs." },
+    { title: "Designed and produced in Tunisia", text: "Creative direction rooted in Tunisian culture." },
+    { title: "Cash on Delivery", text: "Order online. Pay when it arrives." },
+    { title: "Shipping Across Tunisia", text: "Available shipping options are confirmed at checkout." },
+    { title: "Direct Support", text: "Reach us through the contact channels listed below." },
   ],
   newsletter: {
-    title: "Enter the next chapter",
-    body: "Recois les nouveaux Drops, les episodes FAZA et les acces anticipes.",
+    title: "Be Part of the Next Chapter.",
+    body: "Be first to discover new drops, exclusive releases, and the latest from Savage Rise.",
   },
   footerColumns: [
     {
-      title: "Boutique",
+      title: "Shop",
       links: [
-        { label: "Nouveautes", href: "/products?sort=newest" },
+        { label: "New Arrivals", href: "/products?sort=newest" },
         { label: "T-shirts", href: "/products?category=tshirts" },
         { label: "Pants", href: "/products?category=pants" },
         { label: "Packs", href: "/packs" },
       ],
     },
     {
-      title: "Aide",
+      title: "Help",
       links: [
-        { label: "Livraison", href: "/shipping" },
-        { label: "Echanges et retours", href: "/returns" },
-        { label: "Guide des tailles", href: "/size-guide" },
+        { label: "Shipping", href: "/shipping" },
+        { label: "Exchanges & Returns", href: "/returns" },
+        { label: "Size Guide", href: "/size-guide" },
         { label: "Contact", href: "/contact" },
       ],
     },
     {
       title: "Savage Rise",
       links: [
-        { label: "Notre histoire", href: "/about" },
+        { label: "About", href: "/about" },
         { label: "Drops", href: "/vlog" },
         { label: "FAZA", href: "/vlog" },
         { label: "Lookbook", href: "/vlog" },

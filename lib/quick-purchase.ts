@@ -2,7 +2,7 @@ export type QuickPurchase<T> = { id: string; scope: string; state: T; returnTo: 
 type StoragePort = Pick<Storage, "getItem" | "setItem" | "removeItem">
 
 export function saveQuickPurchase<T>(storage: StoragePort, scope: string, state: T, returnTo: string, now = Date.now()): QuickPurchase<T> {
-  if (!returnTo.startsWith("/") || returnTo.startsWith("//")) throw new Error("Retour produit invalide.")
+  if (!returnTo.startsWith("/") || returnTo.startsWith("//")) throw new Error("Invalid product return link.")
   const intent = {id: crypto.randomUUID(), scope, state, returnTo, expires: now + 2 * 60 * 60 * 1000}
   storage.setItem(scope + ":" + intent.id, JSON.stringify(intent))
   return intent

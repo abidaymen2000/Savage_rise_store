@@ -11,7 +11,7 @@ export type StoreConfigResult = {
 export const STORE_CONFIG_REVALIDATE_SECONDS = 60
 
 export const FALLBACK_STORE_CONFIG: PublicStoreConfig = {
-  name: "Boutique indisponible",
+  name: "Store Unavailable",
   slug: "",
   status: "inactive",
   country_code: "",

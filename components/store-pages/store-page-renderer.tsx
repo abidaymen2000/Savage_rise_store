@@ -94,10 +94,6 @@ function HeroBlock({ block }: { block: StorePageHeroBlock }) {
       {block.image_url ? (
         <div className="relative">
           <Image src={block.image_url} alt={block.image_alt || block.title} width={560} height={640} className="rounded-lg object-contain" unoptimized />
-          <div className="absolute -bottom-6 -left-6 bg-accent text-accent-foreground p-6 rounded-lg">
-            <div className="text-2xl font-bold">100%</div>
-            <div className="text-sm font-semibold">FAIT MAIN</div>
-          </div>
         </div>
       ) : null}
     </section>

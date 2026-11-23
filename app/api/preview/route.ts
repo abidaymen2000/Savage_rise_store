@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
     const source = new URL(origin || "")
     sameOrigin = source.origin === origin && source.host === request.headers.get("host") && source.protocol === request.nextUrl.protocol
   } catch { /* Missing or opaque origins cannot exchange a preview credential. */ }
-  if (!sameOrigin) return failure(403, "PREVIEW_ORIGIN_REFUSED", "Origine de l’aperçu refusée")
+  if (!sameOrigin) return failure(403, "PREVIEW_ORIGIN_REFUSED", "Preview origin not allowed")
   const body = await request.json().catch(() => ({}))
   const token = typeof body?.token === "string" && body.token.length <= 4096 ? body.token : null
-  if (!token) return failure(401, "PREVIEW_INVALID", "Accès temporaire manquant. Ouvrez un nouvel aperçu depuis Studio.")
+  if (!token) return failure(401, "PREVIEW_INVALID", "Temporary access is missing. Open a new preview from Studio.")
   let response: Response
   try {
     const headers: Record<string, string> = { ...getStorefrontHeaders(), "X-Store-Preview-Token": token }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (process.env.STOREFRONT_PROXY_SECRET) headers["X-Store-Proxy-Key"] = process.env.STOREFRONT_PROXY_SECRET
     response = await fetch(`${getApiBaseUrl()}/storefront/studio/preview`, { headers, cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(20_000) })
   } catch (error) {
-    if ((error as { code?: string }).code === "STORE_CONFIGURATION") return failure(503, "STORE_CONFIGURATION", "Le service d’aperçu est mal configuré. Contactez votre administrateur.")
+    if ((error as { code?: string }).code === "STORE_CONFIGURATION") return failure(503, "STORE_CONFIGURATION", "Preview is not configured correctly. Contact your administrator.")
     const mapped = previewFailure((error as Error).name === "TimeoutError" ? 504 : 503)
     return failure(mapped.status, mapped.code, mapped.error, { retryable: true })
   }
@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
     const mapped = previewFailure(response.status, document)
     return failure(mapped.status, mapped.code, mapped.error, { upstream_status: response.status, retryable: mapped.retryable })
   }
-  if (document?.preview !== true || document?.manifest?.template_id !== "savage-rise" || !document.studio) return failure(502, "PREVIEW_CONTRACT_INVALID", "Le service d’aperçu a renvoyé une réponse incompatible. Contactez votre administrateur.")
-  if (!validPreviewContext(document.preview_context)) return failure(502, "PREVIEW_CONTRACT_INVALID", "Renouvelez l’aperçu après la mise à jour des services.")
+  if (document?.preview !== true || document?.manifest?.template_id !== "savage-rise" || !document.studio) return failure(502, "PREVIEW_CONTRACT_INVALID", "Preview returned an incompatible response. Contact your administrator.")
+  if (!validPreviewContext(document.preview_context)) return failure(502, "PREVIEW_CONTRACT_INVALID", "Open a new preview after the services have been updated.")
   const maxAge = verifiedPreviewLifetime(token)
-  if (!maxAge) return failure(401, "PREVIEW_EXPIRED", "Votre accès temporaire a expiré. Renouvelez l’aperçu depuis Studio.", { retryable: true })
+  if (!maxAge) return failure(401, "PREVIEW_EXPIRED", "Your temporary access has expired. Open a new preview from Studio.", { retryable: true })
   const base = ""
   const path = typeof body.path === "string" ? body.path : "/"
   const safePath = /^\/(?:pages\/[a-z0-9-]+)?$/.test(path) ? path : "/"
@@ -58,5 +58,5 @@ export async function POST(request: NextRequest) {
 // cookie inside the iframe. Never fall back to a public document or JS storage.
 export function GET(request: NextRequest) {
   const present = Boolean(request.cookies.get("yovo_studio_preview")?.value)
-  return present ? NextResponse.json({ready:true}, {headers:privateHeaders}) : failure(401, "PREVIEW_COOKIE_UNAVAILABLE", "Le navigateur ne conserve pas l’accès privé dans cet aperçu. Ouvrez le brouillon enregistré dans un onglet.")
+  return present ? NextResponse.json({ready:true}, {headers:privateHeaders}) : failure(401, "PREVIEW_COOKIE_UNAVAILABLE", "Your browser cannot retain private access in this preview. Open the saved draft in a new tab.")
 }

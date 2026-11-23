@@ -82,8 +82,8 @@ function StoreStatusPage({ statusConfig }: { statusConfig: Awaited<ReturnType<ty
   const socials = getValidSocialLinks(config.social_links)
   const message =
     config.status === "maintenance"
-      ? "La boutique est momentanement en maintenance. Nous revenons tres vite."
-      : "La boutique est actuellement indisponible."
+      ? "The store is undergoing maintenance. Please check back soon."
+      : "The store is currently unavailable. Please check back soon."
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4 py-16 text-white">
@@ -101,7 +101,7 @@ function StoreStatusPage({ statusConfig }: { statusConfig: Awaited<ReturnType<ty
         ) : (
           <p className="mb-8 font-playfair text-3xl font-bold text-gold">{name}</p>
         )}
-        <h1 className="font-playfair text-3xl font-bold sm:text-4xl">{config.status === "maintenance" ? "Maintenance" : "Boutique indisponible"}</h1>
+        <h1 className="font-playfair text-3xl font-bold sm:text-4xl">{config.status === "maintenance" ? "Maintenance" : "Store Unavailable"}</h1>
         <p className="mx-auto mt-4 max-w-md text-gray-300">{message}</p>
         {(config.contact_email || socials.length > 0) && (
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm">
@@ -166,7 +166,7 @@ export default async function RootLayout({
   const isPublicUnavailable = !studio?.preview && (storeConfig.unavailable || config.status === "maintenance" || config.status === "inactive")
 
   return (
-    <html lang={config.locale} className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="bg-background font-inter text-foreground" style={getBrandingCssVariables(config)}>
         {!studio?.preview && <MetaPixel />}
         <Suspense fallback={null}>

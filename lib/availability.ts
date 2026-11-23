@@ -51,7 +51,7 @@ export function hasLowStock(value: Availability | null | undefined): boolean {
 
 export function availabilityLabel(state: AvailabilityStatus): string {
   if (isSoldOut(state)) return "SOLD OUT"
-  if (state === "unknown") return "Disponibilité à vérifier"
-  if (state === "invalid_variant") return "Modèle indisponible"
-  return state === "available" ? "Disponible" : "Indisponible"
+  if (state === "unknown") return "Check Availability"
+  if (state === "invalid_variant") return "Option Unavailable"
+  return state === "available" ? "In Stock" : "Unavailable"
 }

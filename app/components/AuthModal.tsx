@@ -368,7 +368,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login" }: Aut
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
-                Enter your email above, then click if you did not receive the email.
+                Enter your email address above to request a new verification email.
               </p>
             </div>
           </TabsContent>

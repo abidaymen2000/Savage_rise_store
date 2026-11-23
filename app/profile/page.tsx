@@ -268,7 +268,7 @@ function ProfileContent() {
             className="border-border text-foreground hover:bg-muted bg-transparent"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Log out
+            Sign Out
           </Button>
         </div>
 

@@ -1,38 +1,38 @@
 import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/types/api"
 
 const orderLabels: Record<string, string> = {
-  pending: "En attente",
-  confirmed: "Confirmée",
-  preparing: "En préparation",
-  shipped: "Expédiée",
-  delivered: "Livrée",
-  cancelled: "Annulée",
-  refused: "Refusée",
-  return_requested: "Retour demandé",
-  return_in_transit: "Retour en transit",
-  return_received: "Retour reçu",
-  returned: "Retournée",
+  pending: "Pending",
+  confirmed: "Confirmed",
+  preparing: "Preparing",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  refused: "Declined",
+  return_requested: "Return Requested",
+  return_in_transit: "Return in Transit",
+  return_received: "Return Received",
+  returned: "Returned",
 }
 
 const paymentLabels: Record<string, string> = {
-  unpaid: "Non payé",
-  pending: "En attente",
-  paid: "Payé",
-  collected: "Collecté",
-  failed: "Échoué",
-  refunded: "Remboursé",
-  partially_refunded: "Partiellement remboursé",
-  cancelled: "Annulé",
+  unpaid: "Unpaid",
+  pending: "Pending",
+  paid: "Paid",
+  collected: "Collected",
+  failed: "Failed",
+  refunded: "Refunded",
+  partially_refunded: "Partially Refunded",
+  cancelled: "Cancelled",
 }
 
 const fulfillmentLabels: Record<string, string> = {
-  unfulfilled: "Non préparée",
-  reserved: "Réservée",
-  processing: "En traitement",
-  fulfilled: "Traitée",
-  returning: "Retour",
-  returned: "Retournée",
-  cancelled: "Annulée",
+  unfulfilled: "Unfulfilled",
+  reserved: "Reserved",
+  processing: "Processing",
+  fulfilled: "Fulfilled",
+  returning: "Returning",
+  returned: "Returned",
+  cancelled: "Cancelled",
 }
 
 function statusValue(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
@@ -41,15 +41,15 @@ function statusValue(status: OrderStatus | string | { order_status?: string | nu
 
 export function getOrderStatusLabel(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {
   const value = statusValue(status)
-  return orderLabels[value ?? ""] ?? value ?? "Inconnu"
+  return orderLabels[value ?? ""] ?? value ?? "Unknown"
 }
 
 export function getPaymentStatusLabel(status: PaymentStatus | string | null | undefined) {
-  return paymentLabels[status ?? ""] ?? status ?? "Inconnu"
+  return paymentLabels[status ?? ""] ?? status ?? "Unknown"
 }
 
 export function getFulfillmentStatusLabel(status: FulfillmentStatus | string | null | undefined) {
-  return fulfillmentLabels[status ?? ""] ?? status ?? "Inconnu"
+  return fulfillmentLabels[status ?? ""] ?? status ?? "Unknown"
 }
 
 export function getOrderStatusClass(status: OrderStatus | string | { order_status?: string | null; status?: string | null } | null | undefined) {

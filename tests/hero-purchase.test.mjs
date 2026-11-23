@@ -20,8 +20,8 @@ test('simple product can buy its sole model without arbitrary size selection',()
 test('click reads current price and configuration; closed, forced, inactive and unknown reject',async()=>{
  assert.equal((await readHeroProduct(product.id,source({...product,price:91.999}))).product.price,91.999)
  for(const state of ['forced_sold_out','out_of_stock','inactive','unknown'])await assert.rejects(readHeroProduct(product.id,source({...product,availability_status:state,in_stock:false})))
- await assert.rejects(readHeroProduct(product.id,source(product,{...config,store_open:false})),/fermée/)
- await assert.rejects(readHeroProduct('b'.repeat(24),source()),/plus disponible/)
+ await assert.rejects(readHeroProduct(product.id,source(product,{...config,store_open:false})),/currently closed/)
+ await assert.rejects(readHeroProduct('b'.repeat(24),source()),/no longer available/)
  await assert.rejects(readHeroProduct(product.id,{...source(),getProduct:async()=>{throw Object.assign(Error('retiré'),{status:404})}}),/retiré/)
 })
 test('template declares page and section choices; hidden and unimplemented destinations reject',()=>{

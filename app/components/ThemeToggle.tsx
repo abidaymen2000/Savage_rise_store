@@ -14,9 +14,9 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const themeOptions = [
-  { value: "system", label: "Systeme", mobileLabel: "Systeme", icon: Laptop },
-  { value: "light", label: "Clair", mobileLabel: "Clair", icon: Sun },
-  { value: "dark", label: "Sombre", mobileLabel: "Sombre", icon: Moon },
+  { value: "system", label: "System", mobileLabel: "System", icon: Laptop },
+  { value: "light", label: "Light", mobileLabel: "Light", icon: Sun },
+  { value: "dark", label: "Dark", mobileLabel: "Dark", icon: Moon },
 ]
 
 export default function ThemeToggle({ mobile = false }: { mobile?: boolean }) {

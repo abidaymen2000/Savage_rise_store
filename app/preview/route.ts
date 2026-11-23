@@ -7,7 +7,7 @@ export function GET(request: NextRequest) {
   const base = ""
   const endpoint = JSON.stringify(base + "/api/preview")
   const studio = studioOrigin()
-  const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="robots" content="noindex,nofollow"><title>Aperçu de la boutique</title><style nonce="${nonce}">body{margin:0;padding:32px 20px;background:#f8faf9;color:#17251f;font:16px/1.6 system-ui,sans-serif}main{max-width:560px;margin:10vh auto;background:white;padding:28px;border:1px solid #dce5df;border-radius:16px}h1{font-size:24px;line-height:1.3}a{display:inline-block;color:#175a3b;padding:12px 0}a:focus-visible{outline:3px solid #175a3b;outline-offset:4px}</style></head><body><main><h1>Ouverture de l’aperçu</h1><p id="state" role="status">Vérification de votre accès temporaire…</p>${studio ? `<a href="${studio}/admin/cms/website-studio" target="_top" rel="noreferrer">Retourner dans Studio</a>` : ""}</main><script nonce="${nonce}">
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="robots" content="noindex,nofollow"><title>Store Preview</title><style nonce="${nonce}">body{margin:0;padding:32px 20px;background:#f8faf9;color:#17251f;font:16px/1.6 system-ui,sans-serif}main{max-width:560px;margin:10vh auto;background:white;padding:28px;border:1px solid #dce5df;border-radius:16px}h1{font-size:24px;line-height:1.3}a{display:inline-block;color:#175a3b;padding:12px 0}a:focus-visible{outline:3px solid #175a3b;outline-offset:4px}</style></head><body><main><h1>Opening Preview</h1><p id="state" role="status">Checking your temporary access…</p>${studio ? `<a href="${studio}/admin/cms/website-studio" target="_top" rel="noreferrer">Return to Studio</a>` : ""}</main><script nonce="${nonce}">
   (async()=>{
     const fragment=new URLSearchParams(location.hash.slice(1));
     const token=fragment.get('token');
@@ -18,12 +18,12 @@ export function GET(request: NextRequest) {
     try {
       const response=await fetch(${endpoint},{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,path}),signal:AbortSignal.timeout(25000)});
       const result=await response.json().catch(()=>({}));
-      if(!response.ok){report(result.code||'PREVIEW_UNAVAILABLE',response.status);throw new Error(result.error || 'Le service d’aperçu est indisponible.');}
-      if(typeof result.location!=='string'||!result.location.startsWith('/')||result.location.startsWith('//'))throw new Error('Adresse d’aperçu invalide.');
+      if(!response.ok){report(result.code||'PREVIEW_UNAVAILABLE',response.status);throw new Error(result.error || 'Preview is unavailable. Please try again.');}
+      if(typeof result.location!=='string'||!result.location.startsWith('/')||result.location.startsWith('//'))throw new Error('Invalid preview address.');
       const confirmation=await fetch(${endpoint},{cache:'no-store',signal:AbortSignal.timeout(10000)});
-      if(!confirmation.ok){report('PREVIEW_COOKIE_UNAVAILABLE',401);throw new Error('Le navigateur ne conserve pas l’accès privé. Ouvrez le brouillon enregistré dans un onglet.');}
+      if(!confirmation.ok){report('PREVIEW_COOKIE_UNAVAILABLE',401);throw new Error('Your browser cannot retain private access. Open the saved draft in a new tab.');}
       location.replace(result.location);
-    }catch(error){const state=document.getElementById('state');state.setAttribute('role','alert');state.textContent=error.name==='TimeoutError'?'Le service d’aperçu met trop de temps à répondre. Réessayez depuis Studio.':error.message;if(error.name==='TimeoutError'||error.name==='TypeError')report('PREVIEW_UNAVAILABLE',503);}
+    }catch(error){const state=document.getElementById('state');state.setAttribute('role','alert');state.textContent=error.name==='TimeoutError'?'Preview is taking too long to respond. Please try again from Studio.':error.message;if(error.name==='TimeoutError'||error.name==='TypeError')report('PREVIEW_UNAVAILABLE',503);}
   })();</script></body></html>`
   return new NextResponse(html, { headers: {
     "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store",

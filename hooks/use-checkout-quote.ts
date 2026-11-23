@@ -23,7 +23,7 @@ export function useCheckoutQuote<P extends { shipping: object }, Q extends Comme
     let recovery: ReturnType<typeof setTimeout> | undefined
     const started = performance.now()
     const promise = retryReadOnly(() => load(pricingInput(latest.current)), controller.signal).then(quote => {
-      if (!quote.quote_token || quote.currency !== currency || !Number.isFinite(quote.total ?? quote.total_amount)) throw new Error("Le montant ne peut pas être confirmé.")
+      if (!quote.quote_token || quote.currency !== currency || !Number.isFinite(quote.total ?? quote.total_amount)) throw new Error("The order total could not be confirmed.")
       return quote
     })
     pending.current = {key, promise}
@@ -34,7 +34,7 @@ export function useCheckoutQuote<P extends { shipping: object }, Q extends Comme
       }
     }).catch(error => {
       if (controller.signal.aborted) return
-      setFailure({key, message: isTemporaryReadError(error) ? "Connexion momentanément indisponible. La vérification reprend automatiquement." : error instanceof Error ? error.message : "Le total ne peut pas être validé."})
+      setFailure({key, message: isTemporaryReadError(error) ? "Connection temporarily unavailable. Verification will resume automatically." : error instanceof Error ? error.message : "The order total could not be verified."})
       if (isTemporaryReadError(error)) recovery = setTimeout(refresh, 15000)
     })
     return () => { controller.abort(); clearTimeout(recovery) }

@@ -100,7 +100,7 @@ function CheckoutSuccessContent() {
                 <ShieldCheck className="h-10 w-10" />
               </div>
             </div>
-            <CardTitle className="text-center text-3xl text-foreground dark:text-white">Commande reçue</CardTitle>
+            <CardTitle className="text-center text-3xl text-foreground dark:text-white">Order Received</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5 text-center">
             <p className="text-muted-foreground">
@@ -119,7 +119,7 @@ function CheckoutSuccessContent() {
               <p className="text-sm text-muted-foreground">
                 {order.shipping.postal_code} {order.shipping.city}, {order.shipping.country}
               </p>
-              <p className="mt-3 text-sm text-muted-foreground">Total validé · paiement à la livraison</p>
+              <p className="mt-3 text-sm text-muted-foreground">Total confirmed · cash on delivery</p>
               <p className="text-xl font-semibold text-accent">{formatStorePrice(order.total_amount, { ...config, default_currency: order.currency || config.default_currency })}</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">

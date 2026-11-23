@@ -20,7 +20,7 @@ const fallbackVlog: VlogPage = {
     title: "FAZA & Drops",
     subtitle: "Born in Tunisia. Made to rise.",
     description:
-      "Les Drops Savage Rise ouvrent des chapitres. FAZA transforme une situation tunisienne en piece, film et energie visuelle.",
+      "Every Savage Rise drop opens a new chapter. FAZA turns everyday life in Tunisia into clothing, film, and visual storytelling.",
     hero_video_url: null,
     is_active: true,
   },
@@ -623,7 +623,7 @@ export default function VlogPage() {
                 </div>
                 <h3 className="text-2xl font-semibold">The first chapter is being prepared</h3>
                 <p className="mt-3 leading-7 text-muted-foreground">
-                  When we publishes a chapter, this space will show its three drops, their videos, linked products,
+                  When we publish a new chapter, this space will show its three drops, their videos, linked products,
                   and the final short film.
                 </p>
               </div>

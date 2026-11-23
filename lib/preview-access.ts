@@ -17,16 +17,16 @@ export type PreviewFailure = { status: number; code: string; error: string; retr
 export function previewFailure(status: number, body?: unknown): PreviewFailure {
   const value = body as { code?: string; detail?: string | { code?: string }; message?: string } | null
   const code = value?.code || (typeof value?.detail === "object" ? value.detail?.code : "")
-  if (code === "PREVIEW_EXPIRED" || value?.detail === "Preview token expired") return { status: 401, code: "PREVIEW_EXPIRED", error: "Votre accès temporaire a expiré. Renouvelez l’aperçu depuis Studio.", retryable: true }
-  if (status === 401 || code === "PREVIEW_INVALID") return { status, code: "PREVIEW_INVALID", error: "Cet accès d’aperçu n’est pas valide. Ouvrez un nouvel aperçu depuis Studio.", retryable: true }
-  if (code === "STORE_NOT_INITIALIZED" || code === "TENANT_CORE_NOT_INITIALIZED") return { status: 409, code: "STORE_NOT_INITIALIZED", error: "La boutique doit être préparée dans Studio avant de pouvoir être prévisualisée.", retryable: false }
-  if (code === "STORE_CONTEXT_MISMATCH") return { status: 409, code, error: "Cette adresse ne correspond pas à la boutique de l’aperçu.", retryable: false }
-  if (status === 403) return { status, code: "PREVIEW_FORBIDDEN", error: "L’accès à l’aperçu de cette entreprise est refusé.", retryable: false }
-  if (status === 404 && code === "STORE_ID_UNKNOWN") return { status, code, error: "La boutique associée à cet aperçu est introuvable.", retryable: false }
-  if (status === 404) return { status: 502, code: "PREVIEW_ROUTE_MISSING", error: "Le service d’aperçu est mal configuré. Signalez ce problème à votre administrateur.", retryable: false }
-  if (status === 409 || status === 422) return { status, code: "PREVIEW_CONTENT_INVALID", error: "La configuration ou le contenu de la boutique doit être vérifié dans Studio.", retryable: false }
-  if (status === 423) return { status, code: "PREVIEW_STORE_LOCKED", error: "Le service refuse l’accès au brouillon de cette boutique fermée. Contactez votre administrateur.", retryable: false }
-  return { status: status === 504 ? 504 : 503, code: "PREVIEW_UNAVAILABLE", error: "Le service d’aperçu est temporairement indisponible. Réessayez dans un instant.", retryable: true }
+  if (code === "PREVIEW_EXPIRED" || value?.detail === "Preview token expired") return { status: 401, code: "PREVIEW_EXPIRED", error: "Your temporary access has expired. Open a new preview from Studio.", retryable: true }
+  if (status === 401 || code === "PREVIEW_INVALID") return { status, code: "PREVIEW_INVALID", error: "This preview access is invalid. Open a new preview from Studio.", retryable: true }
+  if (code === "STORE_NOT_INITIALIZED" || code === "TENANT_CORE_NOT_INITIALIZED") return { status: 409, code: "STORE_NOT_INITIALIZED", error: "Set up the store in Studio before opening a preview.", retryable: false }
+  if (code === "STORE_CONTEXT_MISMATCH") return { status: 409, code, error: "This address does not match the preview store.", retryable: false }
+  if (status === 403) return { status, code: "PREVIEW_FORBIDDEN", error: "Access to this business preview is denied.", retryable: false }
+  if (status === 404 && code === "STORE_ID_UNKNOWN") return { status, code, error: "The store for this preview could not be found.", retryable: false }
+  if (status === 404) return { status: 502, code: "PREVIEW_ROUTE_MISSING", error: "Preview is not configured correctly. Report this issue to your administrator.", retryable: false }
+  if (status === 409 || status === 422) return { status, code: "PREVIEW_CONTENT_INVALID", error: "Review the store configuration or content in Studio.", retryable: false }
+  if (status === 423) return { status, code: "PREVIEW_STORE_LOCKED", error: "Access to this closed store's draft is denied. Contact your administrator.", retryable: false }
+  return { status: status === 504 ? 504 : 503, code: "PREVIEW_UNAVAILABLE", error: "Preview is temporarily unavailable. Please try again shortly.", retryable: true }
 }
 
 // Only called after Core authenticated the signature and tenant. Never replaces

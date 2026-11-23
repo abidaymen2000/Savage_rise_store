@@ -17,21 +17,21 @@ export function declaredStoreConfig(value: unknown, expected?: { storeId?: strin
       !["standard", "custom"].includes(config.frontend_type) || !/^s_[a-f0-9]{16}$/.test(config.store_id || "") ||
       typeof config.store_open !== "boolean" || !Number.isInteger(config.store_domain_revision) ||
       !/^[A-Z]{3}$/.test(config.default_currency || "") || !Object.hasOwn(config, "domain")) {
-    throw new Error("La configuration de la boutique n’a pas été confirmée par Platform.")
+    throw new Error("The store configuration has not been confirmed by Platform.")
   }
   if ((expected?.storeId && config.store_id !== expected.storeId) || (expected?.engine && config.frontend_type !== expected.engine)) {
-    throw new Error("Cette adresse ne correspond plus à cette interface de boutique.")
+    throw new Error("This address no longer matches this storefront.")
   }
   if (config.frontend_type === "standard") {
-    if (config.domain) throw new Error("Déclaration de domaine incohérente.")
+    if (config.domain) throw new Error("The domain configuration is inconsistent.")
   } else {
-    if (!config.domain || typeof config.domain !== "string") throw new Error("Domaine personnalisé absent.")
+    if (!config.domain || typeof config.domain !== "string") throw new Error("The custom domain is missing.")
     const hostname = config.domain.toLowerCase().replace(/^www\./, "")
     const address = new URL(config.public_url)
     if (address.protocol !== "https:" || address.hostname !== hostname || address.username || address.password ||
         address.port || address.pathname !== "/" || address.search || address.hash ||
         (expected?.domain && expected.domain.toLowerCase().replace(/^www\./, "") !== hostname)) {
-      throw new Error("L’adresse du Store personnalisé ne correspond pas à Platform.")
+      throw new Error("The custom storefront address does not match Platform.")
     }
   }
   return config

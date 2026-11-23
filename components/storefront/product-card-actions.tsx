@@ -57,7 +57,7 @@ export default function ProductCardActions({ product, href }: { product: Product
   const inStock = isProductInStock(product)
   const availability = getProductAvailability(product)
   const hasVariants = (product.variants ?? []).length > 0
-  const primaryLabel = !inStock ? availabilityLabel(availability) : hasVariants ? "CHOISIR UNE TAILLE" : "VOIR LE PRODUIT"
+  const primaryLabel = !inStock ? availabilityLabel(availability) : hasVariants ? "SELECT SIZE" : "VIEW PRODUCT"
 
   const handleQuickAdd = () => {
     const selection = getFirstAvailableVariantSelection(product)
@@ -93,7 +93,7 @@ export default function ProductCardActions({ product, href }: { product: Product
         disabled={!inStock}
         aria-disabled={!inStock}
         onClick={handleQuickAdd}
-        aria-label="Ajouter rapidement au panier"
+        aria-label="Quick Add to Bag"
       >
         <ShoppingBag className="h-4 w-4" />
       </Button>

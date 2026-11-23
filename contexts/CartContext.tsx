@@ -514,14 +514,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     router.push("/checkout" + "?buy=" + intent.id)
   }
   const buyNow = (product: Product, variant: Variant, size: string, quantity = 1, returnTo?: string) => {
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > getMaxCartQuantity(variant, size)) throw new Error("Cette quantité n’est pas disponible.")
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > getMaxCartQuantity(variant, size)) throw new Error("This quantity is unavailable.")
     const purchase = cartReducer({items: [], packItems: [], total: 0, itemCount: 0}, {type: "ADD_ITEM", payload: {product, variant, size, quantity}})
-    if (!purchase.itemCount) throw new Error("Ce modèle n’est pas disponible.")
+    if (!purchase.itemCount) throw new Error("This option is unavailable.")
     const query = new URLSearchParams({variant: resolveVariantItemId(variant, size) || variant.id || "", qty: String(quantity)})
     launchPurchase(purchase, (returnTo || window.location.pathname) + "?" + query)
   }
   const buyPackNow = (pack: Pack, selections: PackOrderComponent[], quantity = 1) => {
-    if (!Number.isInteger(quantity) || quantity < 1 || !pack.in_stock || !selections.length) throw new Error("Ce pack n’est pas disponible.")
+    if (!Number.isInteger(quantity) || quantity < 1 || !pack.in_stock || !selections.length) throw new Error("This pack is unavailable.")
     const query = new URLSearchParams({selection: JSON.stringify(selections.map(item => ({component_id: item.component_id, color: item.color, size: item.size}))), qty: String(quantity)})
     launchPurchase(calculateCart([], [{pack, selections, quantity}]), window.location.pathname + "?" + query)
   }

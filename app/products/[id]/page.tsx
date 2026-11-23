@@ -39,12 +39,12 @@ async function getRelatedData(productId: string) {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const product = await getProductOrNull(params.id)
-  if (!product) return { title: "Produit introuvable | Savage Rise" }
+  if (!product) return { title: "Product Not Found | Savage Rise" }
 
   const image = product.images?.[0]?.url
   return {
     title: `${product.name} | Savage Rise`,
-    description: product.description ?? product.full_name ?? "Produit Savage Rise",
+    description: product.description ?? product.full_name ?? "Savage Rise Product",
     openGraph: {
       title: product.name,
       description: product.description ?? product.full_name ?? undefined,

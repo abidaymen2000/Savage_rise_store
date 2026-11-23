@@ -70,6 +70,6 @@ function VideoPlayback({ media, className = "", imageClassName = "object-cover",
     {load && !failed && media.src && <video ref={video} src={media.src} poster={media.poster} muted playsInline loop={playback === "loop"} preload={priority ? "auto" : "metadata"} aria-label={media.alt}
       onLoadedData={() => setState("ready")} onError={() => { setState("error"); setPlayState("error") }}
       className={"absolute inset-0 block h-full w-full object-cover " + (playState === "video" ? "opacity-100 transition-opacity duration-300 motion-reduce:transition-none" : "opacity-0")} style={{ objectPosition }} />}
-    {preview && failed && <p role="alert" className="absolute bottom-4 left-4 right-4 z-30 rounded bg-black/80 p-3 text-sm text-white">La vidéo sélectionnée ne peut pas être chargée. Son image poster est affichée.</p>}
+    {preview && failed && <p role="alert" className="absolute bottom-4 left-4 right-4 z-30 rounded bg-black/80 p-3 text-sm text-white">The selected video could not be loaded. Its poster image is displayed.</p>}
   </div>
 }

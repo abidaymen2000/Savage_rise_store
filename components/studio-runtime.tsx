@@ -55,7 +55,7 @@ export function StudioRuntime({ document, children }: { document: StudioDocument
   const hidden = document?.manifest.pages.filter(p => content?.visibility[p.key] === false).map(p => p.path) || []
   return <StudioContext.Provider value={{content, hidden, preview: !!document?.preview, manifest: document?.manifest || null, reportMedia}}>
     <div data-studio-hydrated={hydrated} data-studio-template={document?.manifest.template_id} data-studio-revision={document?.revision || 0} data-studio-draft={context?.draft_fingerprint} data-studio-update={live.update} data-grid-catalog={content?.grids.catalog || "default"} data-grid-categories={content?.grids.categories || "default"} style={studioStyles(content)}>
-      {document?.preview && <div className="fixed bottom-3 left-3 z-[100] rounded-lg bg-slate-950 px-4 py-3 text-sm text-white" role="status">Aperçu privé · Achats désactivés <a className="ml-3 underline" href="/api/preview/exit">Quitter</a></div>}
+      {document?.preview && <div className="fixed bottom-3 left-3 z-[100] rounded-lg bg-slate-950 px-4 py-3 text-sm text-white" role="status">Private Preview · Purchases Disabled <a className="ml-3 underline" href="/api/preview/exit">Exit Preview</a></div>}
       {children}
     </div>
   </StudioContext.Provider>

@@ -4,9 +4,9 @@ const key = (value: string) => value.normalize("NFKC").trim().toLowerCase().repl
 const colorNames = new Set(["color", "colour", "couleur"])
 const sizeNames = new Set(["size", "taille"])
 const safeLabel = (value: string | undefined) => {
-  const text = value?.trim() || ""
-  return /^[a-f0-9]{24}$/i.test(text) || /^[a-f0-9]{8}-[a-f0-9-]{27,}$/i.test(text)
-    ? "Valeur indisponible" : text.replace(/[_]+/g, " ")
+  const text = value ?? ""
+  return /^[a-f0-9]{24}$/i.test(text.trim()) || /^[a-f0-9]{8}-[a-f0-9-]{27,}$/i.test(text.trim())
+    ? "Unavailable value" : text
 }
 
 /** IDs/codes select options; their canonical labels are the only display source. */

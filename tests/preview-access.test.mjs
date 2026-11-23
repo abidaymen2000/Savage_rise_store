@@ -19,7 +19,7 @@ test("an absent Gateway preview route is a routing failure, never token expiry",
   t.mock.method(globalThis, "fetch", async () => Response.json({ message: "no Route matched with those values" }, { status: 404 }))
   const r = await run({ token: token() })
   assert.equal(r.status, 502)
-  assert.deepEqual(await r.json(), { error: "Le service d’aperçu est mal configuré. Signalez ce problème à votre administrateur.", code: "PREVIEW_ROUTE_MISSING", stage: "exchange", upstream_status: 404, retryable: false })
+  assert.deepEqual(await r.json(), { error: "Preview is not configured correctly. Report this issue to your administrator.", code: "PREVIEW_ROUTE_MISSING", stage: "exchange", upstream_status: 404, retryable: false })
   assert.equal(r.headers.get("set-cookie"), null)
   assert.match(r.headers.get("cache-control"), /no-store/)
 })
@@ -108,7 +108,7 @@ test("bootstrap removes the fragment and reports only a bounded failure to the t
   const html = await r.text()
   assert.ok(html.indexOf("history.replaceState") < html.indexOf("const response=await fetch"))
   assert.match(html, /yovo:store-preview-error/)
-  assert.match(html, /Retourner dans Studio/)
+  assert.match(html, /Return to Studio/)
   assert.match(html, /AbortSignal.timeout\(25000\)/)
 })
 

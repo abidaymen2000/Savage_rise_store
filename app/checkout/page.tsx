@@ -42,7 +42,7 @@ const PROMO_STORAGE_KEY = "savage_rise_promo_code"
 type CheckoutStatus = "idle" | "quoting" | "ready" | "submitting" | "success" | "conflict" | "error"
 
 export default function CheckoutPage() {
-  return <Suspense fallback={<p role="status" className="p-8">Chargement de votre commande…</p>}><CheckoutContent /></Suspense>
+  return <Suspense fallback={<p role="status" className="p-8">Loading your order…</p>}><CheckoutContent /></Suspense>
 }
 
 function CheckoutContent() {
@@ -343,7 +343,7 @@ function CheckoutContent() {
 
   const {preview: studioPreview} = useStudio()
   const handlePlaceOrder = async () => {
-    if (studioPreview) { setError("Les achats sont désactivés dans l’aperçu privé."); return }
+    if (studioPreview) { setError("Purchases are disabled in private preview."); return }
     if (submissionInFlight.current || isProcessing || authLoading) return
 
     if (isAuthenticated && !user?.is_active) {
@@ -398,7 +398,7 @@ function CheckoutContent() {
       const result = await confirmCheckout({payload: finalOrderPayload, quote: orderQuote, preparedQuote: readyQuote, currency: config.default_currency, idempotencyKey, load: api.quoteOrder, submit: api.createOrder})
       acceptQuote(result.quote)
       if (result.kind === "review") {
-        setError("Votre total a été actualisé. Vérifiez le montant puis cliquez sur Commander pour confirmer.")
+        setError("Your total has been updated. Review the amount, then select Place Order to confirm.")
         return
       }
       const {order, quote: confirmedQuote} = result
@@ -641,7 +641,7 @@ function CheckoutContent() {
     )
   }
 
-  if (purchase.invalid) return <div role="alert" className="mx-auto max-w-xl px-5 py-24"><p>Cet achat rapide a expiré. Votre panier habituel est conservé.</p><Link className="mt-4 inline-block underline" href="/checkout">Retrouver mon panier</Link></div>
+  if (purchase.invalid) return <div role="alert" className="mx-auto max-w-xl px-5 py-24"><p>This quick checkout has expired. Your regular bag is saved.</p><Link className="mt-4 inline-block underline" href="/checkout">Return to My Bag</Link></div>
 
   if (cartState.itemCount === 0) return null // redirect déjà programmé
 
@@ -675,14 +675,14 @@ function CheckoutContent() {
   return (
     <div className="min-h-screen bg-background text-foreground pt-20">
       <div className="container mx-auto px-4 py-8">
-        {purchase.quick && <div role="status" className="mb-6 rounded-lg border border-border p-4 text-sm"><p>{purchase.invalid ? "Cet achat rapide a expiré. Revenez à la fiche pour retrouver votre modèle." : "Achat rapide · votre panier habituel est conservé."}</p><div className="mt-3 flex flex-wrap gap-4">{purchase.returnTo && <a className="underline" href={purchase.returnTo}>Retour au produit</a>}<Link className="underline" href="/checkout">Retrouver mon panier</Link></div></div>}
+        {purchase.quick && <div role="status" className="mb-6 rounded-lg border border-border p-4 text-sm"><p>{purchase.invalid ? "This quick checkout has expired. Return to the product to select your options again." : "Quick checkout · your regular bag is saved."}</p><div className="mt-3 flex flex-wrap gap-4">{purchase.returnTo && <a className="underline" href={purchase.returnTo}>Back to Product</a>}<Link className="underline" href="/checkout">Return to My Bag</Link></div></div>}
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Link href="/products" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Continue shopping
           </Link>
-          <h1 className="text-3xl font-playfair font-bold">Commande</h1>
+          <h1 className="text-3xl font-playfair font-bold">Checkout</h1>
         </div>
 
         {!authLoading && !isAuthenticated && (
@@ -718,7 +718,7 @@ function CheckoutContent() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-foreground">{item.product.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {item.selectedVariant.color} • {item.selectedSize} • Qté : {item.quantity}
+                        {item.selectedVariant.color} • {item.selectedSize} • Qty: {item.quantity}
                       </p>
                       <p className="text-accent font-semibold">{formatPrice(item.product.price * item.quantity)}</p>
                     </div>
@@ -745,7 +745,7 @@ function CheckoutContent() {
                         <div className="mt-1 space-y-0.5">
                           {item.selections.map((selection) => (
                             <p key={`${selection.product_id}-${selection.color}-${selection.size}`} className="text-xs text-muted-foreground">
-                              {selection.color} • {selection.size} • Qté : {(selection.qty ?? 1) * item.quantity}
+                              {selection.color} • {selection.size} • Qty: {(selection.qty ?? 1) * item.quantity}
                             </p>
                           ))}
                         </div>
@@ -760,7 +760,7 @@ function CheckoutContent() {
             {/* Shipping Form */}
             <Card className="bg-card border-border mt-6">
               <CardHeader>
-                <CardTitle className="text-foreground">Informations de livraison</CardTitle>
+                <CardTitle className="text-foreground">Shipping Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -789,7 +789,7 @@ function CheckoutContent() {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Téléphone *</Label>
+                  <Label htmlFor="phone">Phone *</Label>
                   <Input disabled={isProcessing}
                     id="phone"
                     value={shippingInfo.phone}
@@ -801,7 +801,7 @@ function CheckoutContent() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line1">Adresse *</Label>
+                  <Label htmlFor="address_line1">Address *</Label>
                   <Input disabled={isProcessing}
                     id="address_line1"
                     value={shippingInfo.address_line1}
@@ -812,7 +812,7 @@ function CheckoutContent() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line2">Note facultative</Label>
+                  <Label htmlFor="address_line2">Order Note (Optional)</Label>
                   <Input disabled={isProcessing}
                     id="address_line2"
                     value={shippingInfo.address_line2 || ""}
@@ -1008,15 +1008,15 @@ function CheckoutContent() {
                 )}
 
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Livraison</span>
+                  <span className="text-muted-foreground">Shipping</span>
                   <span className="text-foreground">
                     {quoteLoading
-                      ? "Calcul de la livraison…"
+                      ? "Calculating shipping…"
                       : orderQuote
                         ? shipping === 0
                           ? "Offerte"
                           : formatPrice(shipping)
-                        : "À calculer"}
+                        : "To Be Calculated"}
                   </span>
                 </div>
 
@@ -1052,7 +1052,7 @@ function CheckoutContent() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Truck className="h-4 w-4" />
-                    <span>{orderQuote ? "Total validé. Paiement à la livraison, sans encaissement immédiat." : "Vérification automatique du total et de la livraison en cours."}</span>
+                    <span>{orderQuote ? "Total confirmed. Pay on delivery; you will not be charged now." : "Confirming your order total and shipping."}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Shield className="h-4 w-4" />
@@ -1060,7 +1060,7 @@ function CheckoutContent() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CreditCard className="h-4 w-4" />
-                    <span>Paiement à la livraison</span>
+                    <span>Cash on Delivery</span>
                   </div>
                 </div>
 
@@ -1072,10 +1072,10 @@ function CheckoutContent() {
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Confirmation…
+                      Confirming…
                     </>
                   ) : (
-                    `Commander • ${formatPrice(total)}`
+                    `Place Order • ${formatPrice(total)}`
                   )}
                 </Button>
 

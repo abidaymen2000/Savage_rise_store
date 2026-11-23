@@ -26,7 +26,7 @@ export function commercialSignature(quote: CommercialQuote): string {
 }
 
 function validQuote<Q extends CommercialQuote>(quote: Q, currency: string): Q {
-  if (!quote.quote_token || quote.currency !== currency || !Number.isFinite(quote.total ?? quote.total_amount)) throw new Error("Le montant ne peut pas être confirmé pour le moment.")
+  if (!quote.quote_token || quote.currency !== currency || !Number.isFinite(quote.total ?? quote.total_amount)) throw new Error("The order total could not be confirmed. Please try again.")
   return quote
 }
 

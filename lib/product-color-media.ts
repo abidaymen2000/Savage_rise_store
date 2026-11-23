@@ -6,11 +6,11 @@ const normalize = (value: string) => value.normalize("NFKC").trim().toLowerCase(
 
 export function variantColor(variant: Variant): string {
   const options = Object.entries(variant.option_values ?? {})
-  if (variant.color_value) return variant.color.trim()
+  if (variant.color_value) return variant.color
   const entry = options.find(([axis]) => colorAxes.has(normalize(axis)))
   const color = entry ? variant.option_value_labels?.[entry[0]] || entry[1] : undefined
   // A size-only product must not turn its sizes into image colors.
-  return color?.trim() || (options.length ? "" : variant.color?.trim() || "")
+  return color?.trim() ? color : (options.length ? "" : variant.color || "")
 }
 
 function orderedImages(images: ProductImage[]): ProductImage[] {

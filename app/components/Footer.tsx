@@ -37,7 +37,7 @@ export default function Footer() {
               <h2 className="mb-5 text-xl font-semibold uppercase tracking-[0.2em] text-foreground">{storeName}</h2>
             )}
             <p className="max-w-md text-sm leading-7 text-muted-foreground">
-              Streetwear born in Tunisia. Chaque Drop ouvre un nouveau chapitre; FAZA transforme le quotidien tunisien en pieces limitees.
+              Streetwear born in Tunisia. Every drop opens a new chapter. FAZA turns everyday Tunisian life into limited pieces.
             </p>
             <div className="mt-6 space-y-2 text-sm text-muted-foreground">
               {config.contact_email && (
@@ -94,7 +94,7 @@ export default function Footer() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-border pt-6 text-xs uppercase tracking-[0.14em] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {year} {storeName}</p>
-          <p>Tunisie · {config.default_currency || "TND"} · Paiement a la livraison</p>
+          <p>Tunisia · {config.default_currency || "TND"} · Cash on Delivery</p>
         </div>
       </div>
     </footer>

@@ -2,6 +2,7 @@ import { createRequire } from 'node:module'
 import { readFileSync } from 'node:fs'
 const { test, expect } = createRequire(import.meta.url)('@playwright/test')
 const video = readFileSync(process.env.STORE_TEST_VIDEO)
+const pageErrors = new WeakMap()
 
 test.beforeAll(async ({ request }) => {
   // Compile shared development chunks before Chrome loads them. Concurrent
@@ -13,6 +14,9 @@ test.beforeAll(async ({ request }) => {
 })
 
 test.beforeEach(async ({ page, request }) => {
+  const errors = []
+  pageErrors.set(page, errors)
+  page.on('pageerror', error => errors.push({ message: error.message, stack: error.stack }))
   // No browser request can reach production, tracking services, or ImageKit.
   await page.route('**/*', async route => {
     const url = new URL(route.request().url())
@@ -36,6 +40,10 @@ test.beforeEach(async ({ page, request }) => {
       if (event.target instanceof HTMLVideoElement) window.videoEvents.push({ type, mode: event.target.closest('[data-playback]')?.dataset.playback, time: performance.now() })
     }, true)
   })
+})
+
+test.afterEach(async ({ page }) => {
+  expect(pageErrors.get(page) || [], 'No JavaScript errors during media and gallery interactions').toEqual([])
 })
 
 for (const width of [375, 768, 1440]) test(`layout and real playback at ${width}px`, async ({ page }, testInfo) => {
@@ -62,7 +70,7 @@ for (const width of [375, 768, 1440]) test(`layout and real playback at ${width}
   expect(await faza.locator('video').evaluate(v => v.loop && v.muted && v.playsInline && !v.controls)).toBe(true)
   await faza.locator('video').evaluate(v => { window.wraps = 0; let last = 0; v.addEventListener('timeupdate', () => { if (v.currentTime < last) window.wraps++; last = v.currentTime }) })
   await expect.poll(() => page.evaluate(() => window.wraps), { timeout: 8000 }).toBeGreaterThanOrEqual(2)
-  await page.getByRole('heading', { name: 'Nouveautés' }).scrollIntoViewIfNeeded()
+  await page.getByRole('heading', { name: 'New Arrivals' }).scrollIntoViewIfNeeded()
   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()
   await expect(card.locator('[data-color-slides]')).toHaveAttribute('data-color-slides', '6')
   await card.scrollIntoViewIfNeeded()
@@ -106,9 +114,9 @@ test('detail preserves manual image across M to L, changes gallery with color', 
   await page.waitForTimeout(2400)
   await expect(main).toHaveAttribute('src', src)
   await expect(page.locator('[data-color-slide]')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Couleur Bordeaux', exact: true }).click()
+  await page.getByRole('button', { name: 'Color Bordeaux', exact: true }).click()
   await expect(main).toHaveAttribute('src', /Bordeaux\.svg/)
-  await expect(page.getByRole('button', { name: /Ajouter au panier/ }).first()).toBeEnabled()
+  await expect(page.getByRole('button', { name: /Add to Bag/ }).first()).toBeEnabled()
   await page.screenshot({ path: testInfo.outputPath('product-detail.png') })
 })
 

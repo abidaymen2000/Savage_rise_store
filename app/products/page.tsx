@@ -97,8 +97,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         <header className="border-b border-border pb-8">
           <div className="mt-3 flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <h1 className="font-playfair text-5xl leading-none sm:text-6xl">Boutique</h1>
-              <p className="mt-3 text-sm text-muted-foreground">{filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""}</p>
+              <h1 className="font-playfair text-5xl leading-none sm:text-6xl">Shop</h1>
+              <p className="mt-3 text-sm text-muted-foreground">{filteredProducts.length} product{filteredProducts.length === 1 ? "" : "s"}</p>
             </div>
             <ProductsControls
               filters={{ ...filters, page: currentPage }}
@@ -123,10 +123,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
           <section className="min-w-0">
             {visibleProducts.length === 0 ? (
               <div className="border border-border bg-card p-10 text-center">
-                <p className="text-lg font-semibold text-card-foreground">Aucun produit trouve.</p>
-                <p className="mt-2 text-sm text-muted-foreground">Essaie une autre taille, couleur ou categorie.</p>
+                <p className="text-lg font-semibold text-card-foreground">No products found.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Try another size, color, or category.</p>
                 <Button asChild className="mt-5 rounded-none bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground">
-                  <Link href="/products">Voir toute la boutique</Link>
+                  <Link href="/products">View All Products</Link>
                 </Button>
               </div>
             ) : (
@@ -136,16 +136,16 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             )}
 
             {totalPages > 1 && (
-              <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination catalogue">
+              <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Catalog Pages">
                 {currentPage > 1 && (
                   <Button asChild variant="outline" className="h-11 rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground">
-                    <Link href={getPageHref(filters, currentPage - 1)}>Precedent</Link>
+                    <Link href={getPageHref(filters, currentPage - 1)}>Previous</Link>
                   </Button>
                 )}
                 <span className="px-3 text-sm text-muted-foreground">Page {currentPage} / {totalPages}</span>
                 {currentPage < totalPages && (
                   <Button asChild variant="outline" className="h-11 rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground">
-                    <Link href={getPageHref(filters, currentPage + 1)}>Suivant</Link>
+                    <Link href={getPageHref(filters, currentPage + 1)}>Next</Link>
                   </Button>
                 )}
               </nav>

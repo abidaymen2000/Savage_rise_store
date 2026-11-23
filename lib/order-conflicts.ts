@@ -19,7 +19,7 @@ export function getBackendConflictMessage(error: unknown): string {
   if (typeof detail === "string") return detail
   if (detail && !Array.isArray(detail) && typeof detail === "object" && typeof detail.message === "string") return detail.message
   if (typeof body?.message === "string") return body.message
-  return error instanceof Error ? error.message : "Une erreur est survenue."
+  return error instanceof Error ? error.message : "Something went wrong. Please try again."
 }
 
 export function isIdempotencyConflict(error: unknown) {

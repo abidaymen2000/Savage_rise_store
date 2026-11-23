@@ -37,9 +37,9 @@ export const STATIC_STORE_PAGES: Record<string, StorePagePublicOut> = {
         enabled: true,
         title: "Brand facts",
         items: [
-          { title: "2025", description: "FONDATION" },
-          { title: "Pieces", description: "DROPS LIMITES" },
-          { title: "3", description: "PAYS" },
+          { title: "2025", description: "FOUNDED" },
+          { title: "Pieces", description: "LIMITED DROPS" },
+          { title: "3", description: "COUNTRIES" },
         ],
       },
     ],
@@ -204,7 +204,7 @@ export const STATIC_STORE_PAGES: Record<string, StorePagePublicOut> = {
         type: "map",
         order: 1,
         enabled: true,
-        title: "Sfax, Tunisie",
+        title: "Sfax, Tunisia",
         label: "Sfax map",
         embed_url:
           "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10000!2d10.698422!3d34.740556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd71381aec5a5f%3A0x27268cbb18b19e0!2sSfax%2C%20Tunisie!5e0!3m2!1sfr!2sus!4v1691400000000!5m2!1sfr!2sus",

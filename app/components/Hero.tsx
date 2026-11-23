@@ -35,8 +35,8 @@ function formatCountdown(seconds: number) {
   const days = Math.floor(seconds / 86400)
   const hours = Math.floor((seconds % 86400) / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
-  if (seconds <= 0) return "Disponible maintenant"
-  if (days > 0) return `${days}j ${hours}h ${minutes}m`
+  if (seconds <= 0) return "Available Now"
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`
   return `${hours}h ${minutes}m`
 }
 
@@ -81,7 +81,7 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
   const remaining = getRemainingSeconds(activeDrop)
   const isDropReleased = Boolean(activeDrop?.is_released || (activeDrop && remaining <= 0))
   const heroTitle = activeDrop ? activeDrop.title ?? activeDrop.drop_name ?? content.hero.title : activeSlide?.title ?? content.hero.title
-  const heroEyebrow = activeDrop ? (isDropReleased ? "Drop disponible" : formatCountdown(remaining)) : activeSlide?.subtitle ?? content.hero.eyebrow
+  const heroEyebrow = activeDrop ? (isDropReleased ? "Drop Available" : formatCountdown(remaining)) : activeSlide?.subtitle ?? content.hero.eyebrow
   const heroDescription = activeDrop ? activeDrop.subtitle ?? content.hero.subtitle : activeSlide?.description ?? content.hero.subtitle
   const discoverUrl = activeDrop?.cta_url
     ? activeDrop.cta_url.startsWith("/") ? activeDrop.cta_url : `/${activeDrop.cta_url}`
@@ -116,7 +116,7 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
           <div className="flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
             {edited?.primary_action ? <StudioHeroAction action={edited.primary_action} label={content.hero.primaryCta.label} className="h-12 min-h-11 rounded-none bg-white px-6 text-xs font-semibold uppercase tracking-[0.16em] text-black hover:bg-stone-200 disabled:opacity-60" /> : <HeroPrimaryAction
               href={discoverUrl}
-              label={activeDrop ? activeDrop.cta_label ?? "Voir le Drop" : content.hero.primaryCta.label}
+              label={activeDrop ? activeDrop.cta_label ?? "Explore the Drop" : content.hero.primaryCta.label}
               hasActiveDrop={Boolean(activeDrop)}
             />}
             {edited?.secondary_action ? <StudioHeroAction action={edited.secondary_action} label={content.hero.secondaryCta.label} className="h-12 min-h-11 rounded-none border border-white/70 bg-transparent px-6 text-xs font-semibold uppercase tracking-[0.16em] text-white hover:bg-white hover:text-black disabled:opacity-60" /> : activeDrop?.email_enabled && !isDropReleased ? (

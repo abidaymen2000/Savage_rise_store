@@ -189,9 +189,9 @@ test("order status helpers cover the new contract", () => {
   assert.equal(statusHelpers.getCanonicalOrderStatus({ status: "pending", order_status: "confirmed" }), "confirmed")
   assert.equal(statusHelpers.canCancelOrder({ status: "pending" }), true)
   assert.equal(statusHelpers.canCancelOrder({ status: "preparing" }), false)
-  assert.equal(statusHelpers.getOrderStatusLabel("return_in_transit"), "Retour en transit")
-  assert.equal(statusHelpers.getPaymentStatusLabel("partially_refunded"), "Partiellement remboursé")
-  assert.equal(statusHelpers.getFulfillmentStatusLabel("reserved"), "Réservée")
+  assert.equal(statusHelpers.getOrderStatusLabel("return_in_transit"), "Return in Transit")
+  assert.equal(statusHelpers.getPaymentStatusLabel("partially_refunded"), "Partially Refunded")
+  assert.equal(statusHelpers.getFulfillmentStatusLabel("reserved"), "Reserved")
 })
 
 test("cart key prefers variant_item_id and keeps different sizes separate", () => {

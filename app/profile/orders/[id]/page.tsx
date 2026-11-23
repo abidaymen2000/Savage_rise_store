@@ -307,7 +307,7 @@ export default function OrderDetailPage() {
                   {hasPromo && (
                     <Badge variant="outline" className="border-green-600 text-green-400 flex items-center gap-1">
                       <TicketPercent className="h-4 w-4" />
-                      {order.promo_code ? `Promo ${order.promo_code}` : "Discount applied"}
+                      {order.promo_code ? `Sale ${order.promo_code}` : "Discount applied"}
                     </Badge>
                   )}
                 </div>

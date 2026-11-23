@@ -109,48 +109,48 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
   const filterFields = (
     <div className="space-y-4">
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Categorie</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Category</label>
         <Select value={filters.category} onValueChange={(value) => replaceFilters({ category: value })}>
-          <SelectTrigger aria-label="Catégorie" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Category" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
-            <SelectItem value="all">Toutes</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             {categoryOptions.map((feature) => <SelectItem key={feature.value} value={feature.value}><span style={{ paddingLeft: `${(feature.depth ?? 0) * 12}px` }}>{feature.label}</span></SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Couleur</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Color</label>
         <Select value={filters.color} onValueChange={(value) => replaceFilters({ color: value })}>
-          <SelectTrigger aria-label="Couleur" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Color" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
-            <SelectItem value="all">Toutes</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             {colorOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Taille</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Size</label>
         <Select value={filters.size} onValueChange={(value) => replaceFilters({ size: value })}>
-          <SelectTrigger aria-label="Taille" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Size" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
-            <SelectItem value="all">Toutes</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             {sizeOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Disponibilite</label>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Availability</label>
         <Select value={filters.availability} onValueChange={(value) => replaceFilters({ availability: value })}>
-          <SelectTrigger aria-label="Disponibilité" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Availability" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
-            <SelectItem value="all">Toutes</SelectItem>
-            <SelectItem value="available">Disponible</SelectItem>
-            <SelectItem value="sold-out">Epuise</SelectItem>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="available">In Stock</SelectItem>
+            <SelectItem value="sold-out">Sold Out</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <Button type="button" variant="outline" className="w-full rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground" onClick={resetFilters}>
-        Reinitialiser
+        Reset
       </Button>
     </div>
   )
@@ -160,7 +160,7 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
       <aside className="hidden lg:block">
         <div className="sticky top-32 border border-border bg-card p-4 text-card-foreground">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-card-foreground">Filtres</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-card-foreground">Filters</h2>
             {activeFilterCount > 0 && (
               <button type="button" onClick={resetFilters} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
                 <X className="h-3 w-3" />
@@ -181,37 +181,37 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher"
-            aria-label="Rechercher un produit"
+            placeholder="Search"
+            aria-label="Search Products"
             className="h-11 w-full rounded-none border-border bg-card pl-10 text-card-foreground placeholder:text-muted-foreground sm:w-72"
           />
         </div>
         <Select value={filters.sort} onValueChange={(value) => replaceFilters({ sort: value })}>
-          <SelectTrigger aria-label="Trier les produits" className="h-11 w-full rounded-none border-border bg-card text-card-foreground sm:w-52">
+          <SelectTrigger aria-label="Sort Products" className="h-11 w-full rounded-none border-border bg-card text-card-foreground sm:w-52">
             <SlidersHorizontal className="mr-2 h-4 w-4 shrink-0" />
-            <SelectValue>{({newest: "Nouveautés", "price-asc": "Prix croissant", "price-desc": "Prix decroissant", name: "Nom A-Z"} as Record<string, string>)[filters.sort] || "Nouveautés"}</SelectValue>
+            <SelectValue>{({newest: "New Arrivals", "price-asc": "Price: Low to High", "price-desc": "Price: High to Low", name: "Name: A–Z"} as Record<string, string>)[filters.sort] || "New Arrivals"}</SelectValue>
           </SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
-            <SelectItem value="newest">Nouveautes</SelectItem>
-            <SelectItem value="price-asc">Prix croissant</SelectItem>
-            <SelectItem value="price-desc">Prix decroissant</SelectItem>
-            <SelectItem value="name">Nom A-Z</SelectItem>
+            <SelectItem value="newest">New Arrivals</SelectItem>
+            <SelectItem value="price-asc">Price: Low to High</SelectItem>
+            <SelectItem value="price-desc">Price: High to Low</SelectItem>
+            <SelectItem value="name">Name: A–Z</SelectItem>
           </SelectContent>
         </Select>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" className="h-11 rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground lg:hidden">
               <Filter className="mr-2 h-4 w-4" />
-              Filtres {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
+              Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto border-border bg-background text-foreground">
             <SheetHeader>
-              <SheetTitle className="text-foreground">Filtres</SheetTitle>
+              <SheetTitle className="text-foreground">Filters</SheetTitle>
             </SheetHeader>
             <div className="mt-6">{filterFields}</div>
             <Button className="mt-4 w-full rounded-none bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => setFiltersOpen(false)}>
-              Appliquer
+              Apply
             </Button>
           </SheetContent>
         </Sheet>

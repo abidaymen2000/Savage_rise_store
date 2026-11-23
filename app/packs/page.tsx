@@ -50,7 +50,7 @@ export default async function PacksPage() {
         {packs.length === 0 ? (
           <div className="rounded-md border border-border bg-card p-8 text-center">
             <Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">No active packs available yet.</p>
+            <p className="text-muted-foreground">No packs available right now. Explore our latest pieces in the shop.</p>
           </div>
         ) : (
           <div className="space-y-6">

@@ -27,5 +27,5 @@ test('catalog traverses server-clamped pages without losing the final hoodie or 
   assert.ok(calls.every(c=>c.query.productKind==='physical'&&c.query.q==='SR'))
 })
 test('repeated pagination fails visibly instead of hiding eligible products',async()=>{
-  await assert.rejects(()=>loadCatalogProducts(async()=>({items:[product('same','tees')],page:1,page_size:1,total:2,pages:2,has_next:true})),/entièrement/)
+  await assert.rejects(()=>loadCatalogProducts(async()=>({items:[product('same','tees')],page:1,page_size:1,total:2,pages:2,has_next:true})),/full catalog could not be loaded/)
 })

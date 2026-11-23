@@ -286,7 +286,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
         <div className="flex items-center gap-2 mb-8">
           <Link href="/products" className="flex items-center text-muted-foreground transition-colors hover:text-foreground">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour boutique
+            Back to Shop
           </Link>
         </div>
 
@@ -303,11 +303,11 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 priority
               />
               {wishlistEnabled && <div className="absolute right-4 top-4"><WishlistButton productId={product.id} className="store-gallery-wishlist h-12 w-12 rounded-full" /></div>}
-              <button type="button" className="store-gallery-zoom" aria-label="Agrandir la photo" onClick={() => setGalleryOpen(true)}><Maximize2 aria-hidden="true" size={20} /></button>
+              <button type="button" className="store-gallery-zoom" aria-label="Enlarge Image" onClick={() => setGalleryOpen(true)}><Maximize2 aria-hidden="true" size={20} /></button>
             </div>
 
             {displayImages.length > 1 && (
-              <div className="store-gallery-thumbnails" aria-label="Galerie produit">
+              <div className="store-gallery-thumbnails" aria-label="Product Gallery">
                 {displayImages.map((image, index) => (
                   <button
                     key={image.id || index}
@@ -334,7 +334,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               <DialogTitle>{product.name}</DialogTitle>
               <DialogDescription>{selectedColor} · Photo {selectedImageIndex + 1} / {displayImages.length}</DialogDescription>
               <div className="relative h-[70dvh]"><Image src={displayImages[selectedImageIndex]?.url || "/placeholder.svg"} alt={displayImages[selectedImageIndex]?.alt_text || product.name} fill sizes="90vw" className="object-contain" /></div>
-              {displayImages.length > 1 && <div className="flex justify-between gap-3"><Button variant="outline" onClick={() => setSelectedImageIndex(index => (index - 1 + displayImages.length) % displayImages.length)}>Photo précédente</Button><Button variant="outline" onClick={() => setSelectedImageIndex(index => (index + 1) % displayImages.length)}>Photo suivante</Button></div>}
+              {displayImages.length > 1 && <div className="flex justify-between gap-3"><Button variant="outline" onClick={() => setSelectedImageIndex(index => (index - 1 + displayImages.length) % displayImages.length)}>Previous Image</Button><Button variant="outline" onClick={() => setSelectedImageIndex(index => (index + 1) % displayImages.length)}>Next Image</Button></div>}
             </DialogContent>
           </Dialog>
 
@@ -350,12 +350,12 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               <p className="store-detail-price font-playfair">{formatPrice(product.price, config)}</p>
               {stockDisplayStatus === "in-stock" && (
                 <Badge className="border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300">
-                  En stock
+                  In Stock
                 </Badge>
               )}
               {stockDisplayStatus === "low-stock" && (
                 <Badge className="border-gold/40 bg-gold/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-gold hover:bg-gold/10">
-                  Stock faible — bientôt épuisé
+                  Low Stock — Selling Fast
                 </Badge>
               )}
               {stockDisplayStatus === "sold-out" && (
@@ -377,10 +377,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             {/* Color Selection */}
             {availableColors.length > 0 && (
               <fieldset className="store-option-group">
-                <legend className="store-option-label">Couleur <span className="store-selected-color">{selectedColor}</span></legend>
+                <legend className="store-option-label">Color <span className="store-selected-color">{selectedColor}</span></legend>
                 <div className="store-color-options">
                   {getProductColorGalleries(product).map(group => (
-                    <button key={group.key} type="button" className="store-color-option" aria-label={`Couleur ${group.color}`} aria-pressed={selectedColor === group.color}
+                    <button key={group.key} type="button" className="store-color-option" aria-label={`Color ${group.color}`} aria-pressed={selectedColor === group.color}
                       onClick={() => { setSelectedImageIndex(0); setSelectedColor(group.color); trackStoreEvent("color_selected", { product_id: product.id, metadata: {color: group.color, product_name: product.name} }) }}>
                       <span className="store-color-disc" style={{backgroundColor: getColorSwatch(group.colorCode || group.color)}} />
                       <span>{group.color}</span>
@@ -394,8 +394,8 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             {availableSizes.length > 0 && (
               <div className="store-option-group">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="store-option-label">Taille</h2>
-                  <Link href="/size-guide" className="store-size-guide"><Ruler size={17} aria-hidden="true" />Guide des tailles</Link>
+                  <h2 className="store-option-label">Size</h2>
+                  <Link href="/size-guide" className="store-size-guide"><Ruler size={17} aria-hidden="true" />Size Guide</Link>
                 </div>
                 <div className="store-size-options">
                   {availableSizes.map((size) => {
@@ -430,7 +430,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                         aria-pressed={selected}
                       >
                         {size}
-                        {!purchasable ? <span className="sr-only"> {availabilityLabel(availabilityStatus(optionSize))}</span> : lowStock ? <span className="sr-only"> stock limite</span> : null}
+                        {!purchasable ? <span className="sr-only"> {availabilityLabel(availabilityStatus(optionSize))}</span> : lowStock ? <span className="sr-only"> Limited Stock</span> : null}
                       </button>
                     )
                   })}
@@ -441,10 +441,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             <div className="store-purchase-actions">
             {/* Quantity */}
             {selectedVariantSize && (
-            <div className="store-quantity" role="group" aria-label="Quantité">
-              <button type="button" aria-label="Diminuer la quantité" disabled={quantity <= 1 || quantityLimit === 0} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus size={16} /></button>
+            <div className="store-quantity" role="group" aria-label="Quantity">
+              <button type="button" aria-label="Decrease Quantity" disabled={quantity <= 1 || quantityLimit === 0} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus size={16} /></button>
               <output aria-live="polite">{quantity}</output>
-              <button type="button" aria-label="Augmenter la quantité" disabled={quantity >= quantityLimit} onClick={() => setQuantity(value => Math.min(quantityLimit, value + 1))}><Plus size={16} /></button>
+              <button type="button" aria-label="Increase Quantity" disabled={quantity >= quantityLimit} onClick={() => setQuantity(value => Math.min(quantityLimit, value + 1))}><Plus size={16} /></button>
             </div>
             )}
 
@@ -455,15 +455,15 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 className="store-add-button min-h-12 w-full bg-primary px-4 py-3 text-primary-foreground whitespace-normal"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
-                {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? availabilityLabel(selectionAvailability) : "Choisir une taille"}
+                {canAddCurrentSelection ? `Add to Bag - ${formatPrice(product.price * quantity, config)}` : selectedSize ? availabilityLabel(selectionAvailability) : "Select Size"}
               </Button>
-              <Button type="button" variant="outline" disabled={!canAddCurrentSelection} className="store-buy-button min-h-12 w-full border-accent bg-transparent px-4 py-3 text-foreground hover:bg-primary hover:text-primary-foreground whitespace-normal" onClick={() => {try {if (currentVariant && selectedSize) buyNow(product, currentVariant, selectedSize, quantity)} catch (error) {setPurchaseError(error instanceof Error ? error.message : "Achat rapide indisponible.")}}}><Zap className="mr-2 h-4 w-4 text-accent" />Acheter maintenant</Button>
+              <Button type="button" variant="outline" disabled={!canAddCurrentSelection} className="store-buy-button min-h-12 w-full border-accent bg-transparent px-4 py-3 text-foreground hover:bg-primary hover:text-primary-foreground whitespace-normal" onClick={() => {try {if (currentVariant && selectedSize) buyNow(product, currentVariant, selectedSize, quantity)} catch (error) {setPurchaseError(error instanceof Error ? error.message : "Quick checkout is unavailable.")}}}><Zap className="mr-2 h-4 w-4 text-accent" />Buy Now</Button>
             </div>
 
             {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             {packsEnabled && relatedPack && companionComponents.length > 0 && (
               <div className="rounded-2xl border border-accent/25 bg-card p-5 text-card-foreground dark:bg-gradient-to-br dark:from-gold/10 dark:via-black dark:to-black">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Completer le look</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Complete the Look</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
                   <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
                     <Image
@@ -495,7 +495,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                         <div>
                           <p className="font-semibold text-card-foreground">{companionProduct.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {sameColorAvailable ? `Couleur coordonnee : ${selectedColor}` : `Couleur du set : ${companionColor}`}
+                            {sameColorAvailable ? `Matching Color: ${selectedColor}` : `Set Color: ${companionColor}`}
                           </p>
                         </div>
                         {companionSizes.length > 0 && !component.size && (
@@ -527,7 +527,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
                 <div className="mt-5 rounded-xl border border-border bg-muted p-4 dark:border-white/10 dark:bg-black/50">
                   <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">{relatedPack.title}</p>
-                          <p className="mt-2 text-sm text-muted-foreground">Commande la piece seule ou complete le set lorsque le pack est disponible.</p>
+                          <p className="mt-2 text-sm text-muted-foreground">Shop the piece on its own or complete the look with an available pack.</p>
                   <div className="mt-4 flex flex-wrap items-end gap-4">
                     <div>
                         <p className="text-sm text-muted-foreground line-through">
@@ -536,10 +536,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                       <p className="text-3xl font-bold text-gold">{formatPrice(getPackPrice(relatedPack) * quantity, config)}</p>
                     </div>
                     <p className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-700 dark:text-green-300">
-                      Economise {formatPrice(getPackSavingsLabel(relatedPack) * quantity, config)}
+                      Save {formatPrice(getPackSavingsLabel(relatedPack) * quantity, config)}
                     </p>
                   </div>
-                  <p className="mt-3 text-sm text-muted-foreground">Set coordonne. Choisis la taille de chaque piece separement.</p>
+                  <p className="mt-3 text-sm text-muted-foreground">A coordinated set. Choose the size of each piece separately.</p>
                 </div>
 
                 <Button
@@ -547,7 +547,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                   disabled={!canAddCurrentSelection || !completeLookReady}
                   className="mt-5 w-full bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground"
                 >
-                  Ajouter le pack - {formatPrice(getPackPrice(relatedPack) * quantity, config)}
+                  Add Pack to Bag - {formatPrice(getPackPrice(relatedPack) * quantity, config)}
                 </Button>
               </div>
             )}
@@ -556,18 +556,18 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             <Separator className="bg-border" />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Details produit</h3>
+              <h3 className="text-lg font-semibold">Product Details</h3>
 
               {product.fabric && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Matiere :</span>
+                  <span className="text-muted-foreground">Fabric:</span>
                   <span>{product.fabric}</span>
                 </div>
               )}
 
               {product.composition && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Composition :</span>
+                  <span className="text-muted-foreground">Composition:</span>
                   <span>
                     {Object.entries(product.composition)
                       .map(([material, percentage]) => `${material} ${percentage}%`)
@@ -578,7 +578,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
               {product.care_instructions && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Entretien :</span>
+                  <span className="text-muted-foreground">Care:</span>
                   <span>{product.care_instructions}</span>
                 </div>
               )}
@@ -597,15 +597,15 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             <div className="store-product-services">
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" />
-                <span>Livraison dans toute la Tunisie</span>
+                <span>Shipping Across Tunisia</span>
               </div>
               <div className="flex items-center gap-3">
                 <RotateCcw className="h-5 w-5 text-gold" />
-                <span>Echange de taille disponible selon disponibilite</span>
+                <span>Size Exchanges Subject to Availability</span>
               </div>
               <div className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-gold" />
-                <span>Paiement a la livraison</span>
+                <span>Cash on Delivery</span>
               </div>
             </div>
 

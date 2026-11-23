@@ -59,7 +59,7 @@ test("production-shaped Black/M without private quantities renders an enabled pu
   assert.equal(inventory.getProductAvailability(product), "available")
   assert.equal(inventory.getProductVariantForSelection(product, "Black", "XL"), null)
   const html = renderToStaticMarkup(React.createElement(component.exports.default, { product, initialRelatedPack: null, initialRelatedProducts: {} }))
-  const buy = html.match(/<button[^>]*>(?:(?!<\/button>)[\s\S])*Ajouter au panier(?:(?!<\/button>)[\s\S])*<\/button>/)?.[0]
+  const buy = html.match(/<button[^>]*>(?:(?!<\/button>)[\s\S])*Add to Bag(?:(?!<\/button>)[\s\S])*<\/button>/)?.[0]
   assert.ok(buy, html)
   assert.doesNotMatch(buy, /disabled/)
   assert.doesNotMatch(html, />Sold out<|Stock faible|stock limite/)

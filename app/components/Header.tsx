@@ -43,24 +43,24 @@ function navItem(id: string, label: string, path: string, position: number, chil
 }
 
 const fallbackHeaderItems = (categories: Category[]): StoreNavigationPublicItem[] => [
-  navItem("new", "Nouveautes", "/products?sort=newest", 1),
+  navItem("new", "New Arrivals", "/products?sort=newest", 1),
   navItem("faza", "FAZA", "/vlog", 2),
   {
-    ...navItem("shop", "Boutique", "/products", 3),
+    ...navItem("shop", "Shop", "/products", 3),
     children: [
-      navItem("shop-all", "Voir tout", "/products", 1),
+      navItem("shop-all", "View All", "/products", 1),
       ...categories.filter(category => !category.status || category.status === "active").map((category, index) => navItem(category.id, category.name, `/products?category=${encodeURIComponent(category.slug || category.id)}`, index + 2)),
       navItem("shop-packs", "Packs", "/packs", 4),
     ],
   },
   navItem("drops", "Drops", "/vlog", 4),
-  navItem("story", "Notre histoire", "/about", 5),
+  navItem("story", "About", "/about", 5),
 ]
 
 const fallbackMobileItems = (categories: Category[]): StoreNavigationPublicItem[] => [
   ...fallbackHeaderItems(categories),
-  navItem("size-guide", "Guide des tailles", "/size-guide", 6),
-  navItem("shipping", "Livraison et echanges", "/shipping", 7),
+  navItem("size-guide", "Size Guide", "/size-guide", 6),
+  navItem("shipping", "Shipping & Exchanges", "/shipping", 7),
   navItem("contact", "Contact", "/contact", 8),
 ]
 
@@ -178,7 +178,7 @@ export default function Header({
               <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden items-center gap-2 lg:flex">
                   <Button asChild variant="ghost" size="icon" className="text-foreground hover:text-accent dark:text-white dark:hover:text-gold">
-                    <Link href="/products" aria-label="Recherche">
+                    <Link href="/products" aria-label="Search">
                       <Search className="h-5 w-5" />
                     </Link>
                   </Button>
@@ -205,10 +205,10 @@ export default function Header({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="border-border bg-popover text-popover-foreground dark:border-stone-800 dark:bg-black" align="end">
                         <DropdownMenuItem asChild>
-                          <Link href="/profile?tab=settings" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">Mon profil</Link>
+                          <Link href="/profile?tab=settings" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">My Profile</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/profile?tab=orders" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">Mes commandes</Link>
+                          <Link href="/profile?tab=orders" className="text-popover-foreground hover:text-accent dark:text-white dark:hover:text-gold">My Orders</Link>
                         </DropdownMenuItem>
                         {wishlistEnabled && (
                           <DropdownMenuItem asChild>
@@ -216,11 +216,11 @@ export default function Header({
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator className="bg-stone-800" />
-                        <DropdownMenuItem onClick={logout} className="text-red-400 hover:text-red-300">Se deconnecter</DropdownMenuItem>
+                        <DropdownMenuItem onClick={logout} className="text-red-400 hover:text-red-300">Sign Out</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <Button variant="ghost" size="icon" className="text-foreground hover:text-accent dark:text-white dark:hover:text-gold" onClick={() => setShowAuthModal(true)} aria-label="Compte">
+                    <Button variant="ghost" size="icon" className="text-foreground hover:text-accent dark:text-white dark:hover:text-gold" onClick={() => setShowAuthModal(true)} aria-label="Account">
                       <User className="h-5 w-5" />
                     </Button>
                   )}
@@ -235,10 +235,10 @@ export default function Header({
                   onClick={() => setIsMenuOpen((value) => !value)}
                   aria-expanded={isMenuOpen}
                   aria-controls="mobile-storefront-menu"
-                  aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                  aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
                 >
                   {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                  <span>{isMenuOpen ? "Fermer" : "Menu"}</span>
+                  <span>{isMenuOpen ? "Close" : "Menu"}</span>
                 </Button>
               </div>
             </div>
@@ -249,7 +249,7 @@ export default function Header({
                 ref={mobileMenuPanelRef}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Menu mobile"
+                aria-label="Mobile Menu"
                 tabIndex={-1}
                 data-mobile-menu
                 className="fixed inset-0 z-[100] flex h-[100dvh] w-full flex-col overflow-y-auto overflow-x-hidden bg-background text-foreground outline-none lg:hidden dark:bg-[#050505] dark:text-white"
@@ -277,7 +277,7 @@ export default function Header({
                       size="icon"
                       className="h-10 w-10 shrink-0 rounded-none border border-border bg-card text-card-foreground hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-accent dark:border-white/25 dark:bg-white/5 dark:text-white dark:hover:bg-white dark:hover:text-black"
                       onClick={closeMobileMenu}
-                      aria-label="Fermer le menu"
+                      aria-label="Close Menu"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -287,11 +287,11 @@ export default function Header({
                 <nav className="mx-auto flex w-full max-w-screen-sm flex-1 flex-col gap-3 px-4 py-5">
                   <div className="border-b border-border pb-4 dark:border-white/10">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/80">{storeName}</p>
-                    <p className="mt-1 text-sm text-muted-foreground dark:text-white/65">Boutique, Drops et FAZA</p>
+                    <p className="mt-1 text-sm text-muted-foreground dark:text-white/65">Shop, Drops & FAZA</p>
                   </div>
                   <MobileNavigation items={mobileItems} onNavigate={closeMobileMenu} />
                   <ThemeToggle mobile />
-                  <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground dark:text-white/45">Compte</p>
+                  <p className="mt-3 px-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground dark:text-white/45">Account</p>
                   {isAuthenticated && wishlistEnabled && (
                     <Link href="/profile?tab=wishlist" className="group flex items-center justify-between border border-border bg-card px-4 py-3.5 text-sm font-medium text-card-foreground transition-colors hover:border-accent/35 hover:bg-accent/10 hover:text-accent dark:border-white/10 dark:bg-white/[0.03] dark:text-white/90 dark:hover:border-gold/35 dark:hover:bg-gold/10 dark:hover:text-gold" onClick={closeMobileMenu}>
                       <span>Wishlist ({wishlistCount})</span>
@@ -301,11 +301,11 @@ export default function Header({
                   {isAuthenticated ? (
                     <>
                       <Link href="/profile?tab=settings" className="group flex items-center justify-between border border-border bg-card px-4 py-3.5 text-sm font-medium text-card-foreground transition-colors hover:border-accent/35 hover:bg-accent/10 hover:text-accent dark:border-white/10 dark:bg-white/[0.03] dark:text-white/90 dark:hover:border-gold/35 dark:hover:bg-gold/10 dark:hover:text-gold" onClick={closeMobileMenu}>
-                        <span>Mon profil</span>
+                        <span>My Profile</span>
                         <ChevronRight className="h-4 w-4 text-gold/60 transition-transform group-hover:translate-x-1" />
                       </Link>
                       <button onClick={handleMobileLogout} className="border border-red-400/20 bg-red-500/5 px-4 py-3.5 text-left text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300">
-                        Se deconnecter
+                        Sign Out
                       </button>
                     </>
                   ) : (
@@ -316,7 +316,7 @@ export default function Header({
                       }}
                       className="border border-border bg-card px-4 py-3.5 text-left text-sm font-medium text-card-foreground transition-colors hover:border-accent/35 hover:bg-accent/10 hover:text-accent dark:border-white/10 dark:bg-white/[0.03] dark:text-white/90 dark:hover:border-gold/35 dark:hover:bg-gold/10 dark:hover:text-gold"
                     >
-                      Se connecter
+                      Sign In
                     </button>
                   )}
                 </nav>

@@ -599,8 +599,8 @@ export default function PackDetailPage() {
 
             <Button className="min-h-12 w-full bg-accent text-accent-foreground" disabled={!packAvailable} onClick={() => {
               try { if (pack && packAvailable) buyPackNow(pack, packOrderItems, 1) }
-              catch (error) { setPurchaseError(error instanceof Error ? error.message : "Impossible de préparer cet achat.") }
-            }}>Acheter maintenant</Button>
+              catch (error) { setPurchaseError(error instanceof Error ? error.message : "This purchase could not be prepared. Please try again.") }
+            }}>Buy Now</Button>
             {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             <Button
               onClick={handleAddPack}
@@ -608,7 +608,7 @@ export default function PackDetailPage() {
               className="w-full bg-accent py-6 text-base font-semibold text-accent-foreground hover:bg-accent/90"
             >
               <ShoppingBag className="mr-2 h-5 w-5" />
-              {availabilityStatus(pack) !== "available" ? availabilityLabel(availabilityStatus(pack)) : added ? "Pack added" : packAvailable ? "Ajouter au panier" : "Complete available selections"}
+              {availabilityStatus(pack) !== "available" ? availabilityLabel(availabilityStatus(pack)) : added ? "Pack added" : packAvailable ? "Add to Bag" : "Complete available selections"}
             </Button>
           </div>
         </div>

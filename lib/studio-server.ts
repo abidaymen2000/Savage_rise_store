@@ -16,7 +16,7 @@ export const getStudioDocument = cache(async (): Promise<(StudioDocument & { men
   if (!token && response.status === 423) return null
   if (!token && response.status === 404 && result?.detail?.code === "STUDIO_NOT_PUBLISHED") return null
   if (!response.ok || result?.manifest?.template_id !== "savage-rise" || result?.studio?.contract_version !== 3) {
-    throw Object.assign(new Error("Le contenu de la boutique est momentanément indisponible."), { status: response.status })
+    throw Object.assign(new Error("Store content is temporarily unavailable. Please try again."), { status: response.status })
   }
   return result
 })

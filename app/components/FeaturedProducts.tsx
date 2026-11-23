@@ -18,7 +18,7 @@ function ActivePackCard({ pack }: { pack: Pack }) {
         {pack.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{pack.description}</p>}
       </div>
       <span className="mt-5 inline-flex items-center text-sm font-semibold text-card-foreground group-hover:text-accent">
-        Composer le pack
+        Build the Pack
         <ArrowRight className="ml-2 h-4 w-4" />
       </span>
     </Link>
@@ -45,12 +45,12 @@ export default function FeaturedProducts({
         <section className="store-container store-category-section" aria-labelledby="categories-heading">
           <div className="store-section-heading">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Acces rapide</p>
-              <h2 id="categories-heading" className="font-playfair">Boutique</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Quick Access</p>
+              <h2 id="categories-heading" className="font-playfair">Shop</h2>
             </div>
             <span className="store-heading-rule" aria-hidden="true" />
             <Link href="/products" className="store-text-link">
-              Voir tout <ArrowRight aria-hidden="true" />
+              View All <ArrowRight aria-hidden="true" />
             </Link>
           </div>
           <div className="studio-grid-categories store-category-grid">
@@ -76,10 +76,10 @@ export default function FeaturedProducts({
       <section className="store-container store-new-section" aria-labelledby="new-products-heading">
         <div className="store-section-heading">
           <div>
-            <h2 id="new-products-heading" className="font-playfair">Nouveautés</h2>
+            <h2 id="new-products-heading" className="font-playfair">New Arrivals</h2>
           </div>
           <span className="store-heading-rule" aria-hidden="true" />
-          <Link href="/products" className="store-text-link">Voir la collection <ArrowRight aria-hidden="true" /></Link>
+          <Link href="/products" className="store-text-link">View the Collection <ArrowRight aria-hidden="true" /></Link>
         </div>
         {featuredProducts.length > 0 ? (
           <div className="studio-grid-catalog store-product-grid">
@@ -88,7 +88,7 @@ export default function FeaturedProducts({
             ))}
           </div>
         ) : (
-          <div className="border border-border bg-card p-8 text-center text-sm text-muted-foreground">Aucun produit actif disponible pour le moment.</div>
+          <div className="border border-border bg-card p-8 text-center text-sm text-muted-foreground">No pieces available right now. Check back for the next drop.</div>
         )}
       </section>
 
@@ -96,7 +96,7 @@ export default function FeaturedProducts({
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
           <div className="mb-7">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Drops</p>
-            <h2 className="mt-2 font-playfair text-3xl text-foreground sm:text-4xl">Packs actifs</h2>
+            <h2 className="mt-2 font-playfair text-3xl text-foreground sm:text-4xl">Available Packs</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             {activeBundles.slice(0, 3).map((pack) => (

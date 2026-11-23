@@ -17,7 +17,7 @@ export async function loadCatalogProducts(
     if (!hasNext) return [...products.values()]
     // A broken/repeated page must not silently present a complete-looking subset.
     if (!page.items.length || products.size === previousCount || !(page.page_size > 0)) {
-      throw new Error("Le catalogue n’a pas pu être chargé entièrement. Réessayez.")
+      throw new Error("The full catalog could not be loaded. Please try again.")
     }
     limit = page.page_size
     skip = page.page * page.page_size

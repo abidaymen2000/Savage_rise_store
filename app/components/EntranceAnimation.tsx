@@ -16,7 +16,7 @@ type Props = {
 export default function EntranceAnimation({ stage, name, panelRef, onSkip }: Props) {
   return (
     <div ref={panelRef} className="store-entrance" data-entrance-stage={stage}
-      role="dialog" aria-modal="true" aria-label="Introduction Savage Rise" tabIndex={-1}>
+      role="dialog" aria-modal="true" aria-label="Savage Rise Introduction" tabIndex={-1}>
       <div className="store-entrance-ground" aria-hidden="true" />
       {(["left", "right"] as const).map(side => (
         <div key={side} className={`store-entrance-door store-entrance-door-${side}`} aria-hidden="true">
@@ -33,7 +33,7 @@ export default function EntranceAnimation({ stage, name, panelRef, onSkip }: Pro
       <div className="store-entrance-lights" aria-hidden="true">
         {lights.map(([left, top], index) => <span key={index} style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 160}ms` }} />)}
       </div>
-      <button type="button" className="store-entrance-skip" onClick={onSkip}>Passer l’introduction</button>
+      <button type="button" className="store-entrance-skip" onClick={onSkip}>Skip Introduction</button>
     </div>
   )
 }
