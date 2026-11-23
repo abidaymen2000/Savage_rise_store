@@ -109,13 +109,12 @@ test("vlog chapter empty and drop cards are light-theme aware", () => {
   assert.match(vlog, /theme-aware-secondary/)
 })
 
-test("hero image background is softened while video behavior remains separate", () => {
+test("hero keeps campaign photography sharp while video behavior remains separate", () => {
   const hero = read("app/components/Hero.tsx")
 
   assert.match(hero, /slide\.type === "video"/)
-  assert.match(hero, /blur-\[3px\] brightness-\[0\.76\]/)
-  assert.match(hero, /blur-\[7px\] brightness-\[0\.68\]/)
-  assert.match(hero, /text-\[rgba\(255,255,255,0\.98\)\]/)
+  assert.doesNotMatch(hero, /blur-\[\d+px\]/)
+  assert.match(hero, /store-hero-shade/)
 })
 
 test("hero video and poster share the full media rectangle", () => {

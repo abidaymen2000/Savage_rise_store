@@ -151,7 +151,14 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   const firstVariant = detail.variants?.[0]
   const price = toNumber(firstVariant?.base_price, toNumber(detail.attribute_values?.price))
   const compareAtPrice = toNumber(firstVariant?.compare_at_price, 0) || null
-  const variants = (detail.variants ?? []).map((variant) => variantToLegacy(variant, price, detail.product_kind))
+  const colorAxis = detail.option_axes?.find(axis =>
+    ["color", "colour", "couleur"].includes((axis.system_key || axis.code).normalize("NFKC").trim().toLowerCase()))
+  const variants = (detail.variants ?? []).map((variant) => {
+    const mapped = variantToLegacy(variant, price, detail.product_kind)
+    const colorValue = colorAxis ? variant.option_values?.[colorAxis.code] : undefined
+    const colorOption = colorAxis?.values?.find(option => option.code === colorValue || option.id === colorValue)
+    return { ...mapped, color_code: colorOption?.swatch || mapped.color_code }
+  })
   const images = productMedia.length > 0 ? productMedia : variants.flatMap((variant) => variant.images)
   const inStock = detail.in_stock
 

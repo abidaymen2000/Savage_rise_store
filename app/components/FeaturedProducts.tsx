@@ -5,7 +5,7 @@ import ProductCard from "@/components/storefront/product-card"
 import StorefrontMedia from "@/components/storefront/media/storefront-media"
 import { getActiveBundles, getFeaturedPhysicalProducts } from "@/lib/home-products"
 import { getStorefrontContent } from "@/lib/storefront/content"
-import { getCategoryImageUrl, getVisibleCategoryFeatures } from "@/lib/storefront/catalog"
+import { getHomepageCategories } from "@/lib/storefront/catalog"
 import { sortProductsByStockStatus } from "@/lib/utils"
 import type { Category, Pack, Product } from "@/types/api"
 
@@ -37,68 +37,34 @@ export default function FeaturedProducts({
   const content = getStorefrontContent()
   const activeBundles = getActiveBundles(packs)
   const featuredProducts = sortProductsByStockStatus(getFeaturedPhysicalProducts(products, activeBundles))
-  const productsAndPacks: Product[] = [
-    ...featuredProducts,
-    ...activeBundles.map((pack) => ({
-      id: pack.id,
-      style_id: pack.id,
-      name: pack.title,
-      full_name: pack.title,
-      description: pack.description,
-      categories: ["packs"],
-      price: pack.pack_price ?? 0,
-      compare_at_price: pack.compare_at_price ?? pack.original_price ?? null,
-      in_stock: pack.in_stock,
-      availability_status: pack.availability_status,
-      forced_sold_out: pack.forced_sold_out,
-      status: pack.status,
-      variants: [],
-      images: pack.image_url ? [{ id: pack.id, url: pack.image_url, alt_text: pack.title }] : [],
-      slug: pack.id,
-      product_kind: "bundle",
-    } as Product)),
-  ]
-  const categories = getVisibleCategoryFeatures(productsAndPacks, content.categoryFeatures).slice(0, 3)
-  const categoryImageByFeatureKey = categories.reduce<Record<string, string>>((images, feature) => {
-    const matchers = [feature.key, feature.label, ...feature.matchers].map((value) => value.toLowerCase())
-    const matchingCategory = storeCategories.find((category) => {
-      const values = [category.id, category.name, category.slug].filter(Boolean).map((value) => String(value).toLowerCase())
-      return values.some((value) => matchers.some((matcher) => value.includes(matcher) || matcher.includes(value)))
-    })
-    const imageUrl = getCategoryImageUrl(matchingCategory)
-    if (imageUrl) images[feature.key] = imageUrl
-    return images
-  }, {})
+  const categories = getHomepageCategories(storeCategories, featuredProducts)
 
   return (
-    <div className="bg-background text-foreground">
-      <section id="studio-catalog" className="border-y border-border bg-primary px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground sm:text-xs">
-        {content.announcement.join(" - ")}
-      </section>
-
+    <div className="store-home bg-background text-foreground" id="studio-catalog">
       {categories.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-          <div className="mb-6 flex items-end justify-between gap-4">
+        <section className="store-container store-category-section" aria-labelledby="categories-heading">
+          <div className="store-section-heading">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Acces rapide</p>
-              <h2 className="mt-2 font-playfair text-3xl text-foreground sm:text-4xl">Boutique</h2>
+              <h2 id="categories-heading" className="font-playfair">Boutique</h2>
             </div>
-            <Link href="/products" className="hidden text-sm font-semibold text-muted-foreground hover:text-accent sm:inline-flex">
-              Voir tout
+            <span className="store-heading-rule" aria-hidden="true" />
+            <Link href="/products" className="store-text-link">
+              Voir tout <ArrowRight aria-hidden="true" />
             </Link>
           </div>
-          <div className="studio-grid-categories grid gap-3 md:grid-cols-3">
+          <div className="studio-grid-categories store-category-grid">
             {categories.map((category) => (
-              <Link key={category.key} href={category.href} className="group relative block aspect-[4/5] overflow-hidden bg-stone-950 md:aspect-[5/6]">
-                <StorefrontMedia
-                  media={{ type: "image", src: categoryImageByFeatureKey[category.key] ?? category.image, alt: category.alt }}
+              <Link key={category.key} href={category.href} className="store-category-card group">
+                {category.image && <StorefrontMedia
+                  media={{ type: "image", src: category.image, alt: category.alt }}
                   sizes="(min-width: 768px) 33vw, 100vw"
                   className="absolute inset-0"
                   imageClassName="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+                />}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between p-5">
-                  <span className="text-xl font-semibold uppercase tracking-[0.12em]">{category.label}</span>
+                  <span className="font-playfair text-2xl uppercase tracking-[0.06em] text-white">{category.label}</span>
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </div>
               </Link>
@@ -107,18 +73,16 @@ export default function FeaturedProducts({
         </section>
       )}
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <section className="store-container store-new-section" aria-labelledby="new-products-heading">
+        <div className="store-section-heading">
           <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Nouveautes</p>
-            <h2 className="mt-2 font-playfair text-3xl text-foreground sm:text-4xl">Latest pieces</h2>
+            <h2 id="new-products-heading" className="font-playfair">Nouveautés</h2>
           </div>
-          <Button asChild variant="outline" className="rounded-none border-border bg-transparent text-foreground hover:bg-primary hover:text-primary-foreground">
-            <Link href="/products">Voir la boutique</Link>
-          </Button>
+          <span className="store-heading-rule" aria-hidden="true" />
+          <Link href="/products" className="store-text-link">Voir la collection <ArrowRight aria-hidden="true" /></Link>
         </div>
         {featuredProducts.length > 0 ? (
-          <div className="studio-grid-catalog grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          <div className="studio-grid-catalog store-product-grid">
             {featuredProducts.slice(0, 4).map((product, index) => (
               <ProductCard key={product.id} product={product} priority={index < 2} />
             ))}

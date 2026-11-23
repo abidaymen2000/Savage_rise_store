@@ -66,7 +66,7 @@ export default function ProductCardActions({ product, href }: { product: Product
   }
 
   return (
-    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_44px_44px] gap-2 pt-1 max-[360px]:grid-cols-2">
+    <div className="store-card-actions grid w-full min-w-0 grid-cols-[minmax(0,1fr)_44px_44px] gap-2 pt-1 max-[360px]:grid-cols-2">
       {inStock ? (
         <Button
           asChild

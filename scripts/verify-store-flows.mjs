@@ -1,0 +1,112 @@
+import {chromium, expect as playwrightExpect} from '../.tmp/qa/node_modules/@playwright/test/index.mjs'
+import {writeFile, readFile} from 'node:fs/promises'
+const base='http://127.0.0.1:49172', fixture='http://127.0.0.1:49171'
+const expect=playwrightExpect.configure({timeout:20000})
+const state=body=>fetch(fixture+'/__test/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+const reset=()=>fetch(fixture+'/__test/reset',{method:'POST'})
+await reset()
+// Compile shared development chunks before any interactive browser assertions.
+for(const path of ['/','/products','/products/sr-ombra-oversized-hoodie','/categories/hoodies','/checkout','/checkout/success']) {
+ const response=await fetch(base+path);if(!response.ok)throw new Error(`Warmup ${path}: ${response.status}`);await response.arrayBuffer()
+}
+const browser=await chromium.launch({channel:'chrome',headless:true})
+const context=await browser.newContext({viewport:{width:1440,height:1080},reducedMotion:'reduce',colorScheme:'light'})
+await context.addInitScript(()=>{sessionStorage.setItem('savage_rise_visited','true');localStorage.setItem('theme','light');localStorage.setItem('savage_rise_token','local-fixture-user')})
+const requests=[],checks=[],errors=[]
+await context.route('**/*',route=>{
+ const r=route.request(),u=new URL(r.url())
+ if(['127.0.0.1','localhost'].includes(u.hostname))return route.continue()
+ if(u.hostname==='ik.imagekit.io'&&['GET','HEAD'].includes(r.method()))return route.continue()
+ requests.push({blocked:r.method(),url:u.origin+u.pathname});return route.abort()
+})
+const page=await context.newPage()
+page.setDefaultTimeout(20000)
+page.on('pageerror',e=>errors.push(e.message))
+const go=async path=>{await page.goto(base+path,{waitUntil:'domcontentloaded',timeout:120000});await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1,{timeout:30000})}
+const check=async(name,fn)=>{try{await fn();checks.push({name,pass:true});console.log('PASS '+name)}catch(e){checks.push({name,pass:false,error:e.message});await page.screenshot({path:'artifacts/store-redesign/after/flow-failure.png'});throw e}}
+try {
+ await check('ERP pagination, hoodie search, nested categories and sorting',async()=>{
+  await go('/products');await expect(page.locator('.store-product-card')).toHaveCount(5)
+  await page.getByRole('textbox',{name:'Rechercher un produit'}).fill('OMBRA')
+  await expect(page.locator('.store-product-card')).toHaveCount(1)
+  await expect(page.locator('.store-product-name')).toHaveText('SR OMBRA OVERSIZED HOODIE')
+  await page.getByRole('textbox',{name:'Rechercher un produit'}).fill('');await expect(page.locator('.store-product-card')).toHaveCount(5)
+  await page.getByRole('combobox',{name:'Catégorie',exact:true}).click();await page.getByRole('option',{name:'Hoodies',exact:true}).click()
+  await expect(page.locator('.store-product-card')).toHaveCount(1)
+  await page.getByRole('combobox',{name:'Catégorie',exact:true}).click();await page.getByRole('option',{name:'Pants',exact:true}).click()
+  await expect(page.locator('.store-product-name')).toHaveText('SR PALAZZO BAGGY PANTS')
+  await page.getByRole('button',{name:'Reinitialiser',exact:true}).click();await expect(page.locator('.store-product-card')).toHaveCount(5)
+  await page.getByRole('combobox',{name:'Trier les produits'}).click();await page.getByRole('option',{name:'Prix croissant'}).click()
+  // Availability grouping remains authoritative; price sorts within that group.
+  await expect(page.locator('.store-product-name').first()).toContainText('PALAZZO')
+  await page.getByRole('combobox',{name:'Trier les produits'}).click();await page.getByRole('option',{name:'Prix decroissant'}).click()
+  await expect(page.locator('.store-product-name').first()).toContainText('OMBRA')
+  await go('/categories/hoodies');await expect(page.locator('.store-product-name')).toHaveText('SR OMBRA OVERSIZED HOODIE')
+ })
+ await check('manual gallery, size preservation, color changes and zoom',async()=>{
+  await go('/products/sr-ombra-oversized-hoodie')
+  await expect(page.locator('.store-color-option')).toHaveCount(6)
+  await page.getByRole('button',{name:'Couleur brown',exact:true}).click()
+  await page.locator('.store-gallery-thumbnail').nth(1).click()
+  const main=page.locator('.store-gallery-main > img'),before=await main.getAttribute('src')
+  await page.getByRole('button',{name:/^m$/i}).click();await page.getByRole('button',{name:/^l$/i}).click()
+  await expect(main).toHaveAttribute('src',before);await page.waitForTimeout(2300);await expect(main).toHaveAttribute('src',before)
+  await page.getByRole('button',{name:'Couleur green',exact:true}).click();await expect(main).not.toHaveAttribute('src',before)
+  await page.locator('.store-gallery-zoom').click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape')
+ })
+ await check('wishlist add and remove against local fixture',async()=>{
+  await page.getByRole('button',{name:'Add to wishlist',exact:true}).click();await expect(page.getByRole('button',{name:'Remove from wishlist',exact:true})).toBeVisible()
+  await page.getByRole('button',{name:'Remove from wishlist',exact:true}).click();await expect(page.getByRole('button',{name:'Add to wishlist',exact:true})).toBeVisible()
+ })
+ await check('quantity, cart, buy-now and existing checkout',async()=>{
+  await page.getByRole('button',{name:'Augmenter la quantité'}).click();await expect(page.locator('.store-quantity output')).toHaveText('2')
+  await page.getByRole('button',{name:/Ajouter au panier/}).click();await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('dialog')).toContainText('SR OMBRA OVERSIZED HOODIE');await page.keyboard.press('Escape')
+  await page.getByRole('button',{name:'Acheter maintenant',exact:true}).click();await expect(page).toHaveURL(/checkout/)
+  await page.getByLabel('Full name *',{exact:true}).fill('Client Recette')
+  await page.getByLabel('Email *',{exact:true}).fill('recette@example.invalid')
+  await page.getByLabel('Téléphone *',{exact:true}).fill('20123456')
+  await page.getByLabel('Adresse *',{exact:true}).fill('Adresse de test local uniquement')
+  await page.getByLabel('Postal code *',{exact:true}).fill('1000')
+  await page.getByLabel('City *',{exact:true}).fill('Tunis')
+  await page.getByLabel('Country *',{exact:true}).fill('Tunisia')
+  const submit=page.getByRole('button',{name:/Commander/});await expect(submit).toBeEnabled();await submit.click()
+  await expect(page).toHaveURL(/checkout\/success/,{timeout:30000})
+  const records=await (await fetch(fixture+'/__test/records')).json(),order=records.find(x=>x.path==='/orders')
+  expect(order.body.items[0].qty).toBe(2);expect(order.body.items[0].variant_id).toBeTruthy();expect(order.body.payment_method).toBe('cod');expect(order.idempotency).toBeTruthy()
+ })
+ await check('CMS published text, poster, revision and visibility refresh',async()=>{
+  const studio=JSON.parse(await readFile('artifacts/store-redesign/before/studio.json','utf8'))
+  await state({hero:{title:'Collection de recette',subtitle:'Texte modifié uniquement dans la fixture.',media:studio.studio.hero.poster,poster:null},revision:7,visibility:{vlog:false},hidden_paths:['/vlog']})
+  await go('/');await expect(page.getByRole('heading',{level:1})).toHaveText('Collection de recette')
+  await expect(page.getByText('Texte modifié uniquement dans la fixture.',{exact:true})).toBeVisible()
+  await expect(page.locator('[data-studio-revision]')).toHaveAttribute('data-studio-revision',String(studio.revision+7))
+  expect(await page.locator('.store-hero img').first().getAttribute('src')).toContain(studio.studio.hero.poster.url)
+  await expect(page.locator('header a[href="/vlog"]')).toHaveCount(0)
+  await state({hero:{title:'Publication suivante'},revision:8,visibility:{vlog:true},hidden_paths:[]});await page.reload()
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Publication suivante')
+  await expect(page.locator('header a[href="/vlog"]')).toHaveCount(1)
+  await state({video:true});await page.reload()
+  await expect(page.locator('.store-hero video')).toHaveAttribute('src',fixture+'/film.webm')
+ })
+ await check('CMS private preview renders and prevents purchase',async()=>{
+  await state({draftHero:{title:'Brouillon privé de recette'}})
+  await context.addCookies([{name:'yovo_studio_preview',value:'local-preview-token',url:base}])
+  await go('/');await expect(page.getByText('Aperçu privé · Achats désactivés',{exact:false})).toBeVisible()
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Brouillon privé de recette')
+  await go('/products/sr-ombra-oversized-hoodie');await page.getByRole('button',{name:/Ajouter au panier/}).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await context.clearCookies();await go('/');await expect(page.getByRole('heading',{level:1})).toHaveText('Publication suivante');await reset()
+ })
+ await check('ERP price refresh, forced sold out, empty search and mobile navigation',async()=>{
+  await state({price:99.5});await go('/products/sr-ombra-oversized-hoodie');await expect(page.locator('.store-detail-price')).toContainText('99,500')
+  await state({soldOut:true});await page.reload();await expect(page.locator('.store-add-button')).toBeDisabled()
+  await reset();await page.setViewportSize({width:390,height:844});await go('/products')
+  await page.getByRole('button',{name:/menu/i,exact:false}).first().click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('button',{name:'Filtres',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('combobox',{name:'Catégorie',exact:true}).click();await page.getByRole('option',{name:'Hoodies',exact:true}).click()
+  await page.getByRole('button',{name:'Appliquer'}).click();await expect(page.locator('.store-product-card')).toHaveCount(1)
+  await page.getByRole('textbox',{name:'Rechercher un produit'}).fill('aucun-produit-de-recette');await expect(page.locator('.store-product-card')).toHaveCount(0)
+ })
+} catch(e) {console.error(e.message);process.exitCode=1}
+finally {await reset();await browser.close();await writeFile('artifacts/store-redesign/functional-checks.json',JSON.stringify({checks,errors,blockedExternalRequests:requests},null,2));if(errors.length)process.exitCode=1}

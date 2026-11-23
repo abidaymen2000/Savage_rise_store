@@ -1,0 +1,66 @@
+
+> my-v0-project@0.1.0 build C:\Users\ASUS\Desktop\Savage_Rise\Savage_rise_store
+> next build
+
+  ▲ Next.js 14.2.16
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/27) ...
+   Generating static pages (6/27) 
+   Generating static pages (13/27) 
+   Generating static pages (20/27) 
+ ✓ Generating static pages (27/27)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    10.1 kB         172 kB
+├ ƒ /_not-found                          876 B          88.1 kB
+├ ƒ /about                               362 B          99.4 kB
+├ ƒ /analytics-diagnostics               1.28 kB         109 kB
+├ ƒ /api/auth/verify-email               0 B                0 B
+├ ƒ /api/preview                         0 B                0 B
+├ ƒ /api/preview/exit                    0 B                0 B
+├ ƒ /categories/[name]                   175 B           177 kB
+├ ƒ /checkout                            15.7 kB         172 kB
+├ ƒ /checkout/success                    5.38 kB         125 kB
+├ ƒ /contact                             5.24 kB         138 kB
+├ ƒ /email-confirmed                     181 B          94.2 kB
+├ ƒ /email-verification-failed           181 B          94.2 kB
+├ ƒ /help                                362 B          99.4 kB
+├ ƒ /packs                               5.88 kB         133 kB
+├ ƒ /packs/[id]                          7.75 kB         171 kB
+├ ƒ /pages/[slug]                        362 B          99.4 kB
+├ ○ /preview                             0 B                0 B
+├ ƒ /products                            176 B           177 kB
+├ ƒ /products/[id]                       12.4 kB         179 kB
+├ ƒ /profile                             10.6 kB         150 kB
+├ ƒ /profile/change-password             6.76 kB         122 kB
+├ ƒ /profile/edit                        6.3 kB          122 kB
+├ ƒ /profile/orders/[id]                 5.98 kB         138 kB
+├ ƒ /reset-password                      6.02 kB         128 kB
+├ ƒ /returns                             362 B          99.4 kB
+├ ƒ /shipping                            362 B          99.4 kB
+├ ƒ /size-guide                          362 B          99.4 kB
+├ ƒ /verify-email                        2.85 kB         105 kB
+├ ƒ /verify-success                      1.92 kB         110 kB
+└ ƒ /vlog                                9.02 kB         156 kB
++ First Load JS shared by all            87.2 kB
+  ├ chunks/2117-65575b891e84447e.js      31.6 kB
+  ├ chunks/fd9d1056-4f9c02ad11b7986f.js  53.6 kB
+  └ other shared chunks (total)          2 kB
+
+
+ƒ Middleware                             27.6 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

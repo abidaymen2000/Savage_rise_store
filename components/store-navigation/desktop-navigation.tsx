@@ -37,12 +37,12 @@ export default function DesktopNavigation({ items }: { items: NavigationItem[] }
   }, [])
 
   return (
-    <nav ref={navRef} aria-label="Main navigation" className="hidden items-center gap-8 md:flex">
-      <ul className="flex items-center gap-8">
+    <nav ref={navRef} aria-label="Main navigation" className="hidden items-center gap-6 lg:flex">
+      <ul className="flex items-center gap-6 xl:gap-10">
         {items.map((item) => {
           const children = item.children ?? []
           const active = isActiveItem(item, pathname)
-          const triggerClass = `inline-flex items-center gap-1 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+          const triggerClass = `inline-flex min-h-11 items-center gap-1 text-[11px] uppercase tracking-[0.18em] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
             active ? "text-accent" : "text-foreground hover:text-accent dark:text-white dark:hover:text-gold"
           }`
 

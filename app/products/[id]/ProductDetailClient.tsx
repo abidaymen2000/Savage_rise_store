@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw } from "lucide-react"
+import { ArrowLeft, ShoppingBag, Truck, Shield, RotateCcw, Minus, Plus, Maximize2, Ruler, Zap } from "lucide-react"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { getColorSwatch } from "@/lib/color-swatches"
 import { useCart } from "@/contexts/CartContext"
 import type { Pack, Product, Variant } from "@/types/api"
 import { availabilityStatus, availabilityLabel, hasLowStock, isSoldOut } from "@/lib/availability"
@@ -24,7 +26,7 @@ import {
   getProductImageForColor,
 } from "@/lib/pack-offers"
 import { getAvailableColors, getAvailableSizes, isProductInStock, formatPrice } from "@/lib/utils"
-import { getProductImagesForColor } from "@/lib/product-color-media"
+import { getProductImagesForColor, getProductColorGalleries } from "@/lib/product-color-media"
 import WishlistButton from "@/components/WishlistButton"
 import { getCurrentPageViewId } from "@/lib/analytics-context"
 import { trackMetaPixelEvent } from "@/lib/meta-pixel"
@@ -62,6 +64,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
   const reviewsEnabled = isFeatureEnabled(config, "reviews", true)
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [galleryOpen, setGalleryOpen] = useState(false)
   const initialSelection = getInitialSelection(product)
   const [selectedColor, setSelectedColor] = useState<string>(initialSelection.color)
   const [selectedSize, setSelectedSize] = useState<string>(initialSelection.size)
@@ -277,8 +280,8 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
         ]
 
   return (
-    <div className="min-h-screen bg-background pt-20 text-foreground">
-      <div className="container mx-auto px-4 py-8">
+    <main className="store-product-detail min-h-screen bg-background text-foreground">
+      <div className="store-detail-container">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8">
           <Link href="/products" className="flex items-center text-muted-foreground transition-colors hover:text-foreground">
@@ -287,50 +290,64 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="store-detail-grid">
           {/* Images */}
-          <div className="space-y-4">
-            <div className="aspect-[4/5] relative overflow-hidden rounded-none bg-muted">
+          <div className="store-gallery">
+            <div className="store-gallery-main relative overflow-hidden bg-muted">
               <Image
                 src={displayImages[selectedImageIndex]?.url || "/placeholder.svg?height=600&width=600"}
                 alt={displayImages[selectedImageIndex]?.alt_text || product.name}
                 fill
                 className="object-contain"
+                sizes="(min-width: 1024px) 42vw, 100vw"
+                priority
               />
+              {wishlistEnabled && <div className="absolute right-4 top-4"><WishlistButton productId={product.id} className="store-gallery-wishlist h-12 w-12 rounded-full" /></div>}
+              <button type="button" className="store-gallery-zoom" aria-label="Agrandir la photo" onClick={() => setGalleryOpen(true)}><Maximize2 aria-hidden="true" size={20} /></button>
             </div>
 
             {displayImages.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="store-gallery-thumbnails" aria-label="Galerie produit">
                 {displayImages.map((image, index) => (
                   <button
                     key={image.id || index}
+                    type="button"
+                    aria-label={`Photo ${index + 1} — ${selectedColor}`}
+                    aria-pressed={selectedImageIndex === index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`aspect-square relative overflow-hidden rounded-none border border-border ${
-                      selectedImageIndex === index ? "ring-2 ring-gold" : ""
-                    }`}
+                    className="store-gallery-thumbnail relative overflow-hidden"
                   >
                     <Image
                       src={image.url || "/placeholder.svg"}
                       alt={image.alt_text || `${product.name} ${index + 1}`}
                       fill
                       className="object-contain"
+                      sizes="(min-width: 1024px) 84px, 72px"
                     />
                   </button>
                 ))}
               </div>
             )}
           </div>
+          <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
+            <DialogContent className="max-w-4xl border-border bg-background p-6">
+              <DialogTitle>{product.name}</DialogTitle>
+              <DialogDescription>{selectedColor} · Photo {selectedImageIndex + 1} / {displayImages.length}</DialogDescription>
+              <div className="relative h-[70dvh]"><Image src={displayImages[selectedImageIndex]?.url || "/placeholder.svg"} alt={displayImages[selectedImageIndex]?.alt_text || product.name} fill sizes="90vw" className="object-contain" /></div>
+              {displayImages.length > 1 && <div className="flex justify-between gap-3"><Button variant="outline" onClick={() => setSelectedImageIndex(index => (index - 1 + displayImages.length) % displayImages.length)}>Photo précédente</Button><Button variant="outline" onClick={() => setSelectedImageIndex(index => (index + 1) % displayImages.length)}>Photo suivante</Button></div>}
+            </DialogContent>
+          </Dialog>
 
           {/* Product Info */}
-          <div className="space-y-6">
+          <div className="store-product-info space-y-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-2">{product.name}</h1>
-              <p className="mb-4 text-xl text-muted-foreground">{product.full_name}</p>
-              <p className="text-3xl font-bold text-gold">{formatPrice(product.price, config)}</p>
+              <h1 className="store-detail-title font-playfair" dir="auto">{product.name}</h1>
+              {product.full_name !== product.name && <p className="mt-3 text-muted-foreground">{product.full_name}</p>}
             </div>
 
             {/* Stock Status */}
-            <div>
+            <div className="store-detail-price-row">
+              <p className="store-detail-price font-playfair">{formatPrice(product.price, config)}</p>
               {stockDisplayStatus === "in-stock" && (
                 <Badge className="border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300">
                   En stock
@@ -352,52 +369,35 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
 
             {/* Description */}
             {product.description && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <p className="leading-relaxed text-muted-foreground">{product.description}</p>
+              <div className="store-detail-description">
+                <p className="leading-relaxed">{product.description}</p>
               </div>
             )}
 
             {/* Color Selection */}
             {availableColors.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Couleur</h3>
-                <Select
-                  value={selectedColor}
-                  onValueChange={(color) => {
-                    setSelectedImageIndex(0)
-                    setSelectedColor(color)
-                    trackStoreEvent("color_selected", {
-                      product_id: product.id,
-                      metadata: {
-                        color,
-                        product_name: product.name,
-                      },
-                    })
-                  }}
-                >
-                  <SelectTrigger className="border-border bg-card text-card-foreground">
-                    <SelectValue placeholder="Choisir une couleur" />
-                  </SelectTrigger>
-                  <SelectContent className="border-border bg-popover text-popover-foreground">
-                    {availableColors.map((color) => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <fieldset className="store-option-group">
+                <legend className="store-option-label">Couleur <span className="store-selected-color">{selectedColor}</span></legend>
+                <div className="store-color-options">
+                  {getProductColorGalleries(product).map(group => (
+                    <button key={group.key} type="button" className="store-color-option" aria-label={`Couleur ${group.color}`} aria-pressed={selectedColor === group.color}
+                      onClick={() => { setSelectedImageIndex(0); setSelectedColor(group.color); trackStoreEvent("color_selected", { product_id: product.id, metadata: {color: group.color, product_name: product.name} }) }}>
+                      <span className="store-color-disc" style={{backgroundColor: getColorSwatch(group.colorCode || group.color)}} />
+                      <span>{group.color}</span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             )}
 
             {/* Size Selection */}
             {availableSizes.length > 0 && (
-              <div>
+              <div className="store-option-group">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-semibold">Taille</h3>
-                  <Link href="/size-guide" className="text-sm font-semibold text-accent hover:text-foreground">Guide des tailles</Link>
+                  <h2 className="store-option-label">Taille</h2>
+                  <Link href="/size-guide" className="store-size-guide"><Ruler size={17} aria-hidden="true" />Guide des tailles</Link>
                 </div>
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                <div className="store-size-options">
                   {availableSizes.map((size) => {
                     const optionVariant = getProductVariantForSelection(product, selectedColor, size)
                     const optionSize = getVariantSize(optionVariant, size)
@@ -420,9 +420,9 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                             },
                           })
                         }}
-                        className={`min-h-11 border px-3 py-2 text-sm font-semibold transition-colors ${
+                        className={`store-size-button min-h-11 border px-3 py-2 text-sm font-semibold transition-colors ${
                           selected && purchasable
-                            ? "border-accent bg-accent text-accent-foreground"
+                            ? "border-primary bg-primary text-primary-foreground"
                             : purchasable
                               ? "border-border bg-card text-card-foreground hover:border-foreground"
                               : "cursor-not-allowed border-border bg-muted text-muted-foreground line-through opacity-55"
@@ -438,38 +438,26 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
               </div>
             )}
 
+            <div className="store-purchase-actions">
             {/* Quantity */}
             {selectedVariantSize && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Quantite</h3>
-              <Select value={quantity.toString()} onValueChange={(value) => setQuantity(Number.parseInt(value))} disabled={quantityLimit === 0}>
-                <SelectTrigger className="w-24 border-border bg-card text-card-foreground">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-popover text-popover-foreground">
-                  {Array.from({ length: quantityLimit }, (_, i) => i + 1).map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="store-quantity" role="group" aria-label="Quantité">
+              <button type="button" aria-label="Diminuer la quantité" disabled={quantity <= 1 || quantityLimit === 0} onClick={() => setQuantity(value => Math.max(1, value - 1))}><Minus size={16} /></button>
+              <output aria-live="polite">{quantity}</output>
+              <button type="button" aria-label="Augmenter la quantité" disabled={quantity >= quantityLimit} onClick={() => setQuantity(value => Math.min(quantityLimit, value + 1))}><Plus size={16} /></button>
             </div>
             )}
 
             {/* Actions */}
-            <div className="flex flex-col gap-3 min-[400px]:flex-row min-[400px]:items-stretch">
               <Button
                 onClick={handleAddToCart}
                 disabled={!canAddCurrentSelection}
-                variant="outline"
-                className="min-h-12 w-full flex-1 px-4 py-3 font-semibold leading-snug whitespace-normal text-center"
+                className="store-add-button min-h-12 w-full bg-primary px-4 py-3 text-primary-foreground whitespace-normal"
               >
                 <ShoppingBag className="mr-2 h-5 w-5 shrink-0" />
                 {canAddCurrentSelection ? `Ajouter au panier - ${formatPrice(product.price * quantity, config)}` : selectedSize ? availabilityLabel(selectionAvailability) : "Choisir une taille"}
               </Button>
-              <Button type="button" disabled={!canAddCurrentSelection} className="min-h-12 w-full flex-1 bg-accent px-4 py-3 font-semibold text-accent-foreground hover:bg-accent/90 whitespace-normal" onClick={() => {try {if (currentVariant && selectedSize) buyNow(product, currentVariant, selectedSize, quantity)} catch (error) {setPurchaseError(error instanceof Error ? error.message : "Achat rapide indisponible.")}}}>Acheter maintenant</Button>
-              {wishlistEnabled && <WishlistButton productId={product.id} className="h-12 w-full min-[400px]:w-12 shrink-0" />}
+              <Button type="button" variant="outline" disabled={!canAddCurrentSelection} className="store-buy-button min-h-12 w-full border-accent bg-transparent px-4 py-3 text-foreground hover:bg-primary hover:text-primary-foreground whitespace-normal" onClick={() => {try {if (currentVariant && selectedSize) buyNow(product, currentVariant, selectedSize, quantity)} catch (error) {setPurchaseError(error instanceof Error ? error.message : "Achat rapide indisponible.")}}}><Zap className="mr-2 h-4 w-4 text-accent" />Acheter maintenant</Button>
             </div>
 
             {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
@@ -606,7 +594,7 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
             {/* Services */}
             <Separator className="bg-border" />
 
-            <div className="space-y-3">
+            <div className="store-product-services">
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" />
                 <span>Livraison dans toute la Tunisie</span>
@@ -626,6 +614,6 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

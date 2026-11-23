@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import DesktopNavigation from "@/components/store-navigation/desktop-navigation"
 import MobileNavigation from "@/components/store-navigation/mobile-navigation"
+import { resolveNavigationHref } from "@/lib/store-navigation/resolve-navigation-href"
 import Cart from "./Cart"
 import AuthModal from "./AuthModal"
 import ThemeToggle from "./ThemeToggle"
@@ -27,6 +28,7 @@ import { useStoreConfig } from "@/contexts/StoreConfigContext"
 import { getStoreDisplayName, isFeatureEnabled } from "@/lib/store-config-shared"
 import { getStorefrontContent } from "@/lib/storefront/content"
 import type { StoreNavigationPublicItem } from "@/lib/api/generated"
+import type { Category } from "@/types/api"
 
 function navItem(id: string, label: string, path: string, position: number, children: StoreNavigationPublicItem[] = []): StoreNavigationPublicItem {
   return {
@@ -40,15 +42,14 @@ function navItem(id: string, label: string, path: string, position: number, chil
   }
 }
 
-const fallbackHeaderItems: StoreNavigationPublicItem[] = [
+const fallbackHeaderItems = (categories: Category[]): StoreNavigationPublicItem[] => [
   navItem("new", "Nouveautes", "/products?sort=newest", 1),
   navItem("faza", "FAZA", "/vlog", 2),
   {
     ...navItem("shop", "Boutique", "/products", 3),
     children: [
       navItem("shop-all", "Voir tout", "/products", 1),
-      navItem("shop-tshirts", "T-shirts", "/products?category=tshirts", 2),
-      navItem("shop-pants", "Pants", "/products?category=pants", 3),
+      ...categories.filter(category => !category.status || category.status === "active").map((category, index) => navItem(category.id, category.name, `/products?category=${encodeURIComponent(category.slug || category.id)}`, index + 2)),
       navItem("shop-packs", "Packs", "/packs", 4),
     ],
   },
@@ -56,8 +57,8 @@ const fallbackHeaderItems: StoreNavigationPublicItem[] = [
   navItem("story", "Notre histoire", "/about", 5),
 ]
 
-const fallbackMobileItems: StoreNavigationPublicItem[] = [
-  ...fallbackHeaderItems,
+const fallbackMobileItems = (categories: Category[]): StoreNavigationPublicItem[] => [
+  ...fallbackHeaderItems(categories),
   navItem("size-guide", "Guide des tailles", "/size-guide", 6),
   navItem("shipping", "Livraison et echanges", "/shipping", 7),
   navItem("contact", "Contact", "/contact", 8),
@@ -66,18 +67,23 @@ const fallbackMobileItems: StoreNavigationPublicItem[] = [
 export default function Header({
   initialHeaderItems,
   initialMobileItems,
+  categories = [],
 }: {
   initialHeaderItems?: StoreNavigationPublicItem[]
   initialMobileItems?: StoreNavigationPublicItem[]
+  categories?: Category[]
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
   const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
   const {hidden} = useStudio()
-  const visible = (items: StoreNavigationPublicItem[]): StoreNavigationPublicItem[] => items.filter(item => !hiddenPath("path" in item.destination ? item.destination.path : "",hidden)).map(item=>({...item,children:visible(item.children || [])}))
-  const headerItems = visible(initialHeaderItems?.length ? initialHeaderItems : fallbackHeaderItems)
-  const mobileItems = visible(initialMobileItems?.length ? initialMobileItems : fallbackMobileItems)
+  const visible = (items: StoreNavigationPublicItem[]): StoreNavigationPublicItem[] => items.filter(item => {
+    const destination = resolveNavigationHref(item.destination, item.open_in_new_tab)
+    return !destination || destination.isExternal || !hiddenPath(destination.href, hidden)
+  }).map(item => ({ ...item, children: visible(item.children || []) }))
+  const headerItems = visible(initialHeaderItems?.length ? initialHeaderItems : fallbackHeaderItems(categories))
+  const mobileItems = visible(initialMobileItems?.length ? initialMobileItems : fallbackMobileItems(categories))
   const [wishlistCount, setWishlistCount] = useState(0)
   const { user, isAuthenticated, logout } = useAuth()
   const { config } = useStoreConfig()
@@ -123,6 +129,12 @@ export default function Header({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeMobileMenu()
+      if (event.key === "Tab") {
+        const elements = Array.from(mobileMenuPanelRef.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,select,[tabindex="0"]') ?? [])
+        const first = elements[0], last = elements.at(-1)
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === mobileMenuPanelRef.current)) {event.preventDefault(); last?.focus()}
+        else if (!event.shiftKey && document.activeElement === last) {event.preventDefault(); first?.focus()}
+      }
     }
     document.addEventListener("keydown", onKeyDown)
     return () => {
@@ -139,20 +151,20 @@ export default function Header({
 
   return (
     <>
-      <div className="fixed top-0 z-50 w-full">
-        <div className="border-b border-border bg-primary px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-foreground sm:text-xs">
+      <div className="store-header fixed top-0 z-50 w-full">
+        <div className="store-announcement border-b border-border px-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em]">
           <span className="hidden sm:inline">{content.announcement.join(" · ")}</span>
           <span className="sm:hidden">{content.announcement[0]}</span>
         </div>
-        <header className={`w-full border-b backdrop-blur-md transition-colors duration-300 ${isHome ? "border-border bg-surface/88 dark:border-white/10 dark:bg-black/72" : "border-border bg-surface/95 dark:border-stone-800 dark:bg-black/95"}`}>
-          <div className="mx-auto max-w-7xl px-4">
+        <header className="w-full border-b border-border">
+          <div className="store-container">
             <div className="flex h-16 items-center justify-between gap-3">
               <Link
                 href="/"
                 className="min-w-0 flex-1 truncate whitespace-nowrap text-lg font-semibold uppercase tracking-[0.18em] text-foreground sm:text-xl md:flex-none dark:text-white"
                 onClick={closeMobileMenu}
               >
-                <span className="flex h-10 min-w-0 items-center">
+                <span className="store-logo flex min-w-0 items-center justify-center overflow-hidden">
                   {logoUrl ? (
                     <Image src={logoUrl} alt={logoAlt} width={140} height={40} className="h-10 w-auto object-contain" unoptimized priority />
                   ) : (
@@ -164,7 +176,7 @@ export default function Header({
               <DesktopNavigation items={headerItems} />
 
               <div className="flex shrink-0 items-center gap-2 md:gap-3">
-                <div className="hidden items-center gap-2 md:flex">
+                <div className="hidden items-center gap-2 lg:flex">
                   <Button asChild variant="ghost" size="icon" className="text-foreground hover:text-accent dark:text-white dark:hover:text-gold">
                     <Link href="/products" aria-label="Recherche">
                       <Search className="h-5 w-5" />
@@ -219,7 +231,7 @@ export default function Header({
                 <Button
                   ref={mobileMenuButtonRef}
                   variant="ghost"
-                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-none border border-border bg-card px-3 text-sm font-semibold uppercase tracking-[0.12em] text-card-foreground hover:bg-primary hover:text-primary-foreground md:hidden dark:border-white/25 dark:bg-white/5 dark:text-white dark:hover:bg-white dark:hover:text-black"
+                  className="inline-flex h-11 shrink-0 items-center gap-2 rounded-none border border-border bg-card px-3 text-sm font-semibold uppercase tracking-[0.12em] text-card-foreground hover:bg-primary hover:text-primary-foreground lg:hidden dark:border-white/25 dark:bg-white/5 dark:text-white dark:hover:bg-white dark:hover:text-black"
                   onClick={() => setIsMenuOpen((value) => !value)}
                   aria-expanded={isMenuOpen}
                   aria-controls="mobile-storefront-menu"
@@ -240,7 +252,7 @@ export default function Header({
                 aria-label="Menu mobile"
                 tabIndex={-1}
                 data-mobile-menu
-                className="fixed inset-0 z-[100] flex h-[100dvh] w-full flex-col overflow-y-auto overflow-x-hidden bg-background text-foreground outline-none md:hidden dark:bg-[#050505] dark:text-white"
+                className="fixed inset-0 z-[100] flex h-[100dvh] w-full flex-col overflow-y-auto overflow-x-hidden bg-background text-foreground outline-none lg:hidden dark:bg-[#050505] dark:text-white"
                 style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
               >
                 <div className="sticky top-0 z-[110] border-b border-border bg-background px-4 py-3 dark:border-white/10 dark:bg-[#050505]">

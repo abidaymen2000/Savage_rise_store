@@ -4,6 +4,7 @@ import { getStudioDocument } from "@/lib/studio-server"
 import Hero from "./components/Hero"
 import FeaturedProducts from "./components/FeaturedProducts"
 import { api } from "@/lib/api"
+import { loadCatalogProducts } from "@/lib/storefront/catalog-data"
 import type { Category, DropCountdown, HeaderVideo, Pack, Product } from "@/types/api"
 
 const Newsletter = nextDynamic(() => import("./components/Newsletter"), {
@@ -24,7 +25,7 @@ const getHomeContent = cache(async () => {
 
 async function getHomePageData() {
   const [products, packs, content] = await Promise.all([
-    api.getProducts(0, 12).catch(() => [] as Product[]),
+    loadCatalogProducts((skip, limit, query) => api.getProductsPage(skip, limit, query), { productKind: "physical" }).catch(() => [] as Product[]),
     api.getPacks(0, 3).catch(() => [] as Pack[]),
     getHomeContent(),
   ])

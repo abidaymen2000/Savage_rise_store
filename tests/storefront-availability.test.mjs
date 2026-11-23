@@ -35,6 +35,7 @@ runInNewContext(ts.transpileModule(cardSource, {
 }).outputText, {
   exports: cardModule.exports,
   require: (name) => {
+    if (name === "react") return React
     if (name === "react/jsx-runtime") return jsxRuntime
     if (name === "@/lib/product-color-media") return colorMedia
     if (name === "./product-card-media") return mediaModule.exports

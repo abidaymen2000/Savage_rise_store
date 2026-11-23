@@ -93,14 +93,10 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
   const heroMediaClassName =
     isHeroVideo
       ? "object-cover object-[50%_50%]"
-      : `object-cover object-center ${
-          activeDrop
-            ? "blur-[7px] brightness-[0.68]"
-            : "blur-[3px] brightness-[0.76]"
-        }`
+      : "object-cover object-center"
 
   return (
-    <section data-studio-section="hero" className="relative isolate min-h-[calc(100svh-2.5rem)] w-full overflow-hidden bg-black pt-28 text-white md:min-h-[calc(100dvh-2.5rem)]">
+    <section data-studio-section="hero" className="store-hero relative isolate w-full overflow-hidden bg-black text-white">
       <StorefrontMedia
         media={media}
         playback="hero-cycle"
@@ -109,13 +105,13 @@ export default function Hero({ headerVideo, drop }: HeroProps) {
         className="absolute inset-0 h-full w-full overflow-hidden"
         imageClassName={heroMediaClassName}
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/25" />
-      <div className="pointer-events-none relative z-10 flex min-h-[calc(100svh-7rem)] items-end px-4 pb-10 sm:px-6 md:min-h-[calc(100dvh-7rem)] md:items-center md:pb-0">
-        <div className="pointer-events-auto mx-auto flex w-full max-w-7xl flex-col items-start gap-6">
+      <div className="store-hero-shade pointer-events-none absolute inset-0" />
+      <div className="store-hero-inner store-container relative z-10">
+        <div className="store-hero-copy">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D4AF37]">{heroEyebrow}</p>
           <div className="max-w-3xl">
-            <h1 className="font-playfair text-5xl font-semibold leading-[0.95] text-[rgba(255,255,255,0.98)] sm:text-6xl lg:text-8xl">{heroTitle}</h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-stone-100 sm:text-lg">{heroDescription}</p>
+            <h1 className="font-playfair" dir="auto">{heroTitle}</h1>
+            <p className="store-hero-description">{heroDescription}</p>
           </div>
           <div className="flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
             {edited?.primary_action ? <StudioHeroAction action={edited.primary_action} label={content.hero.primaryCta.label} className="h-12 min-h-11 rounded-none bg-white px-6 text-xs font-semibold uppercase tracking-[0.16em] text-black hover:bg-stone-200 disabled:opacity-60" /> : <HeroPrimaryAction

@@ -54,9 +54,9 @@ test('missing images use product primary then placeholder; identical assets/URLs
   assert.equal(getProductColorSlides(p).length, 1)
   assert.equal(getProductImagesForColor(p, 'Black').length, 1)
 })
-test('adapter retains primary and ERP position and resolves color/size by axis name', async () => {
+test('adapter retains primary, ERP swatch and position and resolves color/size by axis name', async () => {
   const original = CatalogService.getProductCatalogProductsSlugGet
-  CatalogService.getProductCatalogProductsSlugGet = async () => ({ id: 'p', name: 'Hoodie', slug: 'hoodie', variants: [{
+  CatalogService.getProductCatalogProductsSlugGet = async () => ({ id: 'p', name: 'Hoodie', slug: 'hoodie', option_axes: [{code:'color',values:[{code:'Green',swatch:'#596643'}]}], variants: [{
     id: 'v', title: 'M / Green', position: 11, base_price: '89.900', option_values: { size: 'M', color: 'Green' },
     media: [{ asset_id: 'secondary', url: '/second.jpg', position: 0 }, { asset_id: 'primary', url: '/primary.jpg', is_primary: true, position: 4 }],
     inventory: { availability_status: 'available', stock_available: 3 },
@@ -65,6 +65,7 @@ test('adapter retains primary and ERP position and resolves color/size by axis n
     const p = await catalogApi.getProduct('hoodie')
     assert.equal(p.price, 89.9)
     assert.equal(p.variants[0].color, 'Green')
+    assert.equal(getProductColorGalleries(p)[0].colorCode, '#596643')
     assert.equal(p.variants[0].sizes[0].size, 'M')
     assert.equal(p.variants[0].position, 11)
     assert.equal(getProductColorSlides(p)[0].id, 'primary')

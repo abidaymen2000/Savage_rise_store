@@ -1,0 +1,45 @@
+{
+  "record_type": "manual-user-constrained-evidence",
+  "native_gate_result": false,
+  "date": "2026-11-23",
+  "artifact": "app/page.tsx",
+  "direction": "none (pinned)",
+  "workflow": "Adapt existing YOVO templates to user-approved comps while retaining runtime commercial data.",
+  "completed": [
+    "product-context",
+    "direction-contract",
+    "existing-template-implementation",
+    "responsive-captures",
+    "functional-browser-tests",
+    "finish-review-round-1",
+    "correction-batch",
+    "responsive-recaptures",
+    "finish-verdict-four-fixes-resolved",
+    "built-system-documentation",
+    "final-unit-types-lint-production-build"
+  ],
+  "pending": [],
+  "skipped": {
+    "alternative-generated-comps": "User supplied two approved comps.",
+    "generated-commercial-plates": "User prohibits replacing CMS/ERP commercial media with static or generated media.",
+    "native-build-phase-gates-and-numeric-diffs": "Not run; this manual record does not claim native gate completion or a pixel-fidelity score. Runtime photographs, labels, values and category order remain authoritative."
+  },
+  "hero_reproduction": "artifacts/store-redesign/after/home-1440.png",
+  "screenshots": "artifacts/store-redesign/after",
+  "layout_evidence": "artifacts/store-redesign/after/layout-checks.json",
+  "functional_evidence": "artifacts/store-redesign/functional-checks.json",
+  "final_review": {
+    "resolved": 4,
+    "disposition": "ship",
+    "report": "artifacts/store-redesign/finish-review.md",
+    "scope": "four material fixes"
+  },
+  "documentation": [
+    "DESIGN.md",
+    ".impeccable/design.json"
+  ],
+  "limitations": [
+    "Existing FAZA/lookbook fallback contract not CMS-editable",
+    "Browser tested against development server; production-server launch rejected by automatic approval review"
+  ]
+}

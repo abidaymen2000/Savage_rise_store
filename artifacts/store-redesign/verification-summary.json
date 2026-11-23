@@ -1,0 +1,44 @@
+{
+  "unit": {
+    "passed": 159,
+    "exit": 0,
+    "failed": 0
+  },
+  "production_mutations": 0,
+  "new_shipping_rasters": 0,
+  "responsive": {
+    "failures": [],
+    "routes_times_widths": 18
+  },
+  "functional": {
+    "errors": [],
+    "passed": 7
+  },
+  "review": {
+    "scope": "four material fixes",
+    "resolved": 4,
+    "disposition": "ship"
+  },
+  "lint": {
+    "exit": 0,
+    "preexisting_warnings": 8
+  },
+  "typescript": {
+    "exit": 0
+  },
+  "media": {
+    "startTime": "2026-11-23T07:13:22.808Z",
+    "duration": 175390.22,
+    "expected": 8,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "branch": "main",
+  "build": {
+    "backend": "isolated local fixture",
+    "browser_production_server": "not run: automatic approval rejected launch as blocked by policy",
+    "exit": 0
+  },
+  "date": "2026-11-23"
+}

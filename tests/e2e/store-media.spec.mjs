@@ -3,6 +3,15 @@ import { readFileSync } from 'node:fs'
 const { test, expect } = createRequire(import.meta.url)('@playwright/test')
 const video = readFileSync(process.env.STORE_TEST_VIDEO)
 
+test.beforeAll(async ({ request }) => {
+  // Compile shared development chunks before Chrome loads them. Concurrent
+  // first-route compilation can otherwise replace a chunk during its response.
+  for (const path of ['/', '/products', '/products/hoodie']) {
+    const response = await request.get(path, { timeout: 120000 })
+    expect(response.ok()).toBe(true)
+  }
+})
+
 test.beforeEach(async ({ page, request }) => {
   // No browser request can reach production, tracking services, or ImageKit.
   await page.route('**/*', async route => {
@@ -33,7 +42,7 @@ for (const width of [375, 768, 1440]) test(`layout and real playback at ${width}
   await page.setViewportSize({ width, height: 900 })
   const errors = []; page.on('pageerror', e => errors.push(e.message))
   await page.goto('/')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
   const hero = page.locator('[data-playback="hero-cycle"]')
   await expect(hero.locator('img')).toBeVisible()
   await expect(page.locator('text=52 DT')).toHaveCount(0)
@@ -53,7 +62,7 @@ for (const width of [375, 768, 1440]) test(`layout and real playback at ${width}
   expect(await faza.locator('video').evaluate(v => v.loop && v.muted && v.playsInline && !v.controls)).toBe(true)
   await faza.locator('video').evaluate(v => { window.wraps = 0; let last = 0; v.addEventListener('timeupdate', () => { if (v.currentTime < last) window.wraps++; last = v.currentTime }) })
   await expect.poll(() => page.evaluate(() => window.wraps), { timeout: 8000 }).toBeGreaterThanOrEqual(2)
-  await page.getByRole('heading', { name: 'Latest pieces' }).scrollIntoViewIfNeeded()
+  await page.getByRole('heading', { name: 'Nouveautés' }).scrollIntoViewIfNeeded()
   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()
   await expect(card.locator('[data-color-slides]')).toHaveAttribute('data-color-slides', '6')
   await card.scrollIntoViewIfNeeded()
@@ -66,7 +75,7 @@ for (const width of [375, 768, 1440]) test(`layout and real playback at ${width}
 
 test('six-color complete cycle, one-color static, SOLD OUT and unchanged commerce', async ({ page }) => {
   await page.goto('/products')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()
   await card.scrollIntoViewIfNeeded()
   const before = await page.evaluate(() => JSON.stringify(localStorage))
@@ -82,13 +91,13 @@ test('six-color complete cycle, one-color static, SOLD OUT and unchanged commerc
   await expect(page.locator('article').filter({ hasText: 'Recette sold-out' }).getByText('SOLD OUT', { exact: true }).first()).toBeVisible()
   expect(await page.evaluate(() => JSON.stringify(localStorage))).toBe(before)
   await card.locator('a').first().click()
-  await expect(page).toHaveURL(/\/products\/hoodie$/)
+  await expect(page).toHaveURL(/\/products\/hoodie$/, { timeout: 30000 })
 })
 
 test('detail preserves manual image across M to L, changes gallery with color', async ({ page }, testInfo) => {
   await page.goto('/products/hoodie')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
-  const main = page.locator('img.object-contain').first()
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
+  const main = page.locator('.store-gallery-main > img')
   await expect(main).toHaveAttribute('src', /Black\.svg/)
   await page.getByRole('button').filter({ has: page.locator('img[alt="Black détail"]') }).click()
   const src = await main.getAttribute('src')
@@ -97,8 +106,7 @@ test('detail preserves manual image across M to L, changes gallery with color', 
   await page.waitForTimeout(2400)
   await expect(main).toHaveAttribute('src', src)
   await expect(page.locator('[data-color-slide]')).toHaveCount(0)
-  await page.getByRole('combobox').first().click()
-  await page.getByRole('option', { name: 'Bordeaux', exact: true }).click()
+  await page.getByRole('button', { name: 'Couleur Bordeaux', exact: true }).click()
   await expect(main).toHaveAttribute('src', /Bordeaux\.svg/)
   await expect(page.getByRole('button', { name: /Ajouter au panier/ }).first()).toBeEnabled()
   await page.screenshot({ path: testInfo.outputPath('product-detail.png') })
@@ -107,7 +115,7 @@ test('detail preserves manual image across M to L, changes gallery with color', 
 test('video failure, refused autoplay and reduced motion preserve the poster', async ({ page }) => {
   await page.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException('Denied', 'NotAllowedError')) })
   await page.goto('/')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
   const hero = page.locator('[data-playback="hero-cycle"]')
   await expect(hero).toHaveAttribute('data-playback-state', 'blocked')
   await expect(hero.locator('img')).toBeVisible()
@@ -116,7 +124,7 @@ test('video failure, refused autoplay and reduced motion preserve the poster', a
   await expect(hero.locator('img')).toBeVisible()
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/products')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
   const card = page.locator('[data-color-slides="6"]').first()
   await card.scrollIntoViewIfNeeded()
   await page.waitForTimeout(2300)
@@ -127,7 +135,7 @@ test('video failure, refused autoplay and reduced motion preserve the poster', a
 test('two-color interval, single color and broken image fallback', async ({ page }) => {
   await page.route('**/images/Black.svg', route => route.fulfill({ status: 404, body: 'Missing fixture image' }))
   await page.goto('/products')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
   const two = page.locator('article').filter({ hasText: 'Recette two-colors' }).locator('[data-color-slide]')
   await two.scrollIntoViewIfNeeded()
   await expect(two).toHaveAttribute('data-color-slides', '2')
@@ -135,7 +143,7 @@ test('two-color interval, single color and broken image fallback', async ({ page
   for (let i = 0; i < 3; i++) {
     const previous = await two.getAttribute('data-color-slide')
     await expect(two).not.toHaveAttribute('data-color-slide', previous, { timeout: 5000 }).catch(async error => {
-      console.log(await two.evaluate(el => ({ active: document.visibilityState, timers: window.motionTimers.size, focus: el.closest('article').matches(':focus-within'), rect: el.getBoundingClientRect().toJSON(), images: [...el.querySelectorAll('img')].map(img => ({ src: img.src, complete: img.complete, width: img.naturalWidth })) })))
+      console.log(await two.evaluate(el => ({ motion: {...el.dataset}, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches, active: document.visibilityState, timers: window.motionTimers.size, focus: el.closest('article').matches(':focus-within'), rect: el.getBoundingClientRect().toJSON(), images: [...el.querySelectorAll('img')].map(img => ({ src: img.src, complete: img.complete, width: img.naturalWidth })) })))
       throw error
     })
     times.push(Date.now())
@@ -156,11 +164,11 @@ test('two-color interval, single color and broken image fallback', async ({ page
 
 test('navigation cleanup removes all decorative two-second timers', async ({ page }) => {
   await page.goto('/products')
-  await expect(page.locator('[data-store-entrance-pending]')).toHaveCount(0)
+  await expect(page.locator('[data-studio-hydrated="true"]')).toHaveCount(1, {timeout:30000})
   const card = page.locator('article').filter({ hasText: 'SR OMBRA' }).first()
   await card.scrollIntoViewIfNeeded()
   await expect.poll(() => page.evaluate(() => window.motionTimers.size)).toBeGreaterThan(0)
   await card.locator('a').first().click()
-  await expect(page).toHaveURL(/\/products\/hoodie$/)
+  await expect(page).toHaveURL(/\/products\/hoodie$/, { timeout: 30000 })
   await expect.poll(() => page.evaluate(() => window.motionTimers.size)).toBe(0)
 })

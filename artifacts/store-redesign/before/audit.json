@@ -1,0 +1,1037 @@
+{
+  "at": "2026-11-23T06:02:30.090Z",
+  "results": [
+    {
+      "name": "home",
+      "url": "https://www.savagerise.com/",
+      "status": 200,
+      "bytes": 434390
+    },
+    {
+      "name": "shop",
+      "url": "https://www.savagerise.com/products",
+      "status": 200,
+      "bytes": 355655
+    },
+    {
+      "name": "config",
+      "url": "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/storefront/config",
+      "status": 200,
+      "bytes": 2572
+    },
+    {
+      "name": "studio",
+      "url": "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/storefront/studio",
+      "status": 200,
+      "bytes": 35051,
+      "pages": [
+        {
+          "key": "home",
+          "slug": "home",
+          "title": "Accueil",
+          "content_blocks": []
+        },
+        {
+          "key": "store_about",
+          "slug": "about",
+          "page_type": "standard",
+          "title": "ABOUT SAVAGE RISE",
+          "subtitle": "Savage Rise is more than a clothing brand. It is the expression of bold style, raw elegance, and a clear identity.",
+          "seo": {
+            "title": "About Savage Rise",
+            "description": "Discover Savage Rise, a contemporary luxury fashion brand built around bold style, craftsmanship, premium materials, and minimalist design.",
+            "canonical_url": null,
+            "og_title": null,
+            "og_description": null,
+            "og_image_url": null,
+            "no_index": false
+          },
+          "updated_at": "2026-07-24T17:21:58.364000",
+          "version": 2,
+          "content_blocks": [
+            {
+              "id": "about-hero",
+              "type": "hero",
+              "version": 1,
+              "order": 0,
+              "enabled": true,
+              "props": {
+                "eyebrow": "Savage Rise",
+                "title": "ABOUT SAVAGE RISE",
+                "subtitle": "Savage Rise is more than a clothing brand. It is the expression of bold style, raw elegance, and a clear identity. Designed for those who accept no compromise between quality, aesthetics, and individuality, every piece balances urban modernity with timeless refinement.\n\nCrafted with precision, our collection reflects a deep commitment to craftsmanship, premium materials, and minimalist design. Step into the Savage Rise universe, where luxury meets attitude.",
+                "media": null,
+                "mobile_media": null,
+                "primary_cta": null,
+                "secondary_cta": null,
+                "alignment": "center",
+                "overlay": "soft",
+                "height": "large",
+                "variant": "default",
+                "image_url": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975",
+                "image_alt": "Savage Rise Atelier",
+                "cta_label": null,
+                "cta_url": null
+              },
+              "bindings": {},
+              "eyebrow": "Savage Rise",
+              "title": "ABOUT SAVAGE RISE",
+              "subtitle": "Savage Rise is more than a clothing brand. It is the expression of bold style, raw elegance, and a clear identity. Designed for those who accept no compromise between quality, aesthetics, and individuality, every piece balances urban modernity with timeless refinement.\n\nCrafted with precision, our collection reflects a deep commitment to craftsmanship, premium materials, and minimalist design. Step into the Savage Rise universe, where luxury meets attitude.",
+              "media": null,
+              "mobile_media": null,
+              "primary_cta": null,
+              "secondary_cta": null,
+              "alignment": "center",
+              "overlay": "soft",
+              "height": "large",
+              "variant": "default",
+              "image_url": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975",
+              "image_alt": "Savage Rise Atelier",
+              "cta_label": null,
+              "cta_url": null
+            },
+            {
+              "id": "about-cards",
+              "type": "cards",
+              "version": 1,
+              "order": 1,
+              "enabled": true,
+              "props": {
+                "title": "Brand facts",
+                "items": [
+                  {
+                    "title": "2025",
+                    "description": "FONDATION",
+                    "icon": null,
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "50+",
+                    "description": "ARTISANS",
+                    "icon": null,
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "3",
+                    "description": "PAYS",
+                    "icon": null,
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  }
+                ]
+              },
+              "bindings": {},
+              "title": "Brand facts",
+              "items": [
+                {
+                  "title": "2025",
+                  "description": "FONDATION",
+                  "icon": null,
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "50+",
+                  "description": "ARTISANS",
+                  "icon": null,
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "3",
+                  "description": "PAYS",
+                  "icon": null,
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                }
+              ]
+            }
+          ],
+          "published_at": "2026-07-24T17:21:58.364000",
+          "locale": "fr-TN",
+          "direction": "ltr",
+          "fallback_locale_used": null,
+          "translation_status": "default",
+          "resolved_seo": {
+            "title": "About Savage Rise",
+            "description": "Discover Savage Rise, a contemporary luxury fashion brand built around bold style, craftsmanship, premium materials, and minimalist design.",
+            "canonical_url": "https://savagerise.com/about",
+            "robots": "index, follow",
+            "no_index": false,
+            "no_follow": false,
+            "open_graph": {
+              "title": "About Savage Rise",
+              "description": "Discover Savage Rise, a contemporary luxury fashion brand built around bold style, craftsmanship, premium materials, and minimalist design.",
+              "image_url": null,
+              "type": "website"
+            },
+            "twitter": {
+              "title": "About Savage Rise",
+              "description": "Discover Savage Rise, a contemporary luxury fashion brand built around bold style, craftsmanship, premium materials, and minimalist design.",
+              "image_url": null,
+              "card": "summary_large_image"
+            },
+            "alternates": [],
+            "structured_data": [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "About Savage Rise",
+                "url": "https://savagerise.com/about",
+                "description": "Discover Savage Rise, a contemporary luxury fashion brand built around bold style, craftsmanship, premium materials, and minimalist design."
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Savage Rise",
+                "url": "https://savagerise.com"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Savage Rise",
+                "logo": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975"
+              }
+            ]
+          }
+        },
+        {
+          "key": "store_help",
+          "slug": "help",
+          "page_type": "help",
+          "title": "Help",
+          "subtitle": "Find quick answers about orders, account access, product advice, and customer support.",
+          "seo": {
+            "title": "Help - Savage Rise",
+            "description": "Find quick answers about orders, account access, product advice, and customer support.",
+            "canonical_url": null,
+            "og_title": null,
+            "og_description": null,
+            "og_image_url": null,
+            "no_index": false
+          },
+          "updated_at": "2026-07-24T17:21:59.393000",
+          "version": 2,
+          "content_blocks": [
+            {
+              "id": "help-cards",
+              "type": "cards",
+              "version": 1,
+              "order": 0,
+              "enabled": true,
+              "props": {
+                "title": null,
+                "items": [
+                  {
+                    "title": "Orders",
+                    "description": "After checkout, you receive an email confirmation with your order reference. Signed-in customers can also follow orders from their profile.",
+                    "icon": "Package",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "Changes and cancellations",
+                    "description": "If your order is still pending, contact us as soon as possible so we can update or cancel it before preparation.",
+                    "icon": "RefreshCcw",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "Product advice",
+                    "description": "Need help choosing a size, fit, or piece? Send us your question and we will guide you before purchase.",
+                    "icon": "MessageCircle",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  }
+                ]
+              },
+              "bindings": {},
+              "title": null,
+              "items": [
+                {
+                  "title": "Orders",
+                  "description": "After checkout, you receive an email confirmation with your order reference. Signed-in customers can also follow orders from their profile.",
+                  "icon": "Package",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "Changes and cancellations",
+                  "description": "If your order is still pending, contact us as soon as possible so we can update or cancel it before preparation.",
+                  "icon": "RefreshCcw",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "Product advice",
+                  "description": "Need help choosing a size, fit, or piece? Send us your question and we will guide you before purchase.",
+                  "icon": "MessageCircle",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                }
+              ]
+            },
+            {
+              "id": "help-contact",
+              "type": "rich_text",
+              "version": 1,
+              "order": 1,
+              "enabled": true,
+              "props": {
+                "title": "Still need help?",
+                "markdown": "Contact our team and include your order reference if your question is about an existing order.\n\n[Contact customer service](/contact)"
+              },
+              "bindings": {},
+              "title": "Still need help?",
+              "markdown": "Contact our team and include your order reference if your question is about an existing order.\n\n[Contact customer service](/contact)"
+            }
+          ],
+          "published_at": "2026-07-24T17:21:59.393000",
+          "locale": "fr-TN",
+          "direction": "ltr",
+          "fallback_locale_used": null,
+          "translation_status": "default",
+          "resolved_seo": {
+            "title": "Help - Savage Rise",
+            "description": "Find quick answers about orders, account access, product advice, and customer support.",
+            "canonical_url": "https://savagerise.com/help",
+            "robots": "index, follow",
+            "no_index": false,
+            "no_follow": false,
+            "open_graph": {
+              "title": "Help - Savage Rise",
+              "description": "Find quick answers about orders, account access, product advice, and customer support.",
+              "image_url": null,
+              "type": "website"
+            },
+            "twitter": {
+              "title": "Help - Savage Rise",
+              "description": "Find quick answers about orders, account access, product advice, and customer support.",
+              "image_url": null,
+              "card": "summary_large_image"
+            },
+            "alternates": [],
+            "structured_data": [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "Help - Savage Rise",
+                "url": "https://savagerise.com/help",
+                "description": "Find quick answers about orders, account access, product advice, and customer support."
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Savage Rise",
+                "url": "https://savagerise.com"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Savage Rise",
+                "logo": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975"
+              }
+            ]
+          }
+        },
+        {
+          "key": "store_shipping",
+          "slug": "shipping",
+          "page_type": "help",
+          "title": "Shipping",
+          "subtitle": "Shipping is calculated dynamically during checkout, so the final amount always reflects the active delivery rate for your address.",
+          "seo": {
+            "title": "Shipping - Savage Rise",
+            "description": "Learn how Savage Rise shipping fees, preparation, delivery, and address checks work.",
+            "canonical_url": null,
+            "og_title": null,
+            "og_description": null,
+            "og_image_url": null,
+            "no_index": false
+          },
+          "updated_at": "2026-07-24T17:22:00.414000",
+          "version": 2,
+          "content_blocks": [
+            {
+              "id": "shipping-cards",
+              "type": "cards",
+              "version": 1,
+              "order": 0,
+              "enabled": true,
+              "props": {
+                "title": null,
+                "items": [
+                  {
+                    "title": "Order preparation",
+                    "description": "Orders are checked, prepared, and packed with care before being handed to delivery.",
+                    "icon": "PackageCheck",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "Delivery",
+                    "description": "Shipping fees are calculated at checkout based on the delivery city, country, and order total.",
+                    "icon": "Truck",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "Address accuracy",
+                    "description": "Please make sure your phone number, city, and address are correct to avoid delivery delays.",
+                    "icon": "MapPin",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  }
+                ]
+              },
+              "bindings": {},
+              "title": null,
+              "items": [
+                {
+                  "title": "Order preparation",
+                  "description": "Orders are checked, prepared, and packed with care before being handed to delivery.",
+                  "icon": "PackageCheck",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "Delivery",
+                  "description": "Shipping fees are calculated at checkout based on the delivery city, country, and order total.",
+                  "icon": "Truck",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "Address accuracy",
+                  "description": "Please make sure your phone number, city, and address are correct to avoid delivery delays.",
+                  "icon": "MapPin",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                }
+              ]
+            },
+            {
+              "id": "shipping-notes",
+              "type": "rich_text",
+              "version": 1,
+              "order": 1,
+              "enabled": true,
+              "props": {
+                "title": "Important notes",
+                "markdown": "Delivery times can vary depending on product availability and destination. If there is any issue with your address or phone number, our team may contact you before dispatch."
+              },
+              "bindings": {},
+              "title": "Important notes",
+              "markdown": "Delivery times can vary depending on product availability and destination. If there is any issue with your address or phone number, our team may contact you before dispatch."
+            }
+          ],
+          "published_at": "2026-07-24T17:22:00.413000",
+          "locale": "fr-TN",
+          "direction": "ltr",
+          "fallback_locale_used": null,
+          "translation_status": "default",
+          "resolved_seo": {
+            "title": "Shipping - Savage Rise",
+            "description": "Learn how Savage Rise shipping fees, preparation, delivery, and address checks work.",
+            "canonical_url": "https://savagerise.com/shipping",
+            "robots": "index, follow",
+            "no_index": false,
+            "no_follow": false,
+            "open_graph": {
+              "title": "Shipping - Savage Rise",
+              "description": "Learn how Savage Rise shipping fees, preparation, delivery, and address checks work.",
+              "image_url": null,
+              "type": "website"
+            },
+            "twitter": {
+              "title": "Shipping - Savage Rise",
+              "description": "Learn how Savage Rise shipping fees, preparation, delivery, and address checks work.",
+              "image_url": null,
+              "card": "summary_large_image"
+            },
+            "alternates": [],
+            "structured_data": [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "Shipping - Savage Rise",
+                "url": "https://savagerise.com/shipping",
+                "description": "Learn how Savage Rise shipping fees, preparation, delivery, and address checks work."
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Savage Rise",
+                "url": "https://savagerise.com"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Savage Rise",
+                "logo": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975"
+              }
+            ]
+          }
+        },
+        {
+          "key": "store_returns",
+          "slug": "returns",
+          "page_type": "legal",
+          "title": "Returns",
+          "subtitle": "We want every Savage Rise piece to feel right. If something is wrong with your order, contact us and we will help with the next step.",
+          "seo": {
+            "title": "Returns - Savage Rise",
+            "description": "Read Savage Rise return eligibility, inspection, and request process.",
+            "canonical_url": null,
+            "og_title": null,
+            "og_description": null,
+            "og_image_url": null,
+            "no_index": false
+          },
+          "updated_at": "2026-07-24T17:22:01.434000",
+          "version": 2,
+          "content_blocks": [
+            {
+              "id": "returns-cards",
+              "type": "cards",
+              "version": 1,
+              "order": 0,
+              "enabled": true,
+              "props": {
+                "title": null,
+                "items": [
+                  {
+                    "title": "Eligibility",
+                    "description": "Items should be unused, clean, and returned with their original packaging and labels.",
+                    "icon": "CheckCircle",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "Inspection",
+                    "description": "Returned items are inspected before an exchange, refund, or store credit is confirmed.",
+                    "icon": "PackageOpen",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  },
+                  {
+                    "title": "Request window",
+                    "description": "Please contact us quickly after receiving your order if you need to request a return or exchange.",
+                    "icon": "RefreshCcw",
+                    "image_url": null,
+                    "link_label": null,
+                    "link_url": null
+                  }
+                ]
+              },
+              "bindings": {},
+              "title": null,
+              "items": [
+                {
+                  "title": "Eligibility",
+                  "description": "Items should be unused, clean, and returned with their original packaging and labels.",
+                  "icon": "CheckCircle",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "Inspection",
+                  "description": "Returned items are inspected before an exchange, refund, or store credit is confirmed.",
+                  "icon": "PackageOpen",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                },
+                {
+                  "title": "Request window",
+                  "description": "Please contact us quickly after receiving your order if you need to request a return or exchange.",
+                  "icon": "RefreshCcw",
+                  "image_url": null,
+                  "link_label": null,
+                  "link_url": null
+                }
+              ]
+            },
+            {
+              "id": "returns-how",
+              "type": "rich_text",
+              "version": 1,
+              "order": 1,
+              "enabled": true,
+              "props": {
+                "title": "How to start a return",
+                "markdown": "Send us your order reference, the item concerned, and the reason for your request. Our team will confirm the available options.\n\n[Contact customer service](/contact)"
+              },
+              "bindings": {},
+              "title": "How to start a return",
+              "markdown": "Send us your order reference, the item concerned, and the reason for your request. Our team will confirm the available options.\n\n[Contact customer service](/contact)"
+            }
+          ],
+          "published_at": "2026-07-24T17:22:01.434000",
+          "locale": "fr-TN",
+          "direction": "ltr",
+          "fallback_locale_used": null,
+          "translation_status": "default",
+          "resolved_seo": {
+            "title": "Returns - Savage Rise",
+            "description": "Read Savage Rise return eligibility, inspection, and request process.",
+            "canonical_url": "https://savagerise.com/returns",
+            "robots": "index, follow",
+            "no_index": false,
+            "no_follow": false,
+            "open_graph": {
+              "title": "Returns - Savage Rise",
+              "description": "Read Savage Rise return eligibility, inspection, and request process.",
+              "image_url": null,
+              "type": "website"
+            },
+            "twitter": {
+              "title": "Returns - Savage Rise",
+              "description": "Read Savage Rise return eligibility, inspection, and request process.",
+              "image_url": null,
+              "card": "summary_large_image"
+            },
+            "alternates": [],
+            "structured_data": [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "Returns - Savage Rise",
+                "url": "https://savagerise.com/returns",
+                "description": "Read Savage Rise return eligibility, inspection, and request process."
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Savage Rise",
+                "url": "https://savagerise.com"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Savage Rise",
+                "logo": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975"
+              }
+            ]
+          }
+        },
+        {
+          "key": "store_size_guide",
+          "slug": "size-guide",
+          "page_type": "size_guide",
+          "title": "Size guide",
+          "subtitle": "Use this guide as a reference. Product cuts can vary slightly depending on fabric, silhouette, and intended fit.",
+          "seo": {
+            "title": "Size guide - Savage Rise",
+            "description": "Check Savage Rise clothing size measurements and measuring advice.",
+            "canonical_url": null,
+            "og_title": null,
+            "og_description": null,
+            "og_image_url": null,
+            "no_index": false
+          },
+          "updated_at": "2026-07-24T17:22:02.464000",
+          "version": 2,
+          "content_blocks": [
+            {
+              "id": "size-table",
+              "type": "table",
+              "version": 1,
+              "order": 0,
+              "enabled": true,
+              "props": {
+                "title": "Measurements",
+                "columns": [
+                  "Size",
+                  "Chest",
+                  "Waist",
+                  "Hip"
+                ],
+                "rows": [
+                  [
+                    "XS",
+                    "84-89 cm",
+                    "70-75 cm",
+                    "84-89 cm"
+                  ],
+                  [
+                    "S",
+                    "90-95 cm",
+                    "76-81 cm",
+                    "90-95 cm"
+                  ],
+                  [
+                    "M",
+                    "96-101 cm",
+                    "82-87 cm",
+                    "96-101 cm"
+                  ],
+                  [
+                    "L",
+                    "102-107 cm",
+                    "88-93 cm",
+                    "102-107 cm"
+                  ],
+                  [
+                    "XL",
+                    "108-113 cm",
+                    "94-99 cm",
+                    "108-113 cm"
+                  ],
+                  [
+                    "XXL",
+                    "114-119 cm",
+                    "100-105 cm",
+                    "114-119 cm"
+                  ]
+                ],
+                "caption": null
+              },
+              "bindings": {},
+              "title": "Measurements",
+              "columns": [
+                "Size",
+                "Chest",
+                "Waist",
+                "Hip"
+              ],
+              "rows": [
+                [
+                  "XS",
+                  "84-89 cm",
+                  "70-75 cm",
+                  "84-89 cm"
+                ],
+                [
+                  "S",
+                  "90-95 cm",
+                  "76-81 cm",
+                  "90-95 cm"
+                ],
+                [
+                  "M",
+                  "96-101 cm",
+                  "82-87 cm",
+                  "96-101 cm"
+                ],
+                [
+                  "L",
+                  "102-107 cm",
+                  "88-93 cm",
+                  "102-107 cm"
+                ],
+                [
+                  "XL",
+                  "108-113 cm",
+                  "94-99 cm",
+                  "108-113 cm"
+                ],
+                [
+                  "XXL",
+                  "114-119 cm",
+                  "100-105 cm",
+                  "114-119 cm"
+                ]
+              ],
+              "caption": null
+            },
+            {
+              "id": "size-measure",
+              "type": "rich_text",
+              "version": 1,
+              "order": 1,
+              "enabled": true,
+              "props": {
+                "title": "How to measure",
+                "markdown": "Measure close to the body with a flexible tape. If you are between two sizes, choose the larger size for a relaxed fit or the smaller size for a sharper fit."
+              },
+              "bindings": {},
+              "title": "How to measure",
+              "markdown": "Measure close to the body with a flexible tape. If you are between two sizes, choose the larger size for a relaxed fit or the smaller size for a sharper fit."
+            }
+          ],
+          "published_at": "2026-07-24T17:22:02.464000",
+          "locale": "fr-TN",
+          "direction": "ltr",
+          "fallback_locale_used": null,
+          "translation_status": "default",
+          "resolved_seo": {
+            "title": "Size guide - Savage Rise",
+            "description": "Check Savage Rise clothing size measurements and measuring advice.",
+            "canonical_url": "https://savagerise.com/size-guide",
+            "robots": "index, follow",
+            "no_index": false,
+            "no_follow": false,
+            "open_graph": {
+              "title": "Size guide - Savage Rise",
+              "description": "Check Savage Rise clothing size measurements and measuring advice.",
+              "image_url": null,
+              "type": "website"
+            },
+            "twitter": {
+              "title": "Size guide - Savage Rise",
+              "description": "Check Savage Rise clothing size measurements and measuring advice.",
+              "image_url": null,
+              "card": "summary_large_image"
+            },
+            "alternates": [],
+            "structured_data": [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "Size guide - Savage Rise",
+                "url": "https://savagerise.com/size-guide",
+                "description": "Check Savage Rise clothing size measurements and measuring advice."
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Savage Rise",
+                "url": "https://savagerise.com"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Savage Rise",
+                "logo": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975"
+              }
+            ]
+          }
+        },
+        {
+          "key": "store_contact",
+          "slug": "contact",
+          "page_type": "contact",
+          "title": "Contact us",
+          "subtitle": "Send us a message or use the contact details below to reach the Savage Rise team.",
+          "seo": {
+            "title": "Contact - Savage Rise",
+            "description": "Contact Savage Rise customer service for orders, product advice, and support.",
+            "canonical_url": null,
+            "og_title": null,
+            "og_description": null,
+            "og_image_url": null,
+            "no_index": false
+          },
+          "updated_at": "2026-07-24T17:22:03.503000",
+          "version": 2,
+          "content_blocks": [
+            {
+              "id": "contact-info",
+              "type": "contact_info",
+              "version": 1,
+              "order": 0,
+              "enabled": true,
+              "props": {
+                "title": "Contact details",
+                "email": "Use the dynamic store email shown on this page.",
+                "phone": "Use the dynamic store phone shown on this page.",
+                "whatsapp": "Use the dynamic WhatsApp link shown on this page.",
+                "address": null,
+                "opening_hours": null
+              },
+              "bindings": {},
+              "title": "Contact details",
+              "email": "Use the dynamic store email shown on this page.",
+              "phone": "Use the dynamic store phone shown on this page.",
+              "whatsapp": "Use the dynamic WhatsApp link shown on this page.",
+              "address": null,
+              "opening_hours": null
+            },
+            {
+              "id": "contact-map",
+              "type": "map",
+              "version": 1,
+              "order": 1,
+              "enabled": true,
+              "props": {
+                "title": "Sfax, Tunisie",
+                "embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10000!2d10.698422!3d34.740556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd71381aec5a5f%3A0x27268cbb18b19e0!2sSfax%2C%20Tunisie!5e0!3m2!1sfr!2sus!4v1691400000000!5m2!1sfr!2sus",
+                "label": "Sfax map"
+              },
+              "bindings": {},
+              "title": "Sfax, Tunisie",
+              "embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10000!2d10.698422!3d34.740556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd71381aec5a5f%3A0x27268cbb18b19e0!2sSfax%2C%20Tunisie!5e0!3m2!1sfr!2sus!4v1691400000000!5m2!1sfr!2sus",
+              "label": "Sfax map"
+            }
+          ],
+          "published_at": "2026-07-24T17:22:03.503000",
+          "locale": "fr-TN",
+          "direction": "ltr",
+          "fallback_locale_used": null,
+          "translation_status": "default",
+          "resolved_seo": {
+            "title": "Contact - Savage Rise",
+            "description": "Contact Savage Rise customer service for orders, product advice, and support.",
+            "canonical_url": "https://savagerise.com/contact",
+            "robots": "index, follow",
+            "no_index": false,
+            "no_follow": false,
+            "open_graph": {
+              "title": "Contact - Savage Rise",
+              "description": "Contact Savage Rise customer service for orders, product advice, and support.",
+              "image_url": null,
+              "type": "website"
+            },
+            "twitter": {
+              "title": "Contact - Savage Rise",
+              "description": "Contact Savage Rise customer service for orders, product advice, and support.",
+              "image_url": null,
+              "card": "summary_large_image"
+            },
+            "alternates": [],
+            "structured_data": [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "Contact - Savage Rise",
+                "url": "https://savagerise.com/contact",
+                "description": "Contact Savage Rise customer service for orders, product advice, and support."
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Savage Rise",
+                "url": "https://savagerise.com"
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Savage Rise",
+                "logo": "https://ik.imagekit.io/deuxug3j0/savage-rise/store/logo-blanc.png?updatedAt=1754345640975"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "url": "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/catalog/categories",
+      "status": 200,
+      "bytes": 8105
+    },
+    {
+      "name": "products",
+      "url": "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/catalog/products?page=1&page_size=100",
+      "status": 200,
+      "bytes": 7945,
+      "summary": [
+        {
+          "id": "6b032d527b49ec9b6c39ec4d",
+          "slug": "sr-ombra-oversized-hoodie",
+          "name": "SR OMBRA OVERSIZED HOODIE",
+          "kind": "physical",
+          "status": "active",
+          "category": "6b0327e27b49ec9b6c39eaf3"
+        },
+        {
+          "id": "6a6be9dd502784b69dfa0b95",
+          "slug": "faza-001-moujet-har",
+          "name": "FAZA-001 — موجة حرّ",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8aa8e6c6e62f63d9efb8"
+        },
+        {
+          "id": "6a544d1681bf79b294333cd7",
+          "slug": "sr-notte-oversized-tee",
+          "name": "SR NOTTE OVERSIZED TEE",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8aa8e6c6e62f63d9efb8"
+        },
+        {
+          "id": "6a544d1381bf79b294333cc4",
+          "slug": "sr-velluto-polo",
+          "name": "SR Velluto Polo",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8accf15a4ffbb48a39dd"
+        },
+        {
+          "id": "6a544d1a81bf79b294333cfc",
+          "slug": "sr-palazzo-baggy-pants",
+          "name": "SR PALAZZO BAGGY PANTS",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8b0bf15a4ffbb48a39df"
+        }
+      ],
+      "total": 5,
+      "pages": 1
+    },
+    {
+      "name": "physical",
+      "url": "https://yovo-api-gateway-a8da1d8e66a3.herokuapp.com/api/core/catalog/products?page=1&page_size=100&product_kind=physical",
+      "status": 200,
+      "bytes": 7945,
+      "summary": [
+        {
+          "id": "6b032d527b49ec9b6c39ec4d",
+          "slug": "sr-ombra-oversized-hoodie",
+          "name": "SR OMBRA OVERSIZED HOODIE",
+          "kind": "physical",
+          "status": "active",
+          "category": "6b0327e27b49ec9b6c39eaf3"
+        },
+        {
+          "id": "6a6be9dd502784b69dfa0b95",
+          "slug": "faza-001-moujet-har",
+          "name": "FAZA-001 — موجة حرّ",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8aa8e6c6e62f63d9efb8"
+        },
+        {
+          "id": "6a544d1681bf79b294333cd7",
+          "slug": "sr-notte-oversized-tee",
+          "name": "SR NOTTE OVERSIZED TEE",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8aa8e6c6e62f63d9efb8"
+        },
+        {
+          "id": "6a544d1381bf79b294333cc4",
+          "slug": "sr-velluto-polo",
+          "name": "SR Velluto Polo",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8accf15a4ffbb48a39dd"
+        },
+        {
+          "id": "6a544d1a81bf79b294333cfc",
+          "slug": "sr-palazzo-baggy-pants",
+          "name": "SR PALAZZO BAGGY PANTS",
+          "kind": "physical",
+          "status": "active",
+          "category": "6a6c8b0bf15a4ffbb48a39df"
+        }
+      ],
+      "total": 5,
+      "pages": 1
+    }
+  ]
+}

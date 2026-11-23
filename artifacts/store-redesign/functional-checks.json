@@ -1,0 +1,259 @@
+{
+  "checks": [
+    {
+      "name": "ERP pagination, hoodie search, nested categories and sorting",
+      "pass": true
+    },
+    {
+      "name": "manual gallery, size preservation, color changes and zoom",
+      "pass": true
+    },
+    {
+      "name": "wishlist add and remove against local fixture",
+      "pass": true
+    },
+    {
+      "name": "quantity, cart, buy-now and existing checkout",
+      "pass": true
+    },
+    {
+      "name": "CMS published text, poster, revision and visibility refresh",
+      "pass": true
+    },
+    {
+      "name": "CMS private preview renders and prevents purchase",
+      "pass": true
+    },
+    {
+      "name": "ERP price refresh, forced sold out, empty search and mobile navigation",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "blockedExternalRequests": [
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://connect.facebook.net/en_US/fbevents.js"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    },
+    {
+      "blocked": "GET",
+      "url": "https://savagerise.com/icon.svg"
+    }
+  ]
+}

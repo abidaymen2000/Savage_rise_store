@@ -1,0 +1,121 @@
+{
+  "checks": [
+    {
+      "name": "home",
+      "width": 320,
+      "scroll": 320,
+      "broken": []
+    },
+    {
+      "name": "home",
+      "width": 375,
+      "scroll": 375,
+      "broken": []
+    },
+    {
+      "name": "home",
+      "width": 390,
+      "scroll": 390,
+      "broken": []
+    },
+    {
+      "name": "home",
+      "width": 768,
+      "scroll": 768,
+      "broken": []
+    },
+    {
+      "name": "home",
+      "width": 1024,
+      "scroll": 1024,
+      "broken": []
+    },
+    {
+      "name": "home",
+      "width": 1440,
+      "scroll": 1440,
+      "broken": []
+    },
+    {
+      "name": "dynamic categories",
+      "labels": [
+        "Hoodies",
+        "Pants",
+        "T-shirts"
+      ]
+    },
+    {
+      "name": "shop",
+      "width": 320,
+      "scroll": 320,
+      "broken": []
+    },
+    {
+      "name": "shop",
+      "width": 375,
+      "scroll": 375,
+      "broken": []
+    },
+    {
+      "name": "shop",
+      "width": 390,
+      "scroll": 390,
+      "broken": []
+    },
+    {
+      "name": "shop",
+      "width": 768,
+      "scroll": 768,
+      "broken": []
+    },
+    {
+      "name": "shop",
+      "width": 1024,
+      "scroll": 1024,
+      "broken": []
+    },
+    {
+      "name": "shop",
+      "width": 1440,
+      "scroll": 1440,
+      "broken": []
+    },
+    {
+      "name": "product",
+      "width": 320,
+      "scroll": 320,
+      "broken": []
+    },
+    {
+      "name": "product",
+      "width": 375,
+      "scroll": 375,
+      "broken": []
+    },
+    {
+      "name": "product",
+      "width": 390,
+      "scroll": 390,
+      "broken": []
+    },
+    {
+      "name": "product",
+      "width": 768,
+      "scroll": 768,
+      "broken": []
+    },
+    {
+      "name": "product",
+      "width": 1024,
+      "scroll": 1024,
+      "broken": []
+    },
+    {
+      "name": "product",
+      "width": 1440,
+      "scroll": 1440,
+      "broken": []
+    }
+  ],
+  "failures": []
+}

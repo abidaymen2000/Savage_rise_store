@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-23T07:24:16Z",
+  "title": "Design System: Savage Rise / FAZA",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Or de lecture"
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Or de marque"
+      },
+      "primary": {
+        "role": "neutral",
+        "displayName": "Encre d’action"
+      },
+      "primary-foreground": {
+        "role": "neutral",
+        "displayName": "Ivoire d’action"
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Ivoire papier"
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Encre de texte"
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Ivoire de carte"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Pierre de séparation"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Pierre de support"
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Pierre de texte"
+      },
+      "header": {
+        "role": "neutral",
+        "displayName": "Anthracite de navigation"
+      },
+      "inverse-foreground": {
+        "role": "neutral",
+        "displayName": "Ivoire sur sombre"
+      },
+      "header-border": {
+        "role": "neutral",
+        "displayName": "Trait du header"
+      },
+      "header-accent": {
+        "role": "primary",
+        "displayName": "Or sur anthracite"
+      },
+      "photo-foreground": {
+        "role": "neutral",
+        "displayName": "Ivoire photographique"
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "Blanc du Hero"
+      },
+      "black": {
+        "role": "neutral",
+        "displayName": "Noir du Hero"
+      },
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "Fond sombre"
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Carte sombre"
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Trait sombre"
+      },
+      "dark-muted-foreground": {
+        "role": "neutral",
+        "displayName": "Texte secondaire sombre"
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Or du thème sombre"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Hero",
+        "purpose": "Titre du Hero, en italique ; Bodoni Moda est chargé sous --font-playfair."
+      },
+      "headline": {
+        "displayName": "Titre de section",
+        "purpose": "Titres éditoriaux droits."
+      },
+      "detail-title": {
+        "displayName": "Titre de fiche",
+        "purpose": "Nom publié de la pièce."
+      },
+      "title": {
+        "displayName": "Nom de produit",
+        "purpose": "Nom en capitales dans les cartes."
+      },
+      "price": {
+        "displayName": "Prix de carte",
+        "purpose": "Montant publié, chiffres tabulaires."
+      },
+      "body": {
+        "displayName": "Texte fonctionnel",
+        "purpose": "Inter pour les contrôles et le contenu courant."
+      },
+      "description": {
+        "displayName": "Description de fiche",
+        "purpose": "Texte produit en italique."
+      },
+      "label": {
+        "displayName": "Petit intitulé",
+        "purpose": "Repères éditoriaux approuvés, dont Accès rapide."
+      },
+      "navigation": {
+        "displayName": "Navigation",
+        "purpose": "Petites capitales de la navigation desktop."
+      },
+      "purchase-label": {
+        "displayName": "Commande d’achat",
+        "purpose": "Libellés des commandes de la fiche produit."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-color-disc",
+        "value": "0 1px 2px rgb(0 0 0 / .1)",
+        "purpose": "Ombre locale du disque de couleur dans une carte."
+      },
+      {
+        "name": "desktop-menu",
+        "value": "0 25px 50px -12px rgb(0 0 0 / .2)",
+        "purpose": "Menu superposé desktop : shadow-2xl avec shadow-black/20."
+      }
+    ],
+    "motion": [
+      {
+        "name": "product-photo",
+        "value": "300ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Fondu et transformation d’image de carte ; suppression avec mouvement réduit."
+      },
+      {
+        "name": "category-photo",
+        "value": "500ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Agrandissement de catégorie au survol, scale(1.03)."
+      },
+      {
+        "name": "card-color-cycle",
+        "value": "2000ms",
+        "purpose": "Temps avant la prochaine image couleur, après chargement ; ne choisit pas de variante."
+      },
+      {
+        "name": "overflow-action-label",
+        "value": "700ms ease-in-out",
+        "purpose": "Défilement du libellé de carte seulement s’il dépasse, au survol ou focus, avec mouvement autorisé."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "hero-actions-inline",
+        "value": "420px"
+      },
+      {
+        "name": "studio-grid-mobile-max",
+        "value": "640px"
+      },
+      {
+        "name": "storefront-mobile-max",
+        "value": "767px"
+      },
+      {
+        "name": "storefront-tablet-max",
+        "value": "1023px"
+      },
+      {
+        "name": "card-actions-container-max",
+        "value": "260px",
+        "purpose": "Requête de conteneur, pas seuil de viewport."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Achat principal",
+      "kind": "button",
+      "refersTo": "button-purchase",
+      "description": "Commande principale de la fiche ; le montant vient du produit et de la quantité.",
+      "html": "<button class=\"ds-purchase\">Ajouter au panier</button>",
+      "css": ".ds-purchase{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 16px;border-radius:4px;font-family:var(--font-playfair),serif;font-size:14px;font-weight:600;line-height:1.5;letter-spacing:.15em;text-transform:uppercase;white-space:normal;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1),border-color 150ms cubic-bezier(.4,0,.2,1);border:0;background:hsl(var(--primary,24 12% 9%));color:hsl(var(--primary-foreground,42 30% 96%));}.ds-purchase:hover{background:hsl(var(--primary,24 12% 9%)/.9)}.ds-purchase:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background,36 33% 96%)),0 0 0 4px hsl(var(--ring,43 58% 48%));}.ds-purchase:disabled{pointer-events:none;opacity:.5}@media(max-width:767px){.ds-purchase{font-size:12px;letter-spacing:.1em}}"
+    },
+    {
+      "name": "Achat immédiat",
+      "kind": "button",
+      "refersTo": "button-purchase-outline",
+      "description": "Commande secondaire de la fiche avec contour d’or.",
+      "html": "<button class=\"ds-buy\"><svg aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z\"/></svg>Acheter maintenant</button>",
+      "css": ".ds-buy{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 16px;border-radius:4px;font-family:var(--font-playfair),serif;font-size:14px;font-weight:600;line-height:1.5;letter-spacing:.15em;text-transform:uppercase;white-space:normal;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1),border-color 150ms cubic-bezier(.4,0,.2,1);border:1px solid hsl(var(--accent,39 64% 35%));background:transparent;color:hsl(var(--foreground,35 12% 11%))}.ds-buy svg{flex-shrink:0;color:hsl(var(--accent,39 64% 35%))}.ds-buy:hover{background:hsl(var(--primary,24 12% 9%));color:hsl(var(--primary-foreground,42 30% 96%))}.ds-buy:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background,36 33% 96%)),0 0 0 4px hsl(var(--ring,43 58% 48%));}.ds-buy:disabled{pointer-events:none;opacity:.5}@media(max-width:767px){.ds-buy{font-size:12px;letter-spacing:.1em}}"
+    },
+    {
+      "name": "CTA clair du Hero",
+      "kind": "button",
+      "refersTo": "button-hero",
+      "description": "CTA clair sur photographie ; variante de HeroPrimaryAction.",
+      "html": "<button class=\"ds-hero-primary\">Voir le Drop</button>",
+      "css": ".ds-hero-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;height:48px;padding:8px 24px;border-radius:1px;font-family:var(--font-inter),sans-serif;font-size:10px;font-weight:600;line-height:1.5;letter-spacing:.16em;text-transform:uppercase;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1);border:0;background:#fff;color:#000}.ds-hero-primary:hover{background:var(--gold,#d4af37)}.ds-hero-primary:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background,36 33% 96%)),0 0 0 4px hsl(var(--ring,43 58% 48%));}.ds-hero-primary:disabled{pointer-events:none;opacity:.5}"
+    },
+    {
+      "name": "CTA bordé du Hero",
+      "kind": "button",
+      "refersTo": "button-hero-outline",
+      "description": "CTA secondaire, illustré sur le fond sombre du Hero.",
+      "html": "<div class=\"ds-hero-context\"><button class=\"ds-hero-outline\">Découvrir FAZA</button></div>",
+      "css": ".ds-hero-context{background:#191813;padding:16px}.ds-hero-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;height:48px;padding:8px 24px;border-radius:1px;font-family:var(--font-inter),sans-serif;font-size:10px;font-weight:600;line-height:1.5;letter-spacing:.16em;text-transform:uppercase;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1);border:1px solid rgb(255 255 255/.7);background:transparent;color:#fff}.ds-hero-outline:hover{background:#fff;color:#000}.ds-hero-outline:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background,36 33% 96%)),0 0 0 4px hsl(var(--ring,43 58% 48%));}.ds-hero-outline:disabled{pointer-events:none;opacity:.5}"
+    },
+    {
+      "name": "Recherche catalogue",
+      "kind": "input",
+      "refersTo": "search-input",
+      "description": "Champ du catalogue, avec icône et nom accessible.",
+      "html": "<div class=\"ds-search-wrap\"><svg aria-hidden=\"true\" class=\"ds-search-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input class=\"ds-search\" aria-label=\"Rechercher un produit\" placeholder=\"Rechercher\" /></div>",
+      "css": ".ds-search-wrap{position:relative;width:100%;max-width:288px}.ds-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:hsl(var(--muted-foreground,30 8% 37%))}.ds-search{width:100%;height:44px;border:1px solid hsl(var(--border,34 20% 79%));border-radius:0;padding:8px 12px 8px 40px;background:hsl(var(--card,36 33% 97%));color:hsl(var(--card-foreground,35 12% 11%));caret-color:hsl(var(--accent,39 64% 35%));font-family:var(--font-inter),sans-serif;font-size:16px}.ds-search::placeholder{color:hsl(var(--muted-foreground,30 8% 37%));font-weight:400;opacity:.7}.ds-search:focus-visible{outline:none;box-shadow:0 0 0 2px hsl(var(--background,36 33% 96%)),0 0 0 4px hsl(var(--ring,43 58% 48%));}.ds-search:disabled{cursor:not-allowed;opacity:.5}@media(min-width:768px){.ds-search{font-size:14px}}"
+    },
+    {
+      "name": "Navigation desktop",
+      "kind": "nav",
+      "refersTo": "desktop-navigation",
+      "description": "Liens du header sombre ; les labels réels restent fournis par le menu publié.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Aperçu de navigation\"><a class=\"ds-nav-link\" href=\"#nouveautes\">Nouveautés</a><a class=\"ds-nav-link\" href=\"#faza\">FAZA</a><a class=\"ds-nav-link\" href=\"#boutique\" aria-current=\"page\">Boutique</a></nav>",
+      "css": ".ds-nav{display:flex;flex-wrap:wrap;align-items:center;gap:24px;background:#191813;padding:12px 24px}.ds-nav-link{display:inline-flex;min-height:44px;align-items:center;color:hsl(36 25% 94%);font-family:var(--font-inter),sans-serif;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;transition:color 150ms cubic-bezier(.4,0,.2,1)}.ds-nav-link:hover,.ds-nav-link[aria-current=page]{color:hsl(43 65% 62%)}.ds-nav-link:focus-visible{outline:none;box-shadow:0 0 0 2px var(--gold,#d4af37)}"
+    },
+    {
+      "name": "Taille",
+      "kind": "chip",
+      "refersTo": "size-option",
+      "description": "Sélecteur de taille avec états normal, choisi et indisponible.",
+      "html": "<div class=\"ds-sizes\" role=\"group\" aria-label=\"Taille\"><button class=\"ds-size\" aria-pressed=\"false\">S</button><button class=\"ds-size\" aria-pressed=\"true\">M</button><button class=\"ds-size\" disabled aria-pressed=\"false\">L<span class=\"ds-sr-only\"> indisponible</span></button></div>",
+      "css": ".ds-sizes{display:grid;grid-template-columns:repeat(3,minmax(58px,1fr));gap:10px}.ds-size{min-height:44px;padding:8px 12px;border:1px solid hsl(var(--border,34 20% 79%));border-radius:4px;background:hsl(var(--card,36 33% 97%));color:hsl(var(--card-foreground,35 12% 11%));font-family:var(--font-playfair),serif;font-size:16px;font-weight:400;text-transform:uppercase;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1),border-color 150ms cubic-bezier(.4,0,.2,1)}.ds-size:hover:not(:disabled){border-color:hsl(var(--foreground,35 12% 11%))}.ds-size[aria-pressed=true]{border-color:hsl(var(--primary,24 12% 9%));background:hsl(var(--primary,24 12% 9%));color:hsl(var(--primary-foreground,42 30% 96%))}.ds-size:focus-visible{outline:2px solid hsl(var(--accent,39 64% 35%));outline-offset:4px}.ds-size:disabled{cursor:not-allowed;background:hsl(var(--muted,38 18% 89%));color:hsl(var(--muted-foreground,30 8% 37%));text-decoration:line-through}.ds-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}"
+    },
+    {
+      "name": "Carte produit",
+      "kind": "card",
+      "refersTo": "product-card",
+      "description": "Cadre catalogue et hiérarchie de texte. L’emplacement média est neutre et les libellés sont explicitement illustratifs.",
+      "html": "<article class=\"ds-card\"><a class=\"ds-card-media\" href=\"#produit\" aria-label=\"Emplacement du média produit\"><span class=\"ds-card-placeholder\">Média YOVO</span></a><div class=\"ds-card-copy\"><a class=\"ds-card-title-link\" href=\"#produit\"><h3 class=\"ds-card-title\">Nom du produit publié</h3><p class=\"ds-card-price\">Prix publié</p></a><a class=\"ds-card-action\" href=\"#produit\">Voir le produit</a></div></article>",
+      "css": ".ds-card{display:flex;flex-direction:column;max-width:300px;overflow:hidden;border:1px solid hsl(var(--border,34 20% 79%));border-radius:1px;background:hsl(var(--card,36 33% 97%));color:hsl(var(--card-foreground,35 12% 11%));transition:border-color 300ms cubic-bezier(.4,0,.2,1)}.ds-card:hover{border-color:hsl(var(--accent,39 64% 35%)/.55)}.ds-card-media{display:grid;place-items:center;aspect-ratio:3/4;background:hsl(var(--muted,38 18% 89%));color:hsl(var(--muted-foreground,30 8% 37%));text-decoration:none}.ds-card-placeholder{font-family:var(--font-inter),sans-serif;font-size:14px}.ds-card-copy{display:flex;flex:1;flex-direction:column;gap:12px;padding:12px}.ds-card-title-link{color:inherit;text-decoration:none}.ds-card-title{margin:0;min-height:2.5em;overflow-wrap:anywhere;font-family:var(--font-playfair),serif;font-size:15px;font-weight:600;line-height:1.25;text-transform:uppercase}.ds-card-price{margin:8px 0 0;font-family:var(--font-playfair),serif;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}.ds-card-action{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:auto;background:hsl(var(--primary,24 12% 9%));color:hsl(var(--primary-foreground,42 30% 96%));font-family:var(--font-inter),sans-serif;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;transition:color 150ms cubic-bezier(.4,0,.2,1),background-color 150ms cubic-bezier(.4,0,.2,1)}.ds-card-action:hover,.ds-card-action:focus-visible{background:hsl(var(--accent,39 64% 35%));color:hsl(var(--accent-foreground,0 0% 100%))}.ds-card a:focus-visible{outline:2px solid hsl(var(--accent,39 64% 35%));outline-offset:4px}@media(max-width:767px){.ds-card-copy{padding:10px}.ds-card-title{font-size:14px;min-height:3.75em}.ds-card-price{font-size:17px}}@media(prefers-reduced-motion:reduce){.ds-card,.ds-card *{transition:none}}"
+    },
+    {
+      "name": "Couleur de fiche",
+      "kind": "chip",
+      "refersTo": "color-option",
+      "description": "Option couleur nommée et sélection explicite ; le disque réel reçoit la couleur publiée du produit.",
+      "html": "<button class=\"ds-color\" aria-label=\"Couleur Noir\" aria-pressed=\"true\"><span class=\"ds-color-disc\"></span><span>Noir</span></button>",
+      "css": ".ds-color{display:flex;min-height:88px;max-width:96px;flex-direction:column;align-items:center;gap:10px;padding:4px;border:0;background:transparent;color:hsl(var(--foreground,35 12% 11%));font-family:var(--font-inter),sans-serif;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere}.ds-color-disc{display:block;width:48px;height:48px;flex-shrink:0;border:1px solid hsl(var(--foreground,35 12% 11%)/.18);border-radius:50%;background:#111111}.ds-color[aria-pressed=true]{font-weight:700}.ds-color[aria-pressed=true] .ds-color-disc{outline:2px solid hsl(var(--accent,39 64% 35%));outline-offset:4px}.ds-color:focus-visible{outline:2px solid hsl(var(--accent,39 64% 35%));outline-offset:4px}@media(max-width:767px){.ds-color{max-width:88px}.ds-color-disc{width:46px;height:46px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "L’éditorial de mode Savage Rise",
+    "overview": "L’éditorial de mode Savage Rise associe le contraste des titres de couture à la présence directe du streetwear. Les photographies des pièces publiées dominent ; l’ivoire, l’encre et les traits fins construisent un cadre calme. L’or sert de repère pour la marque, les états et les petits intitulés approuvés.\n\nLa densité reste commerciale : découvrir, comparer puis sélectionner une couleur et une taille. Les commandes sont sobres, les prix distincts et les images généreuses. Ce document décrit les valeurs par défaut des templates livrés ; les choix de typographie et de grille publiés dans Studio conservent leur priorité. Savage Rise, FAZA et les médias existants restent les références de marque.",
+    "keyCharacteristics": [
+      "Titres à fort contraste en Bodoni Moda, texte fonctionnel en Inter.",
+      "Ivoire chaud, encre et anthracite, avec un or mesuré.",
+      "Photographies réelles, cadres presque droits et séparateurs fins.",
+      "Sélection explicite, contrôles tactiles et composition verticale sur mobile."
+    ],
+    "rules": [
+      {
+        "name": "Measured Gold",
+        "body": "L’or signale les petits intitulés, liens actifs, contours de sélection et repères de marque. Les grandes surfaces restent ivoire ou sombres.",
+        "section": "colors"
+      },
+      {
+        "name": "Two Voices",
+        "body": "Bodoni Moda porte titres, noms de produits, prix et libellés d’achat de la fiche ; Inter porte navigation, descriptions et contrôles courants. Les choix typographiques publiés dans Studio restent prioritaires.",
+        "section": "typography"
+      },
+      {
+        "name": "Photograph First",
+        "body": "Les cartes produit restent plates au repos. La séparation vient du ton de surface et du trait ; les ombres restent locales aux pastilles et aux éléments superposés.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do conserver les logos Savage Rise, FAZA et les photographies provenant des chemins YOVO existants.",
+      "Do préserver les petits intitulés approuvés, dont « Accès rapide », et leur hiérarchie discrète.",
+      "Do appliquer les variables sémantiques et les styles de composant existants avant d’ajouter une nouvelle valeur.",
+      "Do conserver la priorité des réglages Studio de typographie et de grille.",
+      "Do garder une sélection de couleur visible, des tailles indisponibles désactivées et un focus clavier perceptible.",
+      "Do adapter les actions étroites en lignes distinctes et respecter la préférence de mouvement réduit."
+    ],
+    "donts": [
+      "Don't remplacer un média, un prix, un stock ou un contenu publié par une valeur illustrative issue des maquettes.",
+      "Don't transformer les pastilles de couleur, la galerie ou les changements d’image en sélection d’achat implicite.",
+      "Don't étendre les grands arrondis d’anciens modules conditionnels aux cartes et contrôles principaux.",
+      "Don't traiter les contenus de repli FAZA ou lookbook comme des sections CMS éditables sans contrat correspondant."
+    ]
+  }
+}

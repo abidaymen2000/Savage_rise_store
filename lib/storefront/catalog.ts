@@ -54,6 +54,42 @@ export function getVisibleCategoryFeatures(products: Product[], features: Storef
   )
 }
 
+/** Preserve ERP order and hierarchy; no category name or fixed card count. */
+export function getCatalogCategoryOptions(categories: Category[]) {
+  const active = categories.filter(category => !category.status || category.status === "active")
+  const options: Array<{ value: string; label: string; depth: number }> = []
+  const visited = new Set<string>()
+  const visit = (category: Category, depth: number) => {
+    if (visited.has(category.id)) return
+    visited.add(category.id)
+    options.push({ value: category.slug || category.id, label: category.name, depth })
+    active.filter(child => child.parent_id === category.id).forEach(child => visit(child, depth + 1))
+  }
+  active.filter(category => !category.parent_id || !active.some(parent => parent.id === category.parent_id)).forEach(category => visit(category, 0))
+  return options
+}
+
+export function getHomepageCategories(categories: Category[], products: Product[]) {
+  const active = categories.filter(category => !category.status || category.status === "active")
+  const eligible = active.filter(category => products.some(product =>
+    productMatchesCategoryIds(product, getCategoryAndDescendantIds(active, category.id))))
+  const roots = eligible.filter(category => !eligible.some(parent => parent.id === category.parent_id))
+  // A single taxonomy umbrella (e.g. Clothing) exposes its eligible departments.
+  let displayed = roots
+  while (displayed.length === 1) {
+    const children = eligible.filter(category => category.parent_id === displayed[0].id)
+    if (!children.length) break
+    displayed = children
+  }
+  return displayed.map(category => ({
+    key: category.id,
+    label: category.name,
+    href: `/products?category=${encodeURIComponent(category.slug || category.id)}`,
+    image: getCategoryImageUrl(category),
+    alt: category.name,
+  }))
+}
+
 function isValidCategoryImageUrl(value: unknown): value is string {
   if (typeof value !== "string") return false
   const url = value.trim()

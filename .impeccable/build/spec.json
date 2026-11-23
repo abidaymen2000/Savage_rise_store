@@ -1,0 +1,19 @@
+{
+  "record_type": "manual-composition-reference",
+  "measured_by_comp_spec": false,
+  "approved_comps": {
+    "home": "C:/Users/ASUS/AppData/Local/Temp/codex-clipboard-9c20bfc6-fd2a-4bb3-9b95-ee0b4c6bff9f.png",
+    "product": "C:/Users/ASUS/AppData/Local/Temp/codex-clipboard-33ffbb4f-1679-4274-a595-a4bb41eb77fc.png"
+  },
+  "direction_contract": ".impeccable/surfaces/storefront.md",
+  "composition": {
+    "home": "Compact black announcement/navigation; horizontal photograph and left italic display title; panorama categories; four commercial cards on desktop.",
+    "product": "Thumbnail rail and large photograph at left; serif title/price, color discs, sizes, quantity and purchase actions at right; stacked mobile flow.",
+    "catalog": "Shared visual language with dynamic count, search, nested-category filters and sorting."
+  },
+  "authoritative_data": ["CMS text and media", "ERP categories and order", "ERP product names and prices", "ERP variants, swatches and availability", "existing navigation and commerce"],
+  "required_widths": [320, 375, 390, 768, 1024, 1440],
+  "pixel_measurements": null,
+  "numeric_fidelity_score": null,
+  "shipping_rasters_created": 0
+}

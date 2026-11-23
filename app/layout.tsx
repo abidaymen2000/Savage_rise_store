@@ -4,17 +4,17 @@ import { StudioRuntime } from "@/components/studio-runtime"
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { cache } from "react"
-import { Playfair_Display, Inter } from 'next/font/google'
+import { Bodoni_Moda, Inter } from 'next/font/google'
 import Image from "next/image"
 import "./globals.css"
 import "./studio.css"
+import "./storefront.css"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import { CartProvider } from "@/contexts/CartContext"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { StoreConfigProvider } from "@/contexts/StoreConfigContext"
 import { ThemeProvider } from "@/components/theme-provider"
-import EntranceWrapper from "./components/EntranceWrapper"
 import MetaPixel from "./components/MetaPixel"
 import StoreAnalytics from "./components/StoreAnalytics"
 import { Toaster } from "@/components/ui/toaster" // Import Toaster
@@ -30,9 +30,11 @@ import {
 } from "@/lib/store-config-shared"
 import type { StoreNavigationPublicItem } from "@/lib/api/generated"
 
-const playfair = Playfair_Display({
+const playfair = Bodoni_Moda({
   subsets: ["latin"],
   variable: "--font-playfair",
+  adjustFontFallback: false,
+  style: ["normal", "italic"],
 })
 
 const inter = Inter({
@@ -151,9 +153,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [storeConfig, studio] = await Promise.all([
+  const [storeConfig, studio, categories] = await Promise.all([
     getStoreConfig(),
     getStudioDocument(),
+    api.getCategories().catch(() => []),
   ])
   const { config } = storeConfig
   const navigation = studio ? {headerItems: filterNavigationItemsBySurface(studio.menus.find(m => m.code === "header")?.items, "desktop"), mobileItems: filterNavigationItemsBySurface((studio.menus.find(m => m.code === "mobile") || studio.menus.find(m => m.code === "header"))?.items, "mobile")} : await getServerNavigation()
@@ -173,11 +176,11 @@ export default async function RootLayout({
             ) : (
               <StudioRuntime document={studio}><AuthProvider>
                 <CartProvider>
-                  <EntranceWrapper>
-                    <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} />
+                  <div className="store-shell">
+                    <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} categories={categories} />
                     {children}
                     <Footer />
-                  </EntranceWrapper>
+                  </div>
                 </CartProvider>
               </AuthProvider></StudioRuntime>
             )}

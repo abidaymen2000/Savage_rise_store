@@ -23,6 +23,7 @@ export type ProductsFilterState = {
 type Option = {
   value: string
   label: string
+  depth?: number
 }
 
 type ProductsControlsProps = {
@@ -63,7 +64,8 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
   const replaceFilters = useCallback((overrides: Partial<ProductsFilterState>) => {
     const params = buildParams(filters, { ...overrides, page: overrides.page ?? 1 })
     startTransition(() => {
-      router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false })
+      const catalogPath = pathname.startsWith("/categories/") ? "/products" : pathname
+      router.replace(`${catalogPath}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false })
     })
   }, [filters, pathname, router, startTransition])
 
@@ -109,17 +111,17 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Categorie</label>
         <Select value={filters.category} onValueChange={(value) => replaceFilters({ category: value })}>
-          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Catégorie" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
-            {categoryOptions.map((feature) => <SelectItem key={feature.value} value={feature.value}>{feature.label}</SelectItem>)}
+            {categoryOptions.map((feature) => <SelectItem key={feature.value} value={feature.value}><span style={{ paddingLeft: `${(feature.depth ?? 0) * 12}px` }}>{feature.label}</span></SelectItem>)}
           </SelectContent>
         </Select>
       </div>
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Couleur</label>
         <Select value={filters.color} onValueChange={(value) => replaceFilters({ color: value })}>
-          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Couleur" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             {colorOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
@@ -129,7 +131,7 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Taille</label>
         <Select value={filters.size} onValueChange={(value) => replaceFilters({ size: value })}>
-          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Taille" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             {sizeOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
@@ -139,7 +141,7 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Disponibilite</label>
         <Select value={filters.availability} onValueChange={(value) => replaceFilters({ availability: value })}>
-          <SelectTrigger className="rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Disponibilité" className="h-11 rounded-none border-border bg-card text-card-foreground"><SelectValue /></SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="all">Toutes</SelectItem>
             <SelectItem value="available">Disponible</SelectItem>
@@ -180,13 +182,14 @@ export default function ProductsControls({ filters, categoryOptions, colorOption
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Rechercher"
+            aria-label="Rechercher un produit"
             className="h-11 w-full rounded-none border-border bg-card pl-10 text-card-foreground placeholder:text-muted-foreground sm:w-72"
           />
         </div>
         <Select value={filters.sort} onValueChange={(value) => replaceFilters({ sort: value })}>
-          <SelectTrigger className="h-11 w-full rounded-none border-border bg-card text-card-foreground sm:w-52">
+          <SelectTrigger aria-label="Trier les produits" className="h-11 w-full rounded-none border-border bg-card text-card-foreground sm:w-52">
             <SlidersHorizontal className="mr-2 h-4 w-4 shrink-0" />
-            <SelectValue />
+            <SelectValue>{({newest: "Nouveautés", "price-asc": "Prix croissant", "price-desc": "Prix decroissant", name: "Nom A-Z"} as Record<string, string>)[filters.sort] || "Nouveautés"}</SelectValue>
           </SelectTrigger>
           <SelectContent className="border-border bg-popover text-popover-foreground">
             <SelectItem value="newest">Nouveautes</SelectItem>

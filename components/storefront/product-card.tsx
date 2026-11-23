@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { useStorePrice } from "@/hooks/use-store-price"
 import ProductCardMedia from "./product-card-media"
 import { getProductColorGalleries } from "@/lib/product-color-media"
@@ -24,12 +25,13 @@ export default function ProductCard({ product, compact = false, priority = false
   const availability = getProductAvailability(product)
   const colors = getColors(product)
   const href = getProductHref(product)
+  const [previewColor, setPreviewColor] = useState<string | null>(null)
   const compareAt = product.compare_at_price && product.compare_at_price > product.price ? product.compare_at_price : null
 
   return (
-    <article className="group min-w-0 overflow-hidden border border-border bg-card text-card-foreground transition-colors duration-300 hover:border-accent/55">
-      <Link href={href} className="relative block aspect-[3/4] overflow-hidden bg-muted">
-        <ProductCardMedia product={product} priority={priority} inStock={inStock} />
+    <article className="store-product-card group min-w-0 overflow-hidden border border-border bg-card text-card-foreground transition-colors duration-300 hover:border-accent/55">
+      <Link href={href} className="store-product-photo relative block overflow-hidden bg-muted" aria-label={product.name}>
+        <ProductCardMedia product={product} priority={priority} inStock={inStock} previewColor={previewColor} />
         {!inStock && <div className="absolute inset-0 z-10 bg-card/10" aria-hidden="true" />}
         <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2">
           {isSoldOut(availability) && <span className="bg-black/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-sm ring-1 ring-white/10">SOLD OUT</span>}
@@ -38,18 +40,22 @@ export default function ProductCard({ product, compact = false, priority = false
       </Link>
       <div className="min-w-0 space-y-3 p-3 sm:p-4">
         <Link href={href} className="block min-w-0">
-          <h3 className="line-clamp-2 min-h-[2.5rem] overflow-hidden break-words text-sm font-semibold uppercase tracking-[0.08em] text-card-foreground transition-colors group-hover:text-accent sm:text-base" dir="auto">
+          <h3 className="store-product-name font-playfair text-card-foreground" dir="auto">
             {product.name}
           </h3>
           <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-2">
-            <span className="text-sm font-semibold text-card-foreground sm:text-base">{formatPrice(product.price)}</span>
+            <span className="store-product-price font-playfair text-card-foreground">{formatPrice(product.price)}</span>
             {compareAt && <span className="text-xs text-muted-foreground line-through">{formatPrice(compareAt)}</span>}
           </div>
         </Link>
         {colors.length > 0 && (
-          <div className="flex min-w-0 items-center gap-1.5 overflow-hidden" aria-label="Couleurs disponibles">
+          <div className="store-card-swatches" aria-label="Aperçu des couleurs" onMouseLeave={() => setPreviewColor(null)}>
             {colors.slice(0, 5).map((color) => (
-              <span key={color.label} title={color.label} className="h-4 w-4 shrink-0 border border-border" style={{ backgroundColor: color.swatch }} />
+              <button key={color.label} type="button" className="store-card-swatch" aria-label={`Aperçu ${color.label}`} aria-pressed={previewColor === color.label}
+                onMouseEnter={() => setPreviewColor(color.label)} onFocus={() => setPreviewColor(color.label)} onBlur={() => setPreviewColor(null)}
+                onClick={() => setPreviewColor(color.label)}>
+                <span style={{ backgroundColor: color.swatch }} />
+              </button>
             ))}
             {colors.length > 5 && <span className="text-xs text-muted-foreground">+{colors.length - 5}</span>}
           </div>

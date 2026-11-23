@@ -2,13 +2,13 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { useMediaActive } from "@/hooks/use-media-active"
-import { getProductColorSlides, productImageFallback, PRODUCT_IMAGE_FALLBACK } from "@/lib/product-color-media"
+import { getProductColorSlides, getProductImagesForColor, productImageFallback, PRODUCT_IMAGE_FALLBACK } from "@/lib/product-color-media"
 import type { Product, ProductImage } from "@/types/api"
 
 const sizes = "(min-width: 1536px) 300px, (min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 768px) 33vw, (min-width: 390px) 50vw, 100vw"
 
-export default function ProductCardMedia({ product, priority, inStock }: { product: Product; priority: boolean; inStock: boolean }) {
-  const slides = getProductColorSlides(product)
+export default function ProductCardMedia({ product, priority, inStock, previewColor }: { product: Product; priority: boolean; inStock: boolean; previewColor?: string | null }) {
+  const slides = previewColor ? getProductImagesForColor(product, previewColor).slice(0, 1) : getProductColorSlides(product)
   return <ColorRotation key={JSON.stringify([product.id, slides.map(s => s.url)])} slides={slides} fallback={productImageFallback(product).url} priority={priority} inStock={inStock} />
 }
 
@@ -43,12 +43,12 @@ function ColorRotation({ slides, fallback, priority, inStock }: { slides: Produc
     return () => window.clearTimeout(timer)
   }, [previousIndex])
 
-  return <div ref={container} className="pointer-events-none absolute inset-0" data-color-slide={index} data-color-slides={slides.length}>
+  return <div ref={container} className="pointer-events-none absolute inset-0" data-color-slide={index} data-color-slides={slides.length} data-motion-active={active} data-frame-ready={currentReady} data-next-ready={nextReady}>
     {/* Keep the preceding frame only during the crossfade; preload just the next color. */}
     {[...new Set([...(previousIndex === null ? [] : [previousIndex]), index, ...(rotating ? [next] : [])])].map(i => {
       const src = source(slides[i])
       const current = i === index
-      return <Image key={i} src={src} alt={current ? slides[i].alt_text || "" : ""} aria-hidden={!current} fill sizes={sizes}
+      return <Image key={`${i}:${src}`} src={src} alt={current ? slides[i].alt_text || "" : ""} aria-hidden={!current} fill sizes={sizes}
         priority={priority && i === 0} loading={priority && i === 0 ? undefined : "lazy"}
         onLoad={() => setLoaded(previous => previous[src] ? previous : { ...previous, [src]: true })}
         onError={() => setFailed(previous => previous[src] ? previous : { ...previous, [src]: true })}

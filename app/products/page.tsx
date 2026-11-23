@@ -3,8 +3,8 @@ import ProductCard from "@/components/storefront/product-card"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { SHOP_PRODUCT_KIND, isShopProduct } from "@/lib/product-kind"
-import { getStorefrontContent } from "@/lib/storefront/content"
-import { getCategoryAndDescendantIds, productMatchesCategoryIds, resolveCategoryFilter } from "@/lib/storefront/catalog"
+import { getCategoryAndDescendantIds, getCatalogCategoryOptions, productMatchesCategoryIds, resolveCategoryFilter } from "@/lib/storefront/catalog"
+import { loadCatalogProducts } from "@/lib/storefront/catalog-data"
 import { getAvailableColors, getAvailableSizes, isProductInStock, sortProductsByStockStatus } from "@/lib/utils"
 import ProductsControls, { type ProductsFilterState } from "./products-controls"
 import type { Product } from "@/types/api"
@@ -20,32 +20,11 @@ async function getProductsPageData(q: string, categoryFilter: string) {
   const categories = await api.getCategories().catch(() => [])
   const resolvedCategory = categoryFilter === "all" ? null : resolveCategoryFilter(categories, categoryFilter)
   const resolvedCategoryIds = resolvedCategory ? getCategoryAndDescendantIds(categories, resolvedCategory.id) : []
-  const productBatches = categoryFilter !== "all" && !resolvedCategory
-    ? []
-    : resolvedCategoryIds.length > 0
-    ? await Promise.all(resolvedCategoryIds.map((categoryId) => api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: q || null, categoryId })))
-    : [await api.getProducts(0, 100, { productKind: SHOP_PRODUCT_KIND, q: q || null })]
-  const productsById = new Map(productBatches.flat().map((product) => [product.id, product]))
-  const products = Array.from(productsById.values())
-
-  if (categoryFilter !== "all") {
-    console.log("[products/category-filter]", {
-      receivedSlug: categoryFilter,
-      resolvedId: resolvedCategory?.id ?? null,
-      resolvedSlug: resolvedCategory?.slug ?? null,
-      resolvedCategoryIds,
-      returnedProducts: products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        primary_category_id: product.primary_category_id ?? null,
-        category_ids: product.category_ids ?? product.categories ?? [],
-        in_stock: product.in_stock,
-      })),
-    })
-  }
-
-  return { products, resolvedCategoryIds }
+  const products = categoryFilter !== "all" && !resolvedCategory ? [] : await loadCatalogProducts(
+    (skip, limit, query) => api.getProductsPage(skip, limit, query),
+    { productKind: SHOP_PRODUCT_KIND, q: q || null },
+  )
+  return { products, categories, resolvedCategoryIds }
 }
 
 function getParam(searchParams: SearchParams, key: string, fallback = "") {
@@ -68,9 +47,7 @@ function parseFilters(searchParams: SearchParams): ProductsFilterState {
 }
 
 function filterProducts(products: Product[], filters: ProductsFilterState, categoryIds: string[] = []) {
-  const query = filters.q.trim().toLowerCase()
   const filtered = products.filter((product) => {
-    if (query && ![product.name, product.full_name, product.description].filter(Boolean).join(" ").toLowerCase().includes(query)) return false
     if (!productMatchesCategoryIds(product, categoryIds)) return false
     if (filters.color !== "all" && !getAvailableColors(product).some((item) => item.toLowerCase() === filters.color.toLowerCase())) return false
     if (filters.size !== "all" && !getAvailableSizes(product).some((item) => item.toLowerCase() === filters.size.toLowerCase())) return false
@@ -102,7 +79,6 @@ function getPageHref(filters: ProductsFilterState, page: number) {
 
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
   const filters = parseFilters(searchParams)
-  const content = getStorefrontContent()
 
   const productsData = await getProductsPageData(filters.q, filters.category)
 
@@ -111,16 +87,15 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
   const currentPage = Math.min(filters.page, totalPages)
   const visibleProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-  const categoryOptions = content.categoryFeatures.filter((feature) => feature.key !== "packs").map((feature) => ({ value: feature.key, label: feature.label }))
+  const categoryOptions = getCatalogCategoryOptions(productsData.categories)
   const colorOptions = Array.from(new Set(products.flatMap(getAvailableColors))).filter(Boolean).sort()
   const sizeOptions = Array.from(new Set(products.flatMap((product) => getAvailableSizes(product)))).filter(Boolean).sort()
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background px-4 pb-16 pt-28 text-foreground sm:px-6 sm:pt-32">
-      <div className="mx-auto max-w-7xl">
+    <main className="store-catalog min-h-screen bg-background pb-16 text-foreground">
+      <div className="store-container">
         <header className="border-b border-border pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Savage Rise</p>
-          <div className="mt-3 flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="mt-3 flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
               <h1 className="font-playfair text-5xl leading-none sm:text-6xl">Boutique</h1>
               <p className="mt-3 text-sm text-muted-foreground">{filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""}</p>
@@ -135,7 +110,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
           </div>
         </header>
 
-        <div className="grid min-w-0 gap-8 py-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <div className="grid min-w-0 gap-7 py-8 lg:grid-cols-[12rem_minmax(0,1fr)]">
           <ProductsControls
             filters={{ ...filters, page: currentPage }}
             categoryOptions={categoryOptions}
@@ -155,7 +130,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                 </Button>
               </div>
             ) : (
-              <div className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-3 min-[390px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              <div className="store-product-grid studio-grid-catalog">
                 {visibleProducts.map((product, index) => <ProductCard key={product.id} product={product} priority={index < 2} />)}
               </div>
             )}
