@@ -38,6 +38,8 @@ Streetwear premium de niveau international. Savage Rise et FAZA sont des engagem
 
 ## Brand Commitments
 
+L'introduction historique à deux portes, poignées dorées et mot-symbole Savage Rise est un élément essentiel de l'identité. La conserver et la moderniser sans la retirer lors d'une refonte. Elle apparaît une fois par session ; le cycle du Hero ne commence qu'après sa disparition complète.
+
 Préserver Savage Rise, FAZA, les logos et les contenus YOVO. La présentation suit les deux maquettes validées par le client. Les valeurs commerciales visibles dans ces images sont illustratives et ne remplacent pas le catalogue.
 
 ## Evidence on Hand

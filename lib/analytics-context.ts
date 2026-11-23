@@ -13,12 +13,58 @@ const FIRST_TOUCH_KEY = "savage-rise-first-touch"
 const LAST_TOUCH_KEY = "savage-rise-last-touch"
 const SESSION_TOUCH_KEY = "savage-rise-session-touch"
 
+type AnalyticsStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">
+const browserStores = new WeakMap<Window, { local: AnalyticsStorage; session: AnalyticsStorage }>()
+
+// Storage can throw on access, reads or writes. Keep only page-lifetime values
+// in that case: never retry a denied store or persist via another mechanism.
+function safeStorage(resolve: () => Storage): AnalyticsStorage {
+  const memory = new Map<string, string>()
+  let unavailable = false
+  return {
+    getItem(key) {
+      if (!unavailable) {
+        try {
+          const value = resolve().getItem(key)
+          if (value === null) memory.delete(key)
+          else memory.set(key, value)
+          return value
+        } catch { unavailable = true }
+      }
+      return memory.get(key) ?? null
+    },
+    setItem(key, value) {
+      memory.set(key, value)
+      if (!unavailable) {
+        try { resolve().setItem(key, value) } catch { unavailable = true }
+      }
+    },
+    removeItem(key) {
+      memory.delete(key)
+      if (!unavailable) {
+        try { resolve().removeItem(key) } catch { unavailable = true }
+      }
+    },
+  }
+}
+
+function browserStore(kind: "local" | "session") {
+  if (typeof window === "undefined") return null
+  let stores = browserStores.get(window)
+  if (!stores) {
+    const owner = window
+    stores = { local: safeStorage(() => owner.localStorage), session: safeStorage(() => owner.sessionStorage) }
+    browserStores.set(owner, stores)
+  }
+  return stores[kind]
+}
+
 function createId(prefix: string) {
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
   return `${prefix}_${id}`
 }
 
-function getOrCreateStorageValue(storage: Storage, key: string, prefix: string) {
+function getOrCreateStorageValue(storage: AnalyticsStorage, key: string, prefix: string) {
   const current = storage.getItem(key)
   if (current) return current
   const next = createId(prefix)
@@ -27,11 +73,11 @@ function getOrCreateStorageValue(storage: Storage, key: string, prefix: string) 
 }
 
 function localStore() {
-  return typeof window === "undefined" ? null : window.localStorage
+  return browserStore("local")
 }
 
 function sessionStore() {
-  return typeof window === "undefined" ? null : window.sessionStorage
+  return browserStore("session")
 }
 
 export function createEventId() {
@@ -80,7 +126,7 @@ export function clearCheckoutId() {
   if (typeof window !== "undefined") sessionStore()!.removeItem(CHECKOUT_KEY)
 }
 
-function readJson<T>(storage: Storage, key: string): T | null {
+function readJson<T>(storage: AnalyticsStorage, key: string): T | null {
   const raw = storage.getItem(key)
   if (!raw) return null
   try {
@@ -90,7 +136,7 @@ function readJson<T>(storage: Storage, key: string): T | null {
   }
 }
 
-function writeJson(storage: Storage, key: string, value: unknown) {
+function writeJson(storage: AnalyticsStorage, key: string, value: unknown) {
   storage.setItem(key, JSON.stringify(value))
 }
 

@@ -1,198 +1,39 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import type { RefObject } from "react"
+import type { EntranceStage } from "@/lib/storefront/entrance"
 
-interface EntranceAnimationProps {
-  onComplete: () => void
+// The paired doors, handles, wordmark and copy are the historical Savage Rise intro.
+const lights = [[12, 22], [26, 70], [39, 12], [61, 82], [76, 30], [88, 66]]
+
+type Props = {
+  stage: EntranceStage
+  name: string
+  panelRef: RefObject<HTMLDivElement>
+  onSkip: () => void
 }
 
-export default function EntranceAnimation({ onComplete }: EntranceAnimationProps) {
-  const [stage, setStage] = useState<"doors" | "logo" | "complete">("doors")
-
-  useEffect(() => {
-    const timer1 = setTimeout(() => {
-      setStage("logo")
-    }, 1200) // Portes s'ouvrent après 1200ms (au lieu de 800ms)
-
-    const timer2 = setTimeout(() => {
-      setStage("complete")
-      setTimeout(onComplete, 500)
-    }, 4500) // Animation complète après 4.5 secondes (au lieu de 3 secondes)
-
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-    }
-  }, [onComplete])
-
+export default function EntranceAnimation({ stage, name, panelRef, onSkip }: Props) {
   return (
-    <AnimatePresence>
-      {stage !== "complete" && (
-        <motion.div
-          className="fixed inset-0 z-[100] overflow-hidden"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-black to-gray-900" />
-
-          {/* Left Door */}
-          <motion.div
-            className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-black via-gray-900 to-gold/20 border-r-4 border-gold/30"
-            initial={{ x: 0 }}
-            animate={{ x: stage === "doors" ? 0 : "-100%" }}
-            transition={{ 
-              duration: 1.8, // Augmenté de 1.2s
-              ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.2 
-            }}
-          >
-            {/* Door Handle */}
-            <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
-              <div className="w-6 h-16 bg-gold rounded-full shadow-lg shadow-gold/50" />
-              <div className="w-4 h-4 bg-gold rounded-full mt-2 ml-1 shadow-lg shadow-gold/50" />
-            </div>
-            
-            {/* Door Pattern */}
-            <div className="absolute inset-4 border-2 border-gold/20 rounded-lg">
-              <div className="absolute inset-4 border border-gold/10 rounded-lg">
-                <div className="w-full h-full bg-gradient-to-br from-transparent via-gold/5 to-transparent rounded-lg" />
-              </div>
-            </div>
-
-            {/* Luxury Pattern */}
-            <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 opacity-10">
-              <div className="w-full h-full bg-gradient-radial from-gold/30 to-transparent rounded-full" />
-            </div>
-          </motion.div>
-
-          {/* Right Door */}
-          <motion.div
-            className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black via-gray-900 to-gold/20 border-l-4 border-gold/30"
-            initial={{ x: 0 }}
-            animate={{ x: stage === "doors" ? 0 : "100%" }}
-            transition={{ 
-              duration: 1.8, // Augmenté de 1.2s
-              ease: [0.25, 0.46, 0.45, 0.94],
-              delay: 0.2 
-            }}
-          >
-            {/* Door Handle */}
-            <div className="absolute left-8 top-1/2 transform -translate-y-1/2">
-              <div className="w-6 h-16 bg-gold rounded-full shadow-lg shadow-gold/50" />
-              <div className="w-4 h-4 bg-gold rounded-full mt-2 ml-1 shadow-lg shadow-gold/50" />
-            </div>
-            
-            {/* Door Pattern */}
-            <div className="absolute inset-4 border-2 border-gold/20 rounded-lg">
-              <div className="absolute inset-4 border border-gold/10 rounded-lg">
-                <div className="w-full h-full bg-gradient-to-bl from-transparent via-gold/5 to-transparent rounded-lg" />
-              </div>
-            </div>
-
-            {/* Luxury Pattern */}
-            <div className="absolute top-1/4 right-1/4 w-1/2 h-1/2 opacity-10">
-              <div className="w-full h-full bg-gradient-radial from-gold/30 to-transparent rounded-full" />
-            </div>
-          </motion.div>
-
-          {/* Central Content */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <AnimatePresence>
-              {stage === "logo" && (
-                <motion.div
-                  className="text-center"
-                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 1.1, y: -20 }}
-                  transition={{
-                    duration: 1.2, // Augmenté de 0.8s
-                    ease: [0.25, 0.46, 0.45, 0.94]
-                  }}
-                >
-                  {/* Main Logo */}
-                  <motion.h1 
-                    className="text-6xl md:text-8xl font-playfair font-bold text-gold mb-4"
-                    initial={{ letterSpacing: "0.5em", opacity: 0 }}
-                    animate={{ letterSpacing: "0.1em", opacity: 1 }}
-                    transition={{ duration: 1, delay: 0.2 }}
-                  >
-                    SAVAGE RISE
-                  </motion.h1>
-                  
-                  {/* Welcome Text */}
-                  <motion.p 
-                    className="text-xl md:text-2xl text-white font-light tracking-widest mb-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                  >
-                    Welcome to the world of contemporary luxury
-                  </motion.p>
-
-                  {/* Decorative Elements */}
-                  <motion.div 
-                    className="flex items-center justify-center space-x-4"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.8 }}
-                  >
-                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-gold to-transparent" />
-                    <div className="w-2 h-2 bg-gold rounded-full shadow-lg shadow-gold/50" />
-                    <div className="w-16 h-px bg-gradient-to-l from-transparent via-gold to-transparent" />
-                  </motion.div>
-
-                  {/* Subtitle */}
-                  <motion.p 
-                    className="text-sm text-gray-400 mt-6 tracking-wider"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.4, delay: 1 }}
-                  >
-                    EXCELLENCE • ELEGANCE • SOPHISTICATION
-                  </motion.p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Light Effect */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: stage === "logo" ? 1 : 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-radial from-gold/10 via-gold/5 to-transparent rounded-full blur-3xl" />
-          </motion.div>
-
-          {/* Particles Effect */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-gold/30 rounded-full"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  delay: Math.random() * 2,
-                  repeat: Infinity,
-                  repeatDelay: Math.random() * 3,
-                }}
-              />
-            ))}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div ref={panelRef} className="store-entrance" data-entrance-stage={stage}
+      role="dialog" aria-modal="true" aria-label="Introduction Savage Rise" tabIndex={-1}>
+      <div className="store-entrance-ground" aria-hidden="true" />
+      {(["left", "right"] as const).map(side => (
+        <div key={side} className={`store-entrance-door store-entrance-door-${side}`} aria-hidden="true">
+          <div className="store-entrance-door-frame" />
+          <div className="store-entrance-handle"><span /><i /></div>
+        </div>
+      ))}
+      <div className="store-entrance-signature">
+        <p className="store-entrance-wordmark">{name}</p>
+        <p className="store-entrance-welcome">Welcome to the world of contemporary luxury</p>
+        <div className="store-entrance-ornament" aria-hidden="true"><span /><i /><span /></div>
+        <p className="store-entrance-motto">EXCELLENCE • ELEGANCE • SOPHISTICATION</p>
+      </div>
+      <div className="store-entrance-lights" aria-hidden="true">
+        {lights.map(([left, top], index) => <span key={index} style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 160}ms` }} />)}
+      </div>
+      <button type="button" className="store-entrance-skip" onClick={onSkip}>Passer l’introduction</button>
+    </div>
   )
 }

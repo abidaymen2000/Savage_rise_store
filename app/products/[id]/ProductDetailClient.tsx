@@ -583,10 +583,10 @@ export default function ProductDetailClient({ product, initialRelatedPack, initi
                 </div>
               )}
 
-              {product.sku && (
+              {(currentVariant?.sku || product.sku) && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">SKU:</span>
-                  <span>{product.sku}</span>
+                  <span>{currentVariant?.sku || product.sku}</span>
                 </div>
               )}
             </div>

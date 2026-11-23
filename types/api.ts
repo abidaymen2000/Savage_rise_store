@@ -37,6 +37,8 @@ export interface VariantItem extends Availability {
 }
 
 export interface Variant {
+  color_value?: string
+  option_value_labels?: Record<string, string>
   position?: number
   id?: string | null
   name?: string | null

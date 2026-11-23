@@ -17,6 +17,11 @@ export function useMediaActive(ref: RefObject<HTMLElement>, pauseOnFocus = false
       update()
     })
     observer?.observe(element)
+    // Opacity/visibility transitions need not trigger IntersectionObserver.
+    // Start a fresh Hero image interval only when the entrance unlocks content.
+    const entrance = element.closest('[data-store-entrance-pending]')
+    const entranceObserver = entrance ? new MutationObserver(update) : null
+    if (entrance) entranceObserver?.observe(entrance, { attributes: true, attributeFilter: ["data-store-entrance-pending"] })
     preference.addEventListener("change", update)
     document.addEventListener("visibilitychange", update)
     focusTarget.addEventListener("focusin", update)
@@ -24,6 +29,7 @@ export function useMediaActive(ref: RefObject<HTMLElement>, pauseOnFocus = false
     update()
     return () => {
       observer?.disconnect()
+      entranceObserver?.disconnect()
       preference.removeEventListener("change", update)
       document.removeEventListener("visibilitychange", update)
       focusTarget.removeEventListener("focusin", update)

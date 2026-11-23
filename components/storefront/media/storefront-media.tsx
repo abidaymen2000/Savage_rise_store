@@ -3,6 +3,7 @@ import { useStudio } from "@/components/studio-runtime"
 import Image from "next/image"
 import type { StorefrontMedia as StorefrontMediaType } from "@/types/storefront-content"
 import StorefrontVideo from "./storefront-video"
+import HeroPoster from "./hero-poster"
 
 type StorefrontMediaProps = {
   media: StorefrontMediaType
@@ -35,6 +36,15 @@ export default function StorefrontMedia({
         sizes={sizes}
       />
     )
+  }
+
+  if (playback === "hero-cycle") {
+    return <div className={`${wrapperPosition} overflow-hidden ${className}`} data-hero-media>
+      <HeroPoster key={media.src} src={media.src} alt={media.alt} sizes={sizes} priority={priority} className={imageClassName}
+        objectPosition={media.objectPosition?.trim() || "50% 50%"}
+        onReady={() => reportMedia({ url: media.src, state: "ready" })}
+        onError={() => reportMedia({ url: media.src, state: "error" })} />
+    </div>
   }
 
   return (

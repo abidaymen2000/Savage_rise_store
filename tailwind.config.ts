@@ -2,13 +2,18 @@ import type { Config } from "tailwindcss"
 
 const config: Config = {
   darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: {
+    // Resolve against this project, including isolated frontend review copies.
+    // A root glob makes Webpack watch generated reports and rebuild its own JS
+    // while the browser is downloading it. All UI lives in these source trees.
+    relative: true,
+    files: [
+      "./pages/**/*.{ts,tsx}",
+      "./components/**/*.{ts,tsx}",
+      "./app/**/*.{ts,tsx}",
+      "./src/**/*.{ts,tsx}",
+    ],
+  },
   theme: {
     container: {
       center: true,

@@ -72,3 +72,30 @@ test('adapter retains primary, ERP swatch and position and resolves color/size b
     assert.equal(p.variants[0].inventory.stock_available, 3)
   } finally { CatalogService.getProductCatalogProductsSlugGet = original }
 })
+
+
+test('canonical labels override stale technical names and SKU while every size retains its ID', async () => {
+  const original = CatalogService.getProductCatalogProductsSlugGet
+  CatalogService.getProductCatalogProductsSlugGet = async () => ({
+    id: 'p', name: 'Hoodie', slug: 'hoodie',
+    option_axes: [{ attribute_id: 'c', code: 'color', values: [{id:'black-id', code:'black', label:'Black', swatch:'#000000'}] },
+      {attribute_id:'s',code:'size',values:['xs','s','m','l','xl'].map(code=>({id:code+'-id',code,label:code.toUpperCase()}))}],
+    variants:['xs','s','m','l','xl'].map((size,i)=>({
+      id:'v-'+size, title:'DARK_BLACK / '+size, sku:'OLD-DARK-BLACK-'+size, position:i,
+      option_values:{size,color:i%2 ? 'BLACK' : 'black-id'},
+      option_value_labels:{color:'Obsolete',size}, base_price:'89.900',
+      media:[{asset_id:'black-image',url:'/black.jpg'}],inventory:{availability_status:'available',in_stock:true}
+    }))
+  })
+  try {
+    const p=await catalogApi.getProduct('hoodie')
+    assert.deepEqual(p.variants.map(v=>v.color),Array(5).fill('Black'))
+    assert.deepEqual(p.variants.map(v=>v.sizes[0].size),['XS','S','M','L','XL'])
+    assert.deepEqual(p.variants.map(v=>v.id),['v-xs','v-s','v-m','v-l','v-xl'])
+    assert.equal(getProductColorGalleries(p).length,1)
+    assert.equal(getProductColorGalleries(p)[0].colorCode,'#000000')
+    assert.equal(getProductImagesForColor(p,'Black')[0].url,'/black.jpg')
+    assert.equal(p.variants[0].sku,'OLD-DARK-BLACK-xs')
+    assert.equal(p.variants[0].price,89.9)
+  } finally { CatalogService.getProductCatalogProductsSlugGet=original }
+})

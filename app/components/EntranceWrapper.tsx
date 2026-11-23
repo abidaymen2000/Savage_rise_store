@@ -1,41 +1,51 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import EntranceAnimation from "./EntranceAnimation"
+import type { EntranceController, EntranceStage } from "@/lib/storefront/entrance"
 
-interface EntranceWrapperProps {
-  children: React.ReactNode
-}
+type EntranceWindow = Window & { __savageEntrance?: EntranceController }
 
-export default function EntranceWrapper({ children }: EntranceWrapperProps) {
-  const [showAnimation, setShowAnimation] = useState(true)
-  const [hasVisited, setHasVisited] = useState(false)
+export default function EntranceWrapper({ children, name, disabled = false }: { children: ReactNode; name: string; disabled?: boolean }) {
+  const [stage, setStage] = useState<EntranceStage>("checking")
+  const panel = useRef<HTMLDivElement>(null)
+  const content = useRef<HTMLDivElement>(null)
+  const running = stage === "playing" || stage === "revealing"
+  const reveal = useCallback(() => (window as EntranceWindow).__savageEntrance?.reveal(), [])
 
   useEffect(() => {
-    // Vérifier si l'utilisateur a déjà visité le site dans cette session
-    const visited = sessionStorage.getItem("savage_rise_visited")
-    if (visited) {
-      setShowAnimation(false)
-      setHasVisited(true)
+    const controller = (window as EntranceWindow).__savageEntrance
+    const element = content.current
+    if (disabled) controller?.complete()
+    const update = () => setStage(disabled ? "complete" : controller?.stage ?? "complete")
+    window.addEventListener("savage-rise:entrance-change", update)
+    update()
+    return () => {
+      window.removeEventListener("savage-rise:entrance-change", update)
+      // StrictMode's rehearsal keeps this node connected; a real unmount does not.
+      queueMicrotask(() => { if (!element?.isConnected) controller?.complete() })
     }
-  }, [])
+  }, [disabled])
 
-  const handleAnimationComplete = () => {
-    setShowAnimation(false)
-    setHasVisited(true)
-    // Marquer comme visité pour cette session
-    sessionStorage.setItem("savage_rise_visited", "true")
-  }
-
-  // Si l'utilisateur a déjà visité, ne pas montrer l'animation
-  if (hasVisited && !showAnimation) {
-    return <>{children}</>
-  }
+  useEffect(() => {
+    if (!running) return
+    const element = content.current
+    const entrancePanel = panel.current
+    const previousFocus = document.activeElement as HTMLElement | null
+    if (element) element.inert = true
+    entrancePanel?.focus({ preventScroll: true })
+    return () => {
+      if (element) element.inert = false
+      if (previousFocus && previousFocus !== document.body && previousFocus.isConnected && !entrancePanel?.contains(previousFocus)) previousFocus.focus({ preventScroll: true })
+      else element?.focus({ preventScroll: true })
+    }
+  }, [running])
 
   return (
     <>
-      {showAnimation && <EntranceAnimation onComplete={handleAnimationComplete} />}
-      <div data-store-entrance-pending={showAnimation} className={showAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-500"}>
+      {stage !== "complete" && <EntranceAnimation stage={stage} name={name} panelRef={panel} onSkip={reveal} />}
+      {/* A stable subtree preserves the Hero, forms and navigation through the reveal. */}
+      <div ref={content} className="store-entrance-content" data-store-entrance-pending={stage !== "complete"} aria-hidden={running || undefined} tabIndex={-1}>
         {children}
       </div>
     </>

@@ -8,7 +8,8 @@ const list=read('products').items
 const products=list.map(p=>read('product-'+p.slug))
 let overrides={},wishlist=[]
 const records=[]
-const origin='http://127.0.0.1:49171'
+const port=Number(process.env.STORE_TEST_PORT||49171)
+const origin=`http://127.0.0.1:${port}`
 const copy = value => structuredClone(value)
 const server=http.createServer(async(req,res)=>{
   res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','*');res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS')
@@ -71,4 +72,4 @@ const server=http.createServer(async(req,res)=>{
   if(p.includes('analytics'))return send({tracked:true})
   return send({detail:'Unimplemented local fixture route: '+p},404)
 })
-server.listen(49171,'127.0.0.1',()=>console.log('Snapshot fixture '+origin))
+server.listen(port,'127.0.0.1',()=>console.log('Snapshot fixture '+origin))

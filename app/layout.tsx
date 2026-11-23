@@ -9,6 +9,9 @@ import Image from "next/image"
 import "./globals.css"
 import "./studio.css"
 import "./storefront.css"
+import "./entrance.css"
+import EntranceWrapper from "./components/EntranceWrapper"
+import { ENTRANCE_BOOTSTRAP } from "@/lib/storefront/entrance"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import { CartProvider } from "@/contexts/CartContext"
@@ -176,11 +179,14 @@ export default async function RootLayout({
             ) : (
               <StudioRuntime document={studio}><AuthProvider>
                 <CartProvider>
+                  {!studio?.preview && <script id="store-entrance-bootstrap" dangerouslySetInnerHTML={{ __html: ENTRANCE_BOOTSTRAP }} />}
+                  <EntranceWrapper name={getStoreDisplayName(config)} disabled={!!studio?.preview}>
                   <div className="store-shell">
                     <Header initialHeaderItems={navigation.headerItems} initialMobileItems={navigation.mobileItems} categories={categories} />
                     {children}
                     <Footer />
                   </div>
+                  </EntranceWrapper>
                 </CartProvider>
               </AuthProvider></StudioRuntime>
             )}

@@ -1,3 +1,4 @@
+import { catalogOptionDisplay } from "@/lib/catalog-option-display"
 import { retryReadOnly } from "@/lib/read-retry"
 import { availabilityStatus } from "@/lib/availability"
 import {
@@ -56,10 +57,6 @@ function optionEntries(variant: ProductVariantRead) {
   return Object.entries(variant.option_values ?? {})
 }
 
-function variantDisplayAxis(variant: ProductVariantRead, index: number, fallback: string) {
-  return optionEntries(variant)[index]?.[1] ?? fallback
-}
-
 function isDefaultOption(value: string | undefined) {
   const normalized = value?.toLowerCase().trim()
   return !normalized || normalized === "default" || normalized === "__default__"
@@ -74,13 +71,14 @@ function legacySizeInStock(size: SizeStock) {
   return availabilityStatus(size) === "available"
 }
 
-function variantToLegacy(variant: ProductVariantRead, productPrice: number, productKind?: string): Variant {
-  const entries = optionEntries(variant)
+function variantToLegacy(variant: ProductVariantRead, productPrice: number, productKind?: string, axes?: ProductStorefrontDetail["option_axes"]): Variant {
+  const display = catalogOptionDisplay(variant, axes)
+  const entries = Object.entries(display.labels)
   const bundleWithoutOptions = productKind === "bundle" && !hasDisplayableOptionValues(variant)
   const colorEntry = entries.find(([axis]) => ["color", "colour", "couleur"].includes(axis.normalize("NFKC").trim().toLowerCase()))
   const sizeEntry = entries.find(([axis]) => ["size", "taille"].includes(axis.normalize("NFKC").trim().toLowerCase()))
-  const first = bundleWithoutOptions ? "" : colorEntry?.[1] ?? entries[0]?.[1] ?? variant.title
-  const second = bundleWithoutOptions ? "" : sizeEntry?.[1] ?? entries[1]?.[1] ?? "default"
+  const first = bundleWithoutOptions ? "" : display.color?.label ?? colorEntry?.[1] ?? entries[0]?.[1] ?? variant.title
+  const second = bundleWithoutOptions ? "" : display.size ?? sizeEntry?.[1] ?? entries[1]?.[1] ?? "default"
   const inventory = variant.inventory ?? null
   const trackInventory = inventory?.track_inventory ?? variant.track_inventory ?? true
   const stockOnHand = inventory?.stock_on_hand
@@ -110,7 +108,9 @@ function variantToLegacy(variant: ProductVariantRead, productPrice: number, prod
     position: variant.position,
     name: variant.title,
     color: first,
-    color_code: typeof variant.attribute_values?.color_code === "string" ? variant.attribute_values.color_code : null,
+    color_value: display.color?.value,
+    option_value_labels: display.labels,
+    color_code: display.color?.swatch || (typeof variant.attribute_values?.color_code === "string" ? variant.attribute_values.color_code : null),
     status: variant.status ?? null,
     sizes: size ? [size] : [],
     items: [{
@@ -151,14 +151,7 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   const firstVariant = detail.variants?.[0]
   const price = toNumber(firstVariant?.base_price, toNumber(detail.attribute_values?.price))
   const compareAtPrice = toNumber(firstVariant?.compare_at_price, 0) || null
-  const colorAxis = detail.option_axes?.find(axis =>
-    ["color", "colour", "couleur"].includes((axis.system_key || axis.code).normalize("NFKC").trim().toLowerCase()))
-  const variants = (detail.variants ?? []).map((variant) => {
-    const mapped = variantToLegacy(variant, price, detail.product_kind)
-    const colorValue = colorAxis ? variant.option_values?.[colorAxis.code] : undefined
-    const colorOption = colorAxis?.values?.find(option => option.code === colorValue || option.id === colorValue)
-    return { ...mapped, color_code: colorOption?.swatch || mapped.color_code }
-  })
+  const variants = (detail.variants ?? []).map(variant => variantToLegacy(variant, price, detail.product_kind, detail.option_axes))
   const images = productMedia.length > 0 ? productMedia : variants.flatMap((variant) => variant.images)
   const inStock = detail.in_stock
 
@@ -247,7 +240,7 @@ function bundleComponentToPackComponent(component: BundleComponent, products: Pr
     variant_id: component.fixed_variant_id ?? fixedVariant?.id ?? null,
     variant_item_id: component.fixed_variant_id ?? fixedVariant?.id ?? null,
     sku: fixedVariant?.sku ?? null,
-    color: fixedVariant ? variantDisplayAxis(fixedVariant as unknown as ProductVariantRead, 0, fixedVariant.color) : null,
+    color: fixedVariant?.color ?? null,
     size: fixedVariant?.sizes?.[0]?.size ?? null,
     qty: component.quantity ?? 1,
     product: summary,
