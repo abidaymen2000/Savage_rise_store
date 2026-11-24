@@ -32,7 +32,7 @@ test('template declares page and section choices; hidden and unimplemented desti
  assert.throws(()=>heroHref({type:'page',target:'products'},manifest,{products:false}))
  assert.throws(()=>heroHref({type:'buy_product',product_id:product.id},{pages:[]}))
 })
-test('Hero quick purchase preserves normal cart and canonical chosen variant',()=>{
+test('product quick purchase preserves normal cart and canonical chosen variant',()=>{
  const saved=new Map([['cart','existing regular cart']]),storage={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)}
  const chosen=heroSelections(product)[0]
  const state={items:[{product,selectedVariant:chosen.variant,selectedSize:chosen.size,selectedVariantItemId:chosen.variant.id,quantity:2}],packItems:[],total:159.8,itemCount:2}
@@ -40,4 +40,14 @@ test('Hero quick purchase preserves normal cart and canonical chosen variant',()
  assert.equal(saved.get('cart'),'existing regular cart')
  assert.equal(readQuickPurchase(storage,'company-a',receipt.id).state.items[0].selectedVariantItemId,'black-m')
  assert.equal(readQuickPurchase(storage,'company-b',receipt.id),null)
+})
+
+test('both Studio product actions navigate using the current configured product without a purchase read',()=>{
+ const manifest={pages:[],hero_actions:{version:1,types:['buy_product','product'],product_kinds:['physical']}}
+ for(const type of ['buy_product','product']){
+  assert.equal(heroHref({type,product_id:'product-a'},manifest),'/products/product-a')
+  assert.equal(heroHref({type,product_id:'product-b'},manifest),'/products/product-b')
+  assert.equal(heroHref({type,product_id:'product/a?b'},manifest),'/products/product%2Fa%3Fb')
+  assert.throws(()=>heroHref({type,product_id:''},manifest),/no longer available/)
+ }
 })

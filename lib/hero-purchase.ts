@@ -17,6 +17,10 @@ export function heroHref(action: StudioHeroAction, manifest: StudioManifest, vis
     if(!section)throw Error("This section is no longer available.")
     return section.path
   }
+  if(action.type==='product'||action.type==='buy_product'){
+    if(!action.product_id?.trim())throw Error("This product is no longer available in this store.")
+    return '/products/'+encodeURIComponent(action.product_id)
+  }
   return null
 }
 export type HeroSelection={key:string;variant:Variant;size:string;label:string;limit:number}

@@ -1,11 +1,12 @@
 import { ApiError } from "@/lib/api/api-error"
 import type { Metadata } from "next"
 import { cache } from "react"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import ProductDetailClient from "./ProductDetailClient"
 import { api } from "@/lib/api"
 import { findCompanionComponents, findRelatedPack } from "@/lib/pack-offers"
 import type { Pack, Product } from "@/types/api"
+import { ProductCanonicalLocation } from "@/components/product-canonical-location"
 
 export const dynamic = "force-dynamic"
 export const fetchCache = "default-no-store"
@@ -45,6 +46,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: `${product.name} | Savage Rise`,
     description: product.description ?? product.full_name ?? "Savage Rise Product",
+    alternates: { canonical: `/products/${encodeURIComponent(product.slug || product.id)}` },
     openGraph: {
       title: product.name,
       description: product.description ?? product.full_name ?? undefined,
@@ -59,8 +61,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     api.getPacks(0, 50).catch(() => [] as Pack[]),
   ])
   if (!product) notFound()
+  if (product.product_kind === "bundle") redirect(`/packs/${encodeURIComponent(product.slug || product.id)}`)
 
   const { relatedPack, relatedProducts } = await getRelatedData(product.id, packs)
 
-  return <ProductDetailClient product={product} initialRelatedPack={relatedPack} initialRelatedProducts={relatedProducts} />
+  return <>
+    <ProductCanonicalLocation id={product.id} slug={product.slug} />
+    <ProductDetailClient product={product} initialRelatedPack={relatedPack} initialRelatedProducts={relatedProducts} />
+  </>
 }
