@@ -8,6 +8,7 @@ import { findCompanionComponents, findRelatedPack } from "@/lib/pack-offers"
 import type { Pack, Product } from "@/types/api"
 
 export const dynamic = "force-dynamic"
+export const fetchCache = "default-no-store"
 
 type ProductPageProps = {
   params: { id: string }
@@ -23,8 +24,7 @@ const getProductOrNull = cache(async (id: string) => {
   }
 })
 
-async function getRelatedData(productId: string) {
-  const packs = await api.getPacks(0, 50).catch(() => [] as Pack[])
+async function getRelatedData(productId: string, packs: Pack[]) {
   const relatedPack = findRelatedPack(productId, packs)
   if (!relatedPack) return { relatedPack: null, relatedProducts: {} }
 
@@ -54,10 +54,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
-  const product = await getProductOrNull(params.id)
+  const [product, packs] = await Promise.all([
+    getProductOrNull(params.id),
+    api.getPacks(0, 50).catch(() => [] as Pack[]),
+  ])
   if (!product) notFound()
 
-  const { relatedPack, relatedProducts } = await getRelatedData(product.id)
+  const { relatedPack, relatedProducts } = await getRelatedData(product.id, packs)
 
   return <ProductDetailClient product={product} initialRelatedPack={relatedPack} initialRelatedProducts={relatedProducts} />
 }

@@ -8,6 +8,7 @@ const list=read('products').items
 const products=list.map(p=>read('product-'+p.slug))
 let overrides={},wishlist=[],counters={}
 const records=[]
+const metrics=[]
 const port=Number(process.env.STORE_TEST_PORT||49175)
 const origin=`http://127.0.0.1:${port}`
 const copy = value => structuredClone(value)
@@ -21,6 +22,9 @@ const server=http.createServer(async(req,res)=>{
   if(p==='/__test/reset'){overrides={};wishlist=[];records.length=0;counters={};return send({fixture:true})}
   if(p==='/__test/state'&&req.method==='POST'){overrides={...overrides,...body};return send({fixture:true})}
   if(p==='/__test/records')return send(records)
+  if(p==='/__test/metrics')return send(metrics)
+  const started=performance.now(),metric={path:p,query:url.search,method:req.method,at:Date.now()}
+  metrics.push(metric);res.once('finish',()=>Object.assign(metric,{ms:performance.now()-started,status:res.statusCode}))
   counters[p]=(counters[p]||0)+1
   if(p.startsWith('/catalog/')&&overrides.delayMs)await new Promise(resolve=>setTimeout(resolve,overrides.delayMs))
   const catalogList=[...list],catalogDetails=[...products]
@@ -51,6 +55,20 @@ const server=http.createServer(async(req,res)=>{
     if(url.searchParams.has('product_kind')) items=items.filter(x=>x.product_kind===url.searchParams.get('product_kind'))
     const q=url.searchParams.get('q')?.toLowerCase(); if(q)items=items.filter(x=>x.name.toLowerCase().includes(q)||x.slug.includes(q))
     if(overrides.empty)items=[]
+    if(overrides.compact&&url.searchParams.getAll('include').includes('variant_summary'))items=items.map(item=>{
+      const detail=catalogDetails.find(d=>d.id===item.id)
+      const summaryPath=new URL('summary.json',root)
+      const existing=existsSync(summaryPath)?read('summary').items.find(d=>d.id===item.id):null
+      return {...item,category_ids:detail.category_ids||[],description:detail.description,
+        variant_count:detail.variants.filter(v=>!v.archived_at).length,
+        variant_summary:detail.variants.filter(v=>!v.archived_at).map(v=>({
+          ...(existing?.variant_summary?.find(s=>s.id===v.id)||{id:v.id,title:v.title,option_values:v.option_values,option_value_labels:v.option_value_labels,base_price:Number(v.base_price),effective_price:v.effective_price==null?null:Number(v.effective_price),compare_at_price:v.compare_at_price==null?null:Number(v.compare_at_price),currency:v.currency,...v.inventory,primary_image:v.media?.find(m=>m.is_primary)||v.media?.[0]||null}),
+          sku:v.sku??null,position:v.position||0,status:v.status||'active',track_inventory:v.inventory?.track_inventory??v.track_inventory??true,
+          ...(overrides.soldOut?{in_stock:false,availability_status:'forced_sold_out'}:{}),
+          ...(overrides.price?{base_price:overrides.price,effective_price:overrides.price}:{}),
+        })),...(overrides.soldOut?{in_stock:false,forced_sold_out:true,availability_status:'forced_sold_out'}:{}),
+      }
+    })
     const page=Number(url.searchParams.get('page')||1),size=overrides.pageSize||2
     if(overrides.fault==='list-once'&&counters[p]===1)return send({detail:'Injected temporary list error'},503)
     if(overrides.fault==='short-200')return send({items:items.slice(0,-1),page:1,page_size:100,total:items.length,pages:1,has_next:false})

@@ -1,4 +1,5 @@
 import { catalogOptionDisplay } from "@/lib/catalog-option-display"
+import { catalogCardDetail } from "@/lib/catalog-card-detail"
 import { CatalogIntegrityError, readCatalog, validateCatalogPage, type CatalogObserver } from "@/lib/catalog-read"
 import { availabilityStatus } from "@/lib/availability"
 import {
@@ -181,10 +182,10 @@ function detailToProduct(detail: ProductStorefrontDetail): Product {
   } as Product
 }
 
-async function enrichProducts(items: ProductListItem[], read: (slug: string) => Promise<Product>, observer?: CatalogObserver): Promise<Product[]> {
+async function enrichProducts(items: ProductListItem[], read: (slug: string, item: ProductListItem) => Promise<Product>, observer?: CatalogObserver): Promise<Product[]> {
   const results = await Promise.allSettled(items.map(async (item) => {
     try {
-      const product = await read(item.slug)
+      const product = await read(item.slug, item)
       // A malformed/stale detail must not be silently removed by the Shop filters.
       if (product.id !== item.id || !product.product_kind || product.product_kind !== item.product_kind) throw new CatalogIntegrityError("detail_identity_mismatch")
       return product
@@ -290,7 +291,7 @@ function productToPack(product: Product, componentProducts: Product[] = []): Pac
 }
 
 export const catalogApi = {
-  async getProductsPage(skip = 0, limit = 10, query: CatalogProductQuery = {}, observer?: CatalogObserver): Promise<CatalogProductPage> {
+  async getProductsPage(skip = 0, limit = 10, query: CatalogProductQuery = {}, observer?: CatalogObserver, cards = false): Promise<CatalogProductPage> {
     const page = Math.floor(skip / limit) + 1
     const response: PaginatedResponse_ProductListItem_ = await readCatalog(
       () => CatalogService.listProductsCatalogProductsGet({
@@ -299,13 +300,18 @@ export const catalogApi = {
         q: query.q,
         productKind: query.productKind,
         categoryId: query.categoryId,
+        include: cards ? ["variant_summary"] : undefined,
       }),
       { operation: "products", observer, validate: (value) => {
         observer?.({ operation: "listing", page: value?.page, total: value?.total, loaded: value?.items?.length ?? 0 })
         validateCatalogPage(value, page)
+        if (cards) value.items!.forEach(catalogCardDetail)
       } },
     )
-    const details = await enrichProducts(response.items!, (slug) => this.getProduct(slug, observer), observer)
+    const details = await enrichProducts(response.items!, (slug, item) => {
+      const compact = cards ? catalogCardDetail(item) : null
+      return compact ? Promise.resolve(detailToProduct(compact)) : this.getProduct(slug, observer)
+    }, observer)
     return {
       items: details,
       total: response.total,
@@ -315,6 +321,10 @@ export const catalogApi = {
       has_next: response.has_next,
       has_prev: response.has_prev,
     }
+  },
+
+  async getProductCardsPage(skip = 0, limit = 10, query: CatalogProductQuery = {}, observer?: CatalogObserver): Promise<CatalogProductPage> {
+    return this.getProductsPage(skip, limit, query, observer, true)
   },
 
   async getProducts(skip = 0, limit = 10, query: CatalogProductQuery = {}): Promise<Product[]> {

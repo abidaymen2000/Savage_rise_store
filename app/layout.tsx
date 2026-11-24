@@ -22,7 +22,7 @@ import MetaPixel from "./components/MetaPixel"
 import StoreAnalytics from "./components/StoreAnalytics"
 import { Toaster } from "@/components/ui/toaster" // Import Toaster
 import { api } from "@/lib/api"
-import { loadCatalogCategories } from "@/lib/storefront/catalog-categories"
+import { getCatalogCategories } from "@/lib/storefront/catalog-server"
 import { createCatalogDiagnostics } from "@/lib/storefront/catalog-diagnostics"
 import { getStoreConfig } from "@/lib/store-config"
 import { filterNavigationItemsBySurface } from "@/lib/store-navigation/navigation-utils"
@@ -162,7 +162,7 @@ export default async function RootLayout({
   const [storeConfig, studio, categories] = await Promise.all([
     getStoreConfig(),
     getStudioDocument(),
-    loadCatalogCategories(() => api.getCategories(diagnostics.observe)),
+    getCatalogCategories(),
   ])
   diagnostics.finish({ outcome: "complete", loaded: 0, categoriesAvailable: categories.available })
   const { config } = storeConfig

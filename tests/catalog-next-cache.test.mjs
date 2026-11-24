@@ -9,7 +9,7 @@ test('installed Next 14 reproduces stale partial RSC data; catalogue policy read
  const original=globalThis.fetch,storage=new AsyncLocalStorage(),entries=new Map()
  let currentTotal=4,originReads=0
  const cache={fetchCacheKey:async(url,init)=>JSON.stringify([url,[...new Headers(init.headers)]]),lock:async()=>async()=>{},get:async key=>entries.has(key)?{value:entries.get(key),isStale:false}:null,set:async(key,value)=>entries.set(key,value)}
- globalThis.fetch=async()=>{originReads++;return new Response(JSON.stringify({total:currentTotal}),{headers:{'Content-Type':'application/json','Cache-Control':'private, no-store'}})}
+ globalThis.fetch=async()=>{originReads++;return new Response(JSON.stringify({total:currentTotal,color:currentTotal===4?'Dark Black':'Black'}),{headers:{'Content-Type':'application/json','Cache-Control':'private, no-store'}})}
  patchFetch({staticGenerationAsyncStorage:storage,serverHooks:{DynamicServerError}})
  const read=(policy,tenant='savagerise.com')=>storage.run({forceDynamic:true,isStaticGeneration:false,pagePath:'/products/page',urlPathname:'/products',incrementalCache:cache,...policy},async()=>{
   return (await fetch('https://catalog.example.invalid/catalog/products',{headers:{'X-Store-Domain':tenant},signal:new AbortController().signal})).json()
@@ -17,12 +17,16 @@ test('installed Next 14 reproduces stale partial RSC data; catalogue policy read
  try{
   assert.equal((await read({})).total,4)
   currentTotal=5
-  assert.equal((await read({})).total,4,'force-dynamic alone still reads the old Data Cache in the installed version')
+  const stale=await read({})
+  assert.equal(stale.total,4,'force-dynamic alone still reads the old Data Cache in the installed version')
+  assert.equal(stale.color,'Dark Black','the same stale detail survives a Core canonical color migration')
   assert.equal(originReads,1)
   assert.equal((await read({revalidate:0})).total,5,'full layout uncached read bypasses the cached list')
-  assert.equal((await read({fetchCache:'default-no-store'})).total,5)
+  const fresh=await read({fetchCache:'default-no-store'})
+  assert.equal(fresh.total,5)
+  assert.equal(fresh.color,'Black')
   assert.equal(originReads,3)
   assert.equal((await read({},'another.example.invalid')).total,5,'tenant headers participate in the existing cache key')
-  for(const source of ['app/products/page.tsx','app/categories/[name]/page.tsx','app/page.tsx'])assert.match(readFileSync(source,'utf8'),/export const fetchCache = "default-no-store"/)
+  for(const source of ['app/products/page.tsx','app/products/[id]/page.tsx','app/categories/[name]/page.tsx','app/page.tsx'])assert.match(readFileSync(source,'utf8'),/export const fetchCache = "default-no-store"/)
  }finally{globalThis.fetch=original}
 })

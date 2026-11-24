@@ -94,8 +94,8 @@ export default function FeaturedProducts({
         </div>
         {!productsAvailable ? <CatalogUnavailable /> : featuredProducts.length > 0 ? (
           <div className="studio-grid-catalog store-product-grid">
-            {featuredProducts.slice(0, 4).map((product, index) => (
-              <ProductCard key={product.id} product={product} priority={index < 2} />
+            {featuredProducts.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (

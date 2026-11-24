@@ -5,7 +5,7 @@ import { api } from "@/lib/api"
 import { SHOP_PRODUCT_KIND, isShopProduct } from "@/lib/product-kind"
 import { getCategoryAndDescendantIds, getCatalogCategoryOptions, productMatchesCategoryIds, resolveCategoryFilter } from "@/lib/storefront/catalog"
 import { loadCatalogProducts } from "@/lib/storefront/catalog-data"
-import { loadCatalogCategories } from "@/lib/storefront/catalog-categories"
+import { getCatalogCategories } from "@/lib/storefront/catalog-server"
 import { createCatalogDiagnostics } from "@/lib/storefront/catalog-diagnostics"
 import type { CatalogObserver } from "@/lib/catalog-read"
 import CatalogRetry from "@/components/storefront/catalog-retry"
@@ -26,8 +26,8 @@ const PAGE_SIZE = 24
 
 async function getProductsPageData(q: string, observe: CatalogObserver) {
   const [categories, products] = await Promise.all([
-    loadCatalogCategories(() => api.getCategories(observe)),
-    loadCatalogProducts((skip, limit, query) => api.getProductsPage(skip, limit, query, observe), { productKind: SHOP_PRODUCT_KIND, q: q || null }, observe).catch(() => null),
+    getCatalogCategories(),
+    loadCatalogProducts((skip, limit, query) => api.getProductCardsPage(skip, limit, query, observe), { productKind: SHOP_PRODUCT_KIND, q: q || null }, observe).catch(() => null),
   ])
   return { products, categories: categories.items, categoriesAvailable: categories.available }
 }
